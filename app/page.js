@@ -137,6 +137,73 @@ function MethodRow({ step, reverse }) {
   );
 }
 
+/* ============ Starfield — canvas, minimal cost, 30fps ============ */
+function Starfield({ density = 0.00025, parallax = 0.35 }) {
+  const canvasRef = useRef(null);
+  const scrollYRef = useRef(0);
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    let stars = [];
+    let raf;
+    let last = 0;
+    const dpr = Math.min(2, window.devicePixelRatio || 1);
+
+    function resize() {
+      const w = canvas.clientWidth, h = canvas.clientHeight;
+      canvas.width = w * dpr; canvas.height = h * dpr;
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      const count = Math.floor(w * h * density);
+      stars = new Array(count).fill(0).map(() => ({
+        x: Math.random() * w,
+        y: Math.random() * h,
+        z: Math.random() * 0.7 + 0.3,   // depth 0.3–1
+        r: Math.random() * 1.1 + 0.3,
+        phase: Math.random() * Math.PI * 2,
+        speed: 0.4 + Math.random() * 1.1, // twinkle rate
+        drift: (Math.random() - 0.5) * 0.02,
+      }));
+    }
+
+    function onScroll() { scrollYRef.current = window.scrollY; }
+
+    function frame(t) {
+      // throttle to ~30fps
+      if (t - last < 33) { raf = requestAnimationFrame(frame); return; }
+      last = t;
+      const w = canvas.clientWidth, h = canvas.clientHeight;
+      ctx.clearRect(0, 0, w, h);
+      const sy = scrollYRef.current * parallax;
+      for (const s of stars) {
+        s.x += s.drift;
+        if (s.x < -2) s.x = w + 2; if (s.x > w + 2) s.x = -2;
+        const y = ((s.y - sy * s.z) % (h + 100) + (h + 100)) % (h + 100);
+        const alpha = 0.35 + Math.sin(t * 0.0009 * s.speed + s.phase) * 0.35;
+        const finalA = Math.max(0.05, Math.min(1, alpha * s.z));
+        ctx.beginPath();
+        ctx.fillStyle = s.z > 0.85
+          ? `rgba(230,220,200,${finalA})`
+          : `rgba(200,215,240,${finalA * 0.9})`;
+        ctx.arc(s.x, y, s.r * s.z, 0, Math.PI * 2);
+        ctx.fill();
+      }
+      raf = requestAnimationFrame(frame);
+    }
+
+    resize();
+    window.addEventListener('resize', resize);
+    window.addEventListener('scroll', onScroll, { passive: true });
+    raf = requestAnimationFrame(frame);
+    return () => {
+      cancelAnimationFrame(raf);
+      window.removeEventListener('resize', resize);
+      window.removeEventListener('scroll', onScroll);
+    };
+  }, [density, parallax]);
+  return <canvas ref={canvasRef} className="absolute inset-0 w-full h-full pointer-events-none" style={{ display: 'block' }} />;
+}
+
 function EarthGlobe({ size = 'large' }) {
   const sizeClass = size === 'large'
     ? 'w-[min(82vw,520px)] md:w-[min(42vw,560px)]'
@@ -200,11 +267,11 @@ function Landing({ onBegin, onExplore, stats }) {
             <span className="text-[10px] md:text-[11px] tracking-[0.28em] md:tracking-[0.3em] uppercase text-white/90 font-medium">Monument of Dreams</span>
           </div>
           <div className="hidden md:flex items-center gap-10 text-[12px] tracking-wide text-white/55">
-            <a href="#ethos" className="hover:text-white transition-colors duration-500">Ethos</a>
-            <a href="#how" className="hover:text-white transition-colors duration-500">Method</a>
-            <a href="#world" className="hover:text-white transition-colors duration-500">Live</a>
-            <a href="#mentor" className="hover:text-white transition-colors duration-500">Mentor</a>
-            <a href="#premium" className="hover:text-white transition-colors duration-500">Eternal</a>
+            <a href="#ethos" className="nav-link hover:text-white">Ethos</a>
+            <a href="#how" className="nav-link hover:text-white">Method</a>
+            <a href="#world" className="nav-link hover:text-white">Live</a>
+            <a href="#mentor" className="nav-link hover:text-white">Mentor</a>
+            <a href="#premium" className="nav-link hover:text-white">Eternal</a>
           </div>
           <button onClick={onBegin} className="text-[10px] md:text-[11px] tracking-[0.24em] uppercase text-white/80 hover:text-white transition-colors duration-500 flex items-center gap-2">
             Enter <ArrowUpRight className="w-3 h-3" />
@@ -215,8 +282,9 @@ function Landing({ onBegin, onExplore, stats }) {
       {/* HERO — Earth rotating on left, text on right */}
       <section className="relative min-h-[100svh] overflow-hidden flex items-center justify-center bg-black">
         <div className="absolute inset-0 pointer-events-none">
-          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(20,35,75,0.25),transparent_65%)]" />
-          <div className="absolute inset-0 dot-field opacity-30" />
+          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(20,35,75,0.28),transparent_65%)]" />
+          <Starfield density={0.00028} parallax={0.4} />
+          <div className="absolute inset-0 dot-field opacity-20" />
           <div className="absolute inset-0 vignette" />
         </div>
 
@@ -270,14 +338,14 @@ function Landing({ onBegin, onExplore, stats }) {
             >
               <button
                 onClick={onBegin}
-                className="group w-full sm:w-auto whitespace-nowrap px-8 md:px-10 py-4 rounded-full bg-white text-black text-[11px] tracking-[0.24em] uppercase font-medium hover:bg-white/95 transition-all duration-500 flex items-center justify-center gap-3"
+                className="group w-full sm:w-auto whitespace-nowrap px-8 md:px-10 py-4 rounded-full bg-white text-black text-[11px] tracking-[0.24em] uppercase font-medium hover:bg-white/95 hover:-translate-y-0.5 hover:shadow-[0_20px_50px_-15px_rgba(255,255,255,0.35)] active:translate-y-0 active:scale-[0.98] transition-all duration-500 flex items-center justify-center gap-3"
               >
                 Create My Monument
                 <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform duration-500" />
               </button>
               <button
                 onClick={onExplore}
-                className="w-full sm:w-auto whitespace-nowrap px-8 md:px-10 py-4 rounded-full border border-white/15 text-[11px] tracking-[0.24em] uppercase text-white/80 hover:text-white hover:border-white/40 transition-all duration-500"
+                className="w-full sm:w-auto whitespace-nowrap px-8 md:px-10 py-4 rounded-full border border-white/15 text-[11px] tracking-[0.24em] uppercase text-white/80 hover:text-white hover:border-white/40 hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.98] transition-all duration-500"
               >
                 Explore the Community
               </button>
@@ -449,7 +517,7 @@ function Landing({ onBegin, onExplore, stats }) {
                 <p className="text-white/50 text-[15px] font-light leading-[1.95] max-w-md mb-12">
                   A single, quiet subscription. No tiers. No ads. No noise. Only the monument, in the highest resolution we can render a human life.
                 </p>
-                <button onClick={onBegin} className="group w-full py-4 rounded-full bg-white text-black text-[11px] tracking-[0.24em] uppercase font-medium hover:bg-white/95 transition-all duration-500 flex items-center justify-center gap-3">
+                <button onClick={onBegin} className="group w-full py-4 rounded-full bg-white text-black text-[11px] tracking-[0.24em] uppercase font-medium hover:bg-white/95 hover:-translate-y-0.5 hover:shadow-[0_20px_50px_-15px_rgba(255,255,255,0.35)] active:translate-y-0 active:scale-[0.98] transition-all duration-500 flex items-center justify-center gap-3">
                   Begin Eternal
                   <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform duration-500" />
                 </button>
@@ -478,7 +546,7 @@ function Landing({ onBegin, onExplore, stats }) {
             viewport={{ once: true }}
             transition={{ duration: 1.6, delay: 0.7 }}
             onClick={onBegin}
-            className="mt-16 group px-12 py-5 rounded-full bg-white text-black text-[11px] tracking-[0.24em] uppercase font-medium hover:bg-white/95 transition-all duration-500 inline-flex items-center gap-3"
+            className="mt-16 group px-12 py-5 rounded-full bg-white text-black text-[11px] tracking-[0.24em] uppercase font-medium hover:bg-white/95 hover:-translate-y-0.5 hover:shadow-[0_20px_50px_-15px_rgba(255,255,255,0.35)] active:translate-y-0 active:scale-[0.98] transition-all duration-500 inline-flex items-center gap-3"
           >
             Begin
             <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform duration-500" />
@@ -890,8 +958,8 @@ function Community() {
       <p className="mt-4 text-platinum/50 text-base md:text-lg max-w-2xl">Not followers. Not likes. Only people, dreams, and the journeys they are laying down.</p>
       <div className="mt-12 md:mt-16 grid sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
         {builders.map((b, i) => (
-          <motion.div key={i} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }} className="glass rounded-xl p-6 hover:border-champagne/30 transition cursor-default">
-            <div className="flex items-center gap-3 mb-4"><div className="w-8 h-8 rounded-full bg-gradient-to-br from-champagne/40 to-platinum/10" /><div className="text-sm text-platinum">{b.name}</div></div>
+          <motion.div key={i} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05, duration: 0.7, ease: [0.16, 1, 0.3, 1] }} whileHover={{ y: -4 }} className="glass rounded-xl p-6 cursor-default group">
+            <div className="flex items-center gap-3 mb-4"><div className="w-8 h-8 rounded-full bg-gradient-to-br from-champagne/40 to-platinum/10 group-hover:from-champagne/60 transition-colors duration-500" /><div className="text-sm text-platinum">{b.name}</div></div>
             <div className="font-serif text-lg text-platinum/90 leading-tight line-clamp-3">{b.dream}</div>
             {b.values?.length > 0 && (
               <div className="mt-4 flex flex-wrap gap-1.5">
@@ -952,26 +1020,26 @@ function App() {
       <Ambient />
       <AnimatePresence mode="wait">
         {view === 'landing' && (
-          <motion.div key="landing" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.8 }}>
+          <motion.div key="landing" initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -12 }} transition={{ duration: 0.9, ease: [0.16, 1, 0.3, 1] }}>
             <Landing stats={stats} onBegin={() => setView('onboard')} onExplore={() => setView('community-preview')} />
           </motion.div>
         )}
         {view === 'community-preview' && (
-          <motion.div key="cp" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.6 }}>
+          <motion.div key="cp" initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -12 }} transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}>
             <div className="min-h-screen">
-              <div className="px-8 py-6"><button onClick={() => setView('landing')} className="text-xs tracking-[0.2em] uppercase text-platinum/50 hover:text-platinum">← Back</button></div>
+              <div className="px-6 md:px-8 py-6"><button onClick={() => setView('landing')} className="text-[10px] md:text-xs tracking-[0.2em] uppercase text-platinum/50 hover:text-platinum transition">← Back</button></div>
               <Community />
-              <div className="text-center py-16"><button onClick={() => setView('onboard')} className="px-8 py-4 rounded-full bg-champagne text-obsidian text-xs tracking-[0.2em] uppercase hover:bg-champagne-soft transition gold-glow">Join · Create My Monument</button></div>
+              <div className="text-center py-16 px-6"><button onClick={() => setView('onboard')} className="px-8 py-4 rounded-full bg-champagne text-obsidian text-[10px] md:text-xs tracking-[0.2em] uppercase hover:bg-champagne-soft hover:-translate-y-0.5 hover:shadow-[0_20px_50px_-15px_rgba(212,180,131,0.4)] active:translate-y-0 active:scale-[0.98] transition-all duration-500 gold-glow">Join · Create My Monument</button></div>
             </div>
           </motion.div>
         )}
         {view === 'onboard' && (
-          <motion.div key="ob" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.6 }}>
+          <motion.div key="ob" initial={{ opacity: 0, scale: 0.985, y: 8 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 1.01, y: -8 }} transition={{ duration: 0.85, ease: [0.16, 1, 0.3, 1] }}>
             <Onboard onDone={(m) => { setMonument(m); setView('home'); }} onCancel={() => setView('landing')} />
           </motion.div>
         )}
         {['home', 'timeline', 'mentor', 'community', 'profile'].includes(view) && monument && (
-          <motion.div key={view} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.5 }}>
+          <motion.div key={view} initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}>
             <Shell view={view} setView={setView} monument={monument}>
               {view === 'home' && <Home monument={monument} setView={setView} />}
               {view === 'timeline' && <Timeline monument={monument} />}
