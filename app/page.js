@@ -1,0 +1,694 @@
+'use client';
+
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { motion, AnimatePresence, useScroll, useTransform } from 'framer-motion';
+import { v4 as uuidv4 } from 'uuid';
+import {
+  ArrowRight, ArrowUpRight, Sparkles, Feather, Flame, Mountain,
+  MessageSquare, Send, Plus, Users, Home as HomeIcon,
+  History, User, ChevronRight, Check, Loader2, Star, Trophy, RotateCcw,
+  Circle
+} from 'lucide-react';
+import { toast } from 'sonner';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+
+/* ============ Helpers ============ */
+function getUserId() {
+  if (typeof window === 'undefined') return null;
+  let uid = localStorage.getItem('mod_uid');
+  if (!uid) { uid = uuidv4(); localStorage.setItem('mod_uid', uid); }
+  return uid;
+}
+
+const ENTRY_TYPES = [
+  { key: 'milestone', label: 'Milestone', icon: Trophy },
+  { key: 'reflection', label: 'Reflection', icon: Feather },
+  { key: 'victory', label: 'Victory', icon: Star },
+  { key: 'failure', label: 'Failure', icon: Flame },
+  { key: 'restart', label: 'Restart', icon: RotateCcw },
+];
+
+function Ambient() {
+  return (
+    <div className="fixed inset-0 -z-10 overflow-hidden pointer-events-none">
+      <div className="absolute inset-0 bg-[radial-gradient(1200px_600px_at_20%_-10%,rgba(212,180,131,0.08),transparent),radial-gradient(900px_500px_at_90%_20%,rgba(238,236,229,0.04),transparent)]" />
+      <div className="absolute inset-0 dot-field opacity-40" />
+      <div className="absolute inset-0 vignette" />
+    </div>
+  );
+}
+
+function Globe({ size = 480 }) {
+  const points = useMemo(() => {
+    const N = 900;
+    const arr = [];
+    for (let i = 0; i < N; i++) {
+      const y = 1 - (i / (N - 1)) * 2;
+      const r = Math.sqrt(1 - y * y);
+      const theta = i * Math.PI * (3 - Math.sqrt(5));
+      arr.push({ x: Math.cos(theta) * r, y, z: Math.sin(theta) * r });
+    }
+    return arr;
+  }, []);
+  const [rot, setRot] = useState(0);
+  useEffect(() => {
+    let raf;
+    const tick = () => { setRot((r) => (r + 0.0025) % (Math.PI * 2)); raf = requestAnimationFrame(tick); };
+    raf = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(raf);
+  }, []);
+  const R = size / 2 - 12; const cx = size / 2, cy = size / 2;
+  return (
+    <div className="relative" style={{ width: size, height: size }}>
+      <div className="absolute inset-0 rounded-full gold-glow" />
+      <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} className="relative">
+        <defs>
+          <radialGradient id="gShade" cx="50%" cy="45%" r="55%">
+            <stop offset="0%" stopColor="rgba(212,180,131,0.06)" />
+            <stop offset="70%" stopColor="rgba(9,9,9,0)" />
+          </radialGradient>
+        </defs>
+        <circle cx={cx} cy={cy} r={R} fill="url(#gShade)" />
+        {points.map((p, i) => {
+          const cR = Math.cos(rot), sR = Math.sin(rot);
+          const x = p.x * cR - p.z * sR;
+          const z = p.x * sR + p.z * cR;
+          const front = z > -0.2;
+          const opacity = front ? 0.35 + z * 0.55 : 0.05;
+          const s2 = front ? 1.2 + z * 0.9 : 0.8;
+          return <circle key={i} cx={cx + x * R} cy={cy + p.y * R} r={s2} fill={i % 37 === 0 ? '#d4b483' : '#eeece5'} opacity={opacity} />;
+        })}
+      </svg>
+      <div className="absolute inset-2 rounded-full border animate-slowspin" style={{ borderColor: 'rgba(212,180,131,0.08)' }} />
+    </div>
+  );
+}
+
+function Counter({ value, duration = 1600 }) {
+  const [n, setN] = useState(0);
+  useEffect(() => {
+    const start = performance.now();
+    const step = (t) => {
+      const p = Math.min(1, (t - start) / duration);
+      const eased = 1 - Math.pow(1 - p, 3);
+      setN(Math.floor(value * eased));
+      if (p < 1) requestAnimationFrame(step);
+    };
+    const raf = requestAnimationFrame(step);
+    return () => cancelAnimationFrame(raf);
+  }, [value, duration]);
+  return <span>{n.toLocaleString()}</span>;
+}
+
+function Landing({ onBegin, onExplore, stats }) {
+  const { scrollYProgress } = useScroll();
+  const parY = useTransform(scrollYProgress, [0, 1], [0, -80]);
+  return (
+    <div className="relative">
+      <nav className="fixed top-0 inset-x-0 z-40">
+        <div className="max-w-7xl mx-auto px-8 py-6 flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <div className="w-6 h-6 rounded-sm bg-gradient-to-br from-champagne to-platinum/40" />
+            <span className="text-sm tracking-[0.2em] uppercase text-platinum/90">Monument of Dreams</span>
+          </div>
+          <div className="hidden md:flex items-center gap-8 text-sm text-platinum/60">
+            <a className="hover:text-platinum transition" href="#how">How it works</a>
+            <a className="hover:text-platinum transition" href="#world">Live</a>
+            <a className="hover:text-platinum transition" href="#mentor">Mentor</a>
+            <a className="hover:text-platinum transition" href="#premium">Premium</a>
+          </div>
+          <button onClick={onBegin} className="text-xs tracking-widest uppercase text-platinum/80 hover:text-champagne transition flex items-center gap-2">
+            Enter <ArrowUpRight className="w-3 h-3" />
+          </button>
+        </div>
+      </nav>
+
+      <section className="relative min-h-screen flex items-center justify-center px-8 pt-24">
+        <motion.div style={{ y: parY }} className="absolute inset-0 flex items-center justify-center pointer-events-none">
+          <Globe size={720} />
+        </motion.div>
+        <div className="relative max-w-5xl mx-auto text-center">
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 1.2 }}>
+            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full glass text-xs tracking-[0.2em] uppercase text-platinum/70 mb-10">
+              <span className="w-1.5 h-1.5 rounded-full bg-champagne animate-pulse" />
+              A new category of software
+            </div>
+          </motion.div>
+          <motion.h1 initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 1.6, delay: 0.2 }} className="font-serif text-[54px] md:text-[92px] leading-[1.02] tracking-tight text-platinum">
+            Every dream deserves<br />a <em className="text-gold-shimmer not-italic">monument</em>.
+          </motion.h1>
+          <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 1.6, delay: 0.8 }} className="mt-8 text-lg md:text-xl text-platinum/60 max-w-2xl mx-auto font-light leading-relaxed">
+            Preserve your journey. Build your future.<br />Become who you dream of becoming.
+          </motion.p>
+          <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 1.2, delay: 1.2 }} className="mt-14 flex flex-col md:flex-row items-center justify-center gap-4">
+            <button onClick={onBegin} className="group relative px-8 py-4 rounded-full bg-platinum text-obsidian text-sm tracking-[0.15em] uppercase font-medium hover:bg-white transition-all gold-glow">
+              <span className="flex items-center gap-2">Create My Monument <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition" /></span>
+            </button>
+            <button onClick={onExplore} className="px-8 py-4 rounded-full glass text-sm tracking-[0.15em] uppercase text-platinum/90 hover:text-platinum hover:border-champagne/40 transition-all">
+              Explore the Community
+            </button>
+          </motion.div>
+        </div>
+        <div className="absolute bottom-10 left-1/2 -translate-x-1/2 text-platinum/40 text-[10px] tracking-[0.3em] uppercase flex flex-col items-center gap-3">
+          <span>Scroll</span>
+          <div className="w-px h-10 shimmer-line" />
+        </div>
+      </section>
+
+      <section id="how" className="relative px-8 py-40">
+        <div className="max-w-6xl mx-auto">
+          <div className="text-xs tracking-[0.3em] uppercase text-champagne/80 mb-6">How it works</div>
+          <h2 className="font-serif text-5xl md:text-6xl text-platinum tracking-tight max-w-3xl leading-tight">
+            Three acts. One life. <em className="text-platinum/50 not-italic">Preserved forever.</em>
+          </h2>
+          <div className="mt-20 grid md:grid-cols-3 gap-px bg-white/[0.04] rounded-2xl overflow-hidden border hairline">
+            {[
+              { n: '01', t: 'Choose your Dream', d: 'Declare what you are here to become. Not a task list. A north star.' },
+              { n: '02', t: 'Build your Journey', d: 'Every reflection, victory, failure and restart becomes a permanent brick in the wall.' },
+              { n: '03', t: 'Leave your Monument', d: 'A living museum of your becoming, curated by an AI Mentor who remembers everything.' },
+            ].map((s, i) => (
+              <motion.div key={s.n} initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, margin: '-80px' }} transition={{ duration: 0.9, delay: i * 0.15 }} className="bg-obsidian p-10 md:p-12 min-h-[320px] flex flex-col justify-between hover:bg-obsidian-2 transition">
+                <div className="text-xs tracking-[0.3em] text-champagne/70">{s.n}</div>
+                <div>
+                  <div className="font-serif text-3xl text-platinum mb-4">{s.t}</div>
+                  <div className="text-platinum/50 leading-relaxed">{s.d}</div>
+                </div>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section id="world" className="relative px-8 py-40 border-t hairline">
+        <div className="max-w-6xl mx-auto">
+          <div className="flex items-end justify-between mb-16 flex-wrap gap-6">
+            <div>
+              <div className="text-xs tracking-[0.3em] uppercase text-champagne/80 mb-4">Live · Global</div>
+              <h2 className="font-serif text-5xl md:text-6xl text-platinum tracking-tight max-w-2xl leading-tight">
+                The world is <em className="text-gold-shimmer not-italic">building</em>.
+              </h2>
+            </div>
+            <div className="text-platinum/40 text-sm max-w-sm">Real dreams. Real people. Preserved in a living monument, in real time.</div>
+          </div>
+          <div className="grid md:grid-cols-4 gap-6">
+            {[
+              { label: 'Dreams created', value: stats?.dreamsCreated ?? 12847 },
+              { label: 'Completed today', value: stats?.dreamsCompletedToday ?? 342 },
+              { label: 'Builders online', value: stats?.buildersOnline ?? 1247 },
+              { label: 'Countries', value: stats?.countries ?? 96 },
+            ].map((s, i) => (
+              <motion.div key={s.label} initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.8, delay: i * 0.1 }} className="glass rounded-xl p-8">
+                <div className="font-serif text-5xl text-platinum"><Counter value={s.value} /></div>
+                <div className="text-xs tracking-[0.2em] uppercase text-platinum/50 mt-3">{s.label}</div>
+              </motion.div>
+            ))}
+          </div>
+          <div className="mt-16 flex justify-center"><Globe size={520} /></div>
+        </div>
+      </section>
+
+      <section id="mentor" className="relative px-8 py-40 border-t hairline">
+        <div className="max-w-6xl mx-auto grid md:grid-cols-2 gap-16 items-center">
+          <div>
+            <div className="text-xs tracking-[0.3em] uppercase text-champagne/80 mb-6">Monument AI</div>
+            <h2 className="font-serif text-5xl md:text-6xl text-platinum tracking-tight leading-tight">
+              A mentor who <em className="text-gold-shimmer not-italic">remembers</em>.
+            </h2>
+            <p className="mt-8 text-platinum/60 text-lg leading-relaxed font-light">
+              Not another chatbot. The Monument Mentor knows your dream, your journey, your patterns, your relapses, your victories. It speaks with the calm of a curator and the precision of a friend who has been paying attention for years.
+            </p>
+            <div className="mt-10 space-y-4">
+              {['Reflects on your actual entries', 'Names patterns you cannot see', 'Gives one specific next step', 'Remembers forever'].map((f, i) => (
+                <div key={i} className="flex items-center gap-4 text-platinum/70">
+                  <div className="w-6 h-6 rounded-full glass flex items-center justify-center"><Check className="w-3 h-3 text-champagne" /></div>
+                  <span className="text-sm">{f}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+          <motion.div initial={{ opacity: 0, x: 30 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }} transition={{ duration: 1 }} className="glass rounded-2xl p-8 space-y-4 animate-floaty">
+            <div className="text-xs tracking-[0.3em] uppercase text-champagne/80">Session · Sunday</div>
+            <div className="text-platinum/80 leading-relaxed font-serif text-xl">
+              &ldquo;I see three restarts this month around the same block. This is not weakness. It is a signal. The dream is asking for a smaller commitment, not a bigger one. Try 12 minutes tomorrow. Only 12.&rdquo;
+            </div>
+            <div className="text-xs text-platinum/40 pt-4 border-t hairline">Monument Mentor</div>
+          </motion.div>
+        </div>
+      </section>
+
+      <section id="premium" className="relative px-8 py-40 border-t hairline">
+        <div className="max-w-4xl mx-auto text-center">
+          <div className="text-xs tracking-[0.3em] uppercase text-champagne/80 mb-6">Monument Eternal</div>
+          <h2 className="font-serif text-5xl md:text-6xl text-platinum tracking-tight leading-tight">
+            For those who <em className="text-gold-shimmer not-italic">refuse</em> to disappear.
+          </h2>
+          <p className="mt-8 text-platinum/60 text-lg font-light max-w-2xl mx-auto">
+            Unlimited Monument. Yearly Life Book. Time Capsules. Life Chapters. Advanced pattern analytics.
+          </p>
+          <div className="mt-12 flex justify-center">
+            <div className="glass rounded-2xl p-12 max-w-md w-full gold-glow">
+              <div className="text-xs tracking-[0.3em] uppercase text-champagne mb-6">Eternal</div>
+              <div className="font-serif text-6xl text-platinum">$12<span className="text-lg text-platinum/40">/mo</span></div>
+              <div className="mt-8 space-y-3 text-left">
+                {['Unlimited Monument', 'Monument AI Mentor', 'Yearly Life Book', 'Timeline forever', 'Life Chapters', 'Time Capsules', 'Journey Export'].map((f) => (
+                  <div key={f} className="flex items-center gap-3 text-platinum/70 text-sm">
+                    <Circle className="w-1.5 h-1.5 fill-champagne text-champagne" />{f}
+                  </div>
+                ))}
+              </div>
+              <button onClick={onBegin} className="mt-10 w-full py-4 rounded-full bg-platinum text-obsidian text-xs tracking-[0.2em] uppercase font-medium hover:bg-white transition">Begin Eternal</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section className="relative px-8 py-40 border-t hairline text-center">
+        <h2 className="font-serif text-6xl md:text-8xl text-platinum tracking-tight leading-[0.95] max-w-4xl mx-auto">
+          Your life<br />is <em className="text-gold-shimmer not-italic">moving</em>.
+        </h2>
+        <p className="mt-8 text-platinum/50 text-lg">Let it leave a monument.</p>
+        <button onClick={onBegin} className="mt-14 group px-10 py-5 rounded-full bg-platinum text-obsidian text-sm tracking-[0.2em] uppercase font-medium hover:bg-white transition-all gold-glow">
+          <span className="flex items-center gap-2">Begin <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition" /></span>
+        </button>
+        <div className="mt-32 text-xs tracking-[0.3em] uppercase text-platinum/30">Monument of Dreams · MMXXV</div>
+      </section>
+    </div>
+  );
+}
+
+function Onboard({ onDone, onCancel }) {
+  const [step, setStep] = useState(0);
+  const [name, setName] = useState('');
+  const [dream, setDream] = useState('');
+  const [purpose, setPurpose] = useState('');
+  const [timeframe, setTimeframe] = useState('');
+  const [values, setValues] = useState([]);
+  const [saving, setSaving] = useState(false);
+  const VALUE_OPTIONS = ['Discipline', 'Freedom', 'Craft', 'Legacy', 'Love', 'Truth', 'Adventure', 'Mastery', 'Health', 'Impact'];
+
+  const steps = [
+    { q: 'What do we call the builder?', hint: 'Your first name is enough.', input: (
+      <Input autoFocus value={name} onChange={(e) => setName(e.target.value)} placeholder="Your name" className="bg-transparent border-0 border-b hairline-strong rounded-none text-4xl md:text-5xl font-serif h-20 focus-visible:ring-0 px-0 text-platinum placeholder:text-platinum/20" />
+    ), canNext: name.trim().length > 0 },
+    { q: 'What is the dream?', hint: 'One sentence. The one you are afraid to say out loud.', input: (
+      <Textarea autoFocus value={dream} onChange={(e) => setDream(e.target.value)} placeholder="I dream of…" className="bg-transparent border-0 border-b hairline-strong rounded-none text-3xl md:text-4xl font-serif focus-visible:ring-0 px-0 text-platinum placeholder:text-platinum/20 min-h-[120px] resize-none leading-tight" />
+    ), canNext: dream.trim().length > 4 },
+    { q: 'Why this dream? Why you?', hint: 'The reason that would survive a bad day.', input: (
+      <Textarea autoFocus value={purpose} onChange={(e) => setPurpose(e.target.value)} placeholder="Because…" className="bg-transparent border-0 border-b hairline-strong rounded-none text-2xl md:text-3xl font-serif focus-visible:ring-0 px-0 text-platinum placeholder:text-platinum/20 min-h-[120px] resize-none" />
+    ), canNext: purpose.trim().length > 3 },
+    { q: 'By when?', hint: 'A date, a season, a chapter of life.', input: (
+      <Input autoFocus value={timeframe} onChange={(e) => setTimeframe(e.target.value)} placeholder="e.g. by 2028, before I turn 30, this decade" className="bg-transparent border-0 border-b hairline-strong rounded-none text-2xl md:text-3xl font-serif focus-visible:ring-0 px-0 text-platinum placeholder:text-platinum/20 h-16" />
+    ), canNext: timeframe.trim().length > 0 },
+    { q: 'What values guide the build?', hint: 'Pick three. These become inscriptions on the monument.', input: (
+      <div className="flex flex-wrap gap-3">
+        {VALUE_OPTIONS.map((v) => {
+          const active = values.includes(v);
+          return (
+            <button key={v} onClick={() => { if (active) setValues(values.filter((x) => x !== v)); else if (values.length < 3) setValues([...values, v]); }} className={`px-5 py-2.5 rounded-full text-sm tracking-wider transition border ${active ? 'bg-champagne/15 border-champagne/50 text-champagne' : 'glass text-platinum/70 hover:border-platinum/30'}`}>{v}</button>
+          );
+        })}
+      </div>
+    ), canNext: values.length === 3 },
+  ];
+  const s = steps[step];
+
+  async function submit() {
+    setSaving(true);
+    try {
+      const uid = getUserId();
+      const res = await fetch('/api/monuments', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ userId: uid, name, dream, purpose, timeframe, values }) });
+      const data = await res.json();
+      if (data.monument) { toast.success('Monument raised.'); onDone(data.monument); }
+      else toast.error(data.error || 'Failed');
+    } catch { toast.error('Network error'); } finally { setSaving(false); }
+  }
+
+  return (
+    <div className="min-h-screen flex flex-col relative">
+      <div className="absolute top-0 inset-x-0 px-8 py-6 flex justify-between items-center">
+        <button onClick={onCancel} className="text-xs tracking-[0.2em] uppercase text-platinum/40 hover:text-platinum transition">← Back</button>
+        <div className="flex gap-2">
+          {steps.map((_, i) => (<div key={i} className={`w-8 h-px transition ${i <= step ? 'bg-champagne' : 'bg-platinum/15'}`} />))}
+        </div>
+      </div>
+      <div className="flex-1 flex items-center justify-center px-8">
+        <div className="max-w-3xl w-full">
+          <AnimatePresence mode="wait">
+            <motion.div key={step} initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -24 }} transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}>
+              <div className="text-xs tracking-[0.3em] uppercase text-champagne/70 mb-6">Chapter {String(step + 1).padStart(2, '0')} of 05</div>
+              <h2 className="font-serif text-5xl md:text-6xl text-platinum tracking-tight leading-tight">{s.q}</h2>
+              <p className="mt-4 text-platinum/40 text-sm">{s.hint}</p>
+              <div className="mt-16">{s.input}</div>
+              <div className="mt-16 flex items-center justify-between">
+                <button disabled={step === 0} onClick={() => setStep(step - 1)} className="text-xs tracking-[0.2em] uppercase text-platinum/50 hover:text-platinum transition disabled:opacity-20">Previous</button>
+                {step < steps.length - 1 ? (
+                  <button disabled={!s.canNext} onClick={() => setStep(step + 1)} className="group px-8 py-4 rounded-full bg-platinum text-obsidian text-xs tracking-[0.2em] uppercase disabled:opacity-30 disabled:cursor-not-allowed hover:bg-white transition flex items-center gap-2">Continue <ArrowRight className="w-3 h-3 group-hover:translate-x-1 transition" /></button>
+                ) : (
+                  <button disabled={!s.canNext || saving} onClick={submit} className="group px-8 py-4 rounded-full bg-champagne text-obsidian text-xs tracking-[0.2em] uppercase disabled:opacity-30 hover:bg-champagne-soft transition flex items-center gap-2 gold-glow">
+                    {saving ? <Loader2 className="w-3 h-3 animate-spin" /> : <Sparkles className="w-3 h-3" />} Raise the Monument
+                  </button>
+                )}
+              </div>
+            </motion.div>
+          </AnimatePresence>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function Shell({ view, setView, children, monument }) {
+  const nav = [
+    { k: 'home', label: 'Home', icon: HomeIcon },
+    { k: 'timeline', label: 'Monument', icon: History },
+    { k: 'mentor', label: 'Mentor', icon: MessageSquare },
+    { k: 'community', label: 'Community', icon: Users },
+    { k: 'profile', label: 'Profile', icon: User },
+  ];
+  return (
+    <div className="min-h-screen flex">
+      <aside className="w-64 border-r hairline p-8 flex flex-col justify-between sticky top-0 h-screen">
+        <div>
+          <div className="flex items-center gap-2 mb-16">
+            <div className="w-5 h-5 rounded-sm bg-gradient-to-br from-champagne to-platinum/40" />
+            <span className="text-[10px] tracking-[0.3em] uppercase text-platinum/70">Monument</span>
+          </div>
+          <nav className="space-y-1">
+            {nav.map((n) => {
+              const active = view === n.k; const Icon = n.icon;
+              return (
+                <button key={n.k} onClick={() => setView(n.k)} className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition ${active ? 'bg-white/[0.04] text-platinum' : 'text-platinum/50 hover:text-platinum hover:bg-white/[0.02]'}`}>
+                  <Icon className="w-4 h-4" />{n.label}
+                  {active && <ChevronRight className="w-3 h-3 ml-auto text-champagne" />}
+                </button>
+              );
+            })}
+          </nav>
+        </div>
+        <div>
+          {monument && (
+            <div className="glass rounded-lg p-4">
+              <div className="text-[9px] tracking-[0.3em] uppercase text-champagne/70 mb-2">Dream</div>
+              <div className="text-xs text-platinum/80 leading-relaxed line-clamp-3">{monument.dream}</div>
+            </div>
+          )}
+        </div>
+      </aside>
+      <main className="flex-1 min-w-0">{children}</main>
+    </div>
+  );
+}
+
+function Home({ monument, setView }) {
+  const [insight, setInsight] = useState(null);
+  const [entries, setEntries] = useState([]);
+  useEffect(() => {
+    const uid = getUserId();
+    fetch(`/api/insight?userId=${uid}`).then(r => r.json()).then(d => setInsight(d));
+    fetch(`/api/entries?monumentId=${monument.id}`).then(r => r.json()).then(d => setEntries(d.entries || []));
+  }, [monument.id]);
+  const daysSince = Math.floor((Date.now() - new Date(monument.createdAt).getTime()) / 86400000) + 1;
+  return (
+    <div className="px-16 py-16 max-w-6xl">
+      <div className="text-xs tracking-[0.3em] uppercase text-champagne/80 mb-4">{new Date().toLocaleDateString('en', { weekday: 'long', month: 'long', day: 'numeric' })}</div>
+      <h1 className="font-serif text-6xl text-platinum tracking-tight">Welcome back, <em className="text-gold-shimmer not-italic">{monument.name}</em>.</h1>
+      <p className="mt-4 text-platinum/50 text-lg">Day {daysSince} of your monument.</p>
+      <div className="mt-16 grid md:grid-cols-3 gap-6">
+        <div className="glass rounded-xl p-6">
+          <div className="text-[10px] tracking-[0.3em] uppercase text-platinum/40 mb-3">Today&apos;s progress</div>
+          <div className="font-serif text-4xl text-platinum">{entries.length}</div>
+          <div className="text-xs text-platinum/50 mt-1">bricks laid</div>
+        </div>
+        <div className="glass rounded-xl p-6 md:col-span-2">
+          <div className="text-[10px] tracking-[0.3em] uppercase text-champagne/70 mb-3">Your Dream</div>
+          <div className="font-serif text-2xl text-platinum leading-tight">{monument.dream}</div>
+          <div className="mt-3 text-xs text-platinum/40">By {monument.timeframe}</div>
+        </div>
+      </div>
+      <div className="mt-6 glass rounded-xl p-8">
+        <div className="flex items-center gap-2 mb-4">
+          <Sparkles className="w-4 h-4 text-champagne" />
+          <div className="text-[10px] tracking-[0.3em] uppercase text-champagne/70">Monument AI · Today&apos;s insight</div>
+        </div>
+        {insight?.insight ? (
+          <div className="space-y-3">
+            {insight.insight.map((s, i) => (<div key={i} className="text-platinum/80 leading-relaxed font-light">{s}</div>))}
+          </div>
+        ) : <div className="text-platinum/40 text-sm">Loading reflection…</div>}
+        <button onClick={() => setView('mentor')} className="mt-6 text-xs tracking-[0.2em] uppercase text-champagne hover:text-champagne-soft transition flex items-center gap-2">Ask the Mentor <ArrowRight className="w-3 h-3" /></button>
+      </div>
+      <div className="mt-16 flex items-end justify-between">
+        <h2 className="font-serif text-3xl text-platinum">Next step</h2>
+        <button onClick={() => setView('timeline')} className="text-xs tracking-[0.2em] uppercase text-platinum/50 hover:text-platinum">Open Monument →</button>
+      </div>
+      <div className="mt-6 glass rounded-xl p-8 flex items-center justify-between">
+        <div className="text-platinum/80 leading-relaxed">Lay a new brick. Reflection, victory, failure or restart — every act preserves the journey.</div>
+        <button onClick={() => setView('timeline')} className="px-6 py-3 rounded-full bg-platinum text-obsidian text-xs tracking-[0.2em] uppercase hover:bg-white transition flex items-center gap-2"><Plus className="w-3 h-3" /> Add</button>
+      </div>
+    </div>
+  );
+}
+
+function Timeline({ monument }) {
+  const [entries, setEntries] = useState([]);
+  const [adding, setAdding] = useState(false);
+  const [type, setType] = useState('reflection');
+  const [title, setTitle] = useState('');
+  const [content, setContent] = useState('');
+  const [saving, setSaving] = useState(false);
+  async function load() {
+    const r = await fetch(`/api/entries?monumentId=${monument.id}`);
+    const d = await r.json();
+    setEntries(d.entries || []);
+  }
+  useEffect(() => { load(); }, [monument.id]);
+  async function save() {
+    if (!content.trim()) return;
+    setSaving(true);
+    const r = await fetch('/api/entries', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ monumentId: monument.id, userId: getUserId(), type, title, content }) });
+    const d = await r.json();
+    if (d.entry) { toast.success('Preserved.'); setContent(''); setTitle(''); setAdding(false); await load(); }
+    setSaving(false);
+  }
+  return (
+    <div className="px-16 py-16 max-w-4xl">
+      <div className="text-xs tracking-[0.3em] uppercase text-champagne/80 mb-4">The Monument</div>
+      <h1 className="font-serif text-6xl text-platinum tracking-tight">{monument.name}&apos;s Monument</h1>
+      <p className="mt-4 text-platinum/50 text-lg leading-relaxed max-w-2xl">{monument.dream}</p>
+      <div className="mt-4 flex gap-2 flex-wrap">
+        {(monument.values || []).map((v) => (<span key={v} className="text-[10px] tracking-[0.2em] uppercase text-champagne/80 px-3 py-1 rounded-full border border-champagne/20">{v}</span>))}
+      </div>
+      <div className="mt-12">
+        {!adding ? (
+          <button onClick={() => setAdding(true)} className="w-full glass rounded-xl p-6 text-left hover:border-champagne/30 transition group">
+            <div className="flex items-center gap-3 text-platinum/50 group-hover:text-platinum transition"><Plus className="w-4 h-4" /><span className="text-sm">Preserve a moment</span></div>
+          </button>
+        ) : (
+          <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="glass rounded-xl p-8 space-y-6">
+            <div className="flex flex-wrap gap-2">
+              {ENTRY_TYPES.map((t) => {
+                const Icon = t.icon; const active = type === t.key;
+                return (<button key={t.key} onClick={() => setType(t.key)} className={`flex items-center gap-2 px-4 py-2 rounded-full text-xs tracking-wider transition border ${active ? 'bg-champagne/15 border-champagne/50 text-champagne' : 'hairline text-platinum/60 hover:text-platinum'}`}><Icon className="w-3 h-3" /> {t.label}</button>);
+              })}
+            </div>
+            <Input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Title (optional)" className="bg-transparent border-0 border-b hairline rounded-none text-2xl font-serif h-14 px-0 focus-visible:ring-0 text-platinum placeholder:text-platinum/20" />
+            <Textarea value={content} onChange={(e) => setContent(e.target.value)} placeholder="What happened. What it means." className="bg-transparent border hairline rounded-lg text-base focus-visible:ring-1 focus-visible:ring-champagne/40 text-platinum placeholder:text-platinum/20 min-h-[140px]" />
+            <div className="flex justify-end gap-3">
+              <button onClick={() => setAdding(false)} className="px-6 py-2.5 text-xs tracking-[0.2em] uppercase text-platinum/50 hover:text-platinum">Cancel</button>
+              <button disabled={saving || !content.trim()} onClick={save} className="px-6 py-2.5 rounded-full bg-champagne text-obsidian text-xs tracking-[0.2em] uppercase disabled:opacity-30 hover:bg-champagne-soft transition flex items-center gap-2">
+                {saving ? <Loader2 className="w-3 h-3 animate-spin" /> : <Check className="w-3 h-3" />} Preserve
+              </button>
+            </div>
+          </motion.div>
+        )}
+      </div>
+      <div className="mt-16 relative pl-12">
+        <div className="absolute left-4 top-2 bottom-2 w-px timeline-line" />
+        <div className="space-y-10">
+          {entries.map((e, i) => {
+            const t = ENTRY_TYPES.find((x) => x.key === e.type) || { icon: Mountain, label: e.type };
+            const Icon = t.icon;
+            return (
+              <motion.div key={e.id} initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.7, delay: i * 0.05 }} className="relative">
+                <div className="absolute -left-12 top-1 w-8 h-8 rounded-full glass flex items-center justify-center border border-champagne/20"><Icon className="w-3.5 h-3.5 text-champagne" /></div>
+                <div className="text-[10px] tracking-[0.3em] uppercase text-champagne/70 mb-2">{t.label} · {new Date(e.createdAt).toLocaleDateString('en', { month: 'long', day: 'numeric', year: 'numeric' })}</div>
+                {e.title && <div className="font-serif text-2xl text-platinum mb-2">{e.title}</div>}
+                <div className="text-platinum/70 leading-relaxed font-light whitespace-pre-wrap">{e.content}</div>
+              </motion.div>
+            );
+          })}
+          {entries.length === 0 && (<div className="text-platinum/40 text-sm">The monument awaits its first inscription.</div>)}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function Mentor() {
+  const [messages, setMessages] = useState([]);
+  const [input, setInput] = useState('');
+  const [sending, setSending] = useState(false);
+  const scrollRef = useRef(null);
+  useEffect(() => {
+    const uid = getUserId();
+    fetch(`/api/mentor/history?userId=${uid}`).then(r => r.json()).then(d => setMessages(d.messages || []));
+  }, []);
+  useEffect(() => { scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: 'smooth' }); }, [messages]);
+  async function send() {
+    if (!input.trim()) return;
+    const uid = getUserId(); const msg = input.trim(); setInput('');
+    setMessages((m) => [...m, { role: 'user', content: msg, createdAt: new Date().toISOString() }]);
+    setSending(true);
+    try {
+      const r = await fetch('/api/mentor', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ userId: uid, message: msg }) });
+      const d = await r.json();
+      setMessages((m) => [...m, { role: 'assistant', content: d.reply, createdAt: new Date().toISOString() }]);
+      if (d.usedFallback) toast.warning('Mentor is thinking in reserve mode.');
+    } catch { toast.error('Could not reach the Mentor.'); } finally { setSending(false); }
+  }
+  const starters = ['Reflect on my last week.', 'What pattern do you see in my journey?', 'Give me one honest next step.', 'I feel stuck. Where should I look?'];
+  return (
+    <div className="flex flex-col h-screen">
+      <div className="px-16 py-8 border-b hairline">
+        <div className="text-xs tracking-[0.3em] uppercase text-champagne/80">Monument Mentor</div>
+        <div className="font-serif text-3xl text-platinum mt-1">A conversation, preserved.</div>
+      </div>
+      <div ref={scrollRef} className="flex-1 overflow-y-auto px-16 py-10">
+        <div className="max-w-3xl mx-auto space-y-8">
+          {messages.length === 0 && (
+            <div className="space-y-6">
+              <div className="text-platinum/60 leading-relaxed max-w-xl">I have been reading your monument. Ask me anything about the journey. I remember all of it.</div>
+              <div className="flex flex-wrap gap-2">
+                {starters.map((s) => (<button key={s} onClick={() => setInput(s)} className="text-xs px-4 py-2 rounded-full glass hover:border-champagne/40 transition text-platinum/70">{s}</button>))}
+              </div>
+            </div>
+          )}
+          {messages.map((m, i) => (
+            <motion.div key={i} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className={`flex ${m.role === 'user' ? 'justify-end' : 'justify-start'}`}>
+              <div className={`max-w-[80%] ${m.role === 'user' ? 'glass px-5 py-3 rounded-2xl rounded-br-md text-platinum' : ''}`}>
+                {m.role === 'assistant' && (<div className="text-[10px] tracking-[0.3em] uppercase text-champagne/70 mb-2">Mentor</div>)}
+                <div className={`leading-relaxed ${m.role === 'assistant' ? 'font-serif text-xl text-platinum/90' : 'text-sm'}`}>{m.content}</div>
+              </div>
+            </motion.div>
+          ))}
+          {sending && (<div className="flex items-center gap-3 text-platinum/40 text-sm"><Loader2 className="w-3 h-3 animate-spin" /> the mentor is reflecting…</div>)}
+        </div>
+      </div>
+      <div className="border-t hairline px-16 py-6">
+        <div className="max-w-3xl mx-auto flex items-center gap-3 glass rounded-full px-6 py-3">
+          <input value={input} onChange={(e) => setInput(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send(); } }} placeholder="Speak to the Mentor…" className="flex-1 bg-transparent outline-none text-platinum placeholder:text-platinum/30 text-sm" />
+          <button onClick={send} disabled={sending || !input.trim()} className="w-10 h-10 rounded-full bg-champagne text-obsidian flex items-center justify-center disabled:opacity-30 hover:bg-champagne-soft transition"><Send className="w-4 h-4" /></button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function Community() {
+  const [builders, setBuilders] = useState([]);
+  useEffect(() => { fetch('/api/community').then(r => r.json()).then(d => setBuilders(d.builders || [])); }, []);
+  return (
+    <div className="px-16 py-16">
+      <div className="text-xs tracking-[0.3em] uppercase text-champagne/80 mb-4">The Builders</div>
+      <h1 className="font-serif text-6xl text-platinum tracking-tight">A world <em className="text-gold-shimmer not-italic">becoming</em>.</h1>
+      <p className="mt-4 text-platinum/50 text-lg max-w-2xl">Not followers. Not likes. Only people, dreams, and the journeys they are laying down.</p>
+      <div className="mt-16 grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {builders.map((b, i) => (
+          <motion.div key={i} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }} className="glass rounded-xl p-6 hover:border-champagne/30 transition cursor-default">
+            <div className="flex items-center gap-3 mb-4"><div className="w-8 h-8 rounded-full bg-gradient-to-br from-champagne/40 to-platinum/10" /><div className="text-sm text-platinum">{b.name}</div></div>
+            <div className="font-serif text-lg text-platinum/90 leading-tight line-clamp-3">{b.dream}</div>
+            {b.values?.length > 0 && (
+              <div className="mt-4 flex flex-wrap gap-1.5">
+                {b.values.slice(0, 3).map((v) => (<span key={v} className="text-[9px] tracking-[0.2em] uppercase text-champagne/70 px-2 py-0.5 rounded-full border border-champagne/15">{v}</span>))}
+              </div>
+            )}
+            <div className="mt-4 text-[10px] tracking-widest uppercase text-platinum/30">Building since {new Date(b.createdAt).toLocaleDateString('en', { month: 'short', year: 'numeric' })}</div>
+          </motion.div>
+        ))}
+        {builders.length === 0 && (<div className="text-platinum/40 col-span-full text-sm">The first monuments are being raised.</div>)}
+      </div>
+    </div>
+  );
+}
+
+function Profile({ monument }) {
+  const [entries, setEntries] = useState([]);
+  useEffect(() => { fetch(`/api/entries?monumentId=${monument.id}`).then(r => r.json()).then(d => setEntries(d.entries || [])); }, [monument.id]);
+  const daysSince = Math.floor((Date.now() - new Date(monument.createdAt).getTime()) / 86400000) + 1;
+  return (
+    <div className="px-16 py-16 max-w-4xl">
+      <div className="text-xs tracking-[0.3em] uppercase text-champagne/80 mb-4">Personal Monument</div>
+      <h1 className="font-serif text-7xl text-platinum tracking-tight">{monument.name}</h1>
+      <div className="mt-16 grid md:grid-cols-3 gap-6">
+        <div className="glass rounded-xl p-6"><div className="text-[10px] tracking-[0.3em] uppercase text-platinum/40 mb-3">Days Building</div><div className="font-serif text-5xl text-platinum">{daysSince}</div></div>
+        <div className="glass rounded-xl p-6"><div className="text-[10px] tracking-[0.3em] uppercase text-platinum/40 mb-3">Bricks Laid</div><div className="font-serif text-5xl text-platinum">{entries.length}</div></div>
+        <div className="glass rounded-xl p-6"><div className="text-[10px] tracking-[0.3em] uppercase text-platinum/40 mb-3">Timeframe</div><div className="font-serif text-2xl text-platinum">{monument.timeframe}</div></div>
+      </div>
+      <div className="mt-10 glass rounded-xl p-8"><div className="text-[10px] tracking-[0.3em] uppercase text-champagne/70 mb-3">The Dream</div><div className="font-serif text-3xl text-platinum leading-tight">{monument.dream}</div></div>
+      <div className="mt-6 glass rounded-xl p-8"><div className="text-[10px] tracking-[0.3em] uppercase text-champagne/70 mb-3">Purpose</div><div className="text-platinum/80 leading-relaxed">{monument.purpose}</div></div>
+      <div className="mt-6 glass rounded-xl p-8">
+        <div className="text-[10px] tracking-[0.3em] uppercase text-champagne/70 mb-4">Values inscribed</div>
+        <div className="flex gap-3 flex-wrap">
+          {(monument.values || []).map((v) => (<div key={v} className="font-serif text-2xl text-champagne px-5 py-2 rounded-full border border-champagne/30">{v}</div>))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function App() {
+  const [ready, setReady] = useState(false);
+  const [view, setView] = useState('landing');
+  const [monument, setMonument] = useState(null);
+  const [stats, setStats] = useState(null);
+  useEffect(() => {
+    const uid = getUserId();
+    Promise.all([
+      fetch(`/api/monuments/me?userId=${uid}`).then(r => r.json()),
+      fetch(`/api/stats`).then(r => r.json()),
+    ]).then(([m, s]) => { setStats(s); if (m.monument) { setMonument(m.monument); setView('home'); } setReady(true); }).catch(() => setReady(true));
+  }, []);
+  if (!ready) {
+    return (<div className="min-h-screen flex items-center justify-center"><Ambient /><Loader2 className="w-5 h-5 animate-spin text-champagne" /></div>);
+  }
+  return (
+    <div className="min-h-screen grain">
+      <Ambient />
+      <AnimatePresence mode="wait">
+        {view === 'landing' && (
+          <motion.div key="landing" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.8 }}>
+            <Landing stats={stats} onBegin={() => setView('onboard')} onExplore={() => setView('community-preview')} />
+          </motion.div>
+        )}
+        {view === 'community-preview' && (
+          <motion.div key="cp" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.6 }}>
+            <div className="min-h-screen">
+              <div className="px-8 py-6"><button onClick={() => setView('landing')} className="text-xs tracking-[0.2em] uppercase text-platinum/50 hover:text-platinum">← Back</button></div>
+              <Community />
+              <div className="text-center py-16"><button onClick={() => setView('onboard')} className="px-8 py-4 rounded-full bg-champagne text-obsidian text-xs tracking-[0.2em] uppercase hover:bg-champagne-soft transition gold-glow">Join · Create My Monument</button></div>
+            </div>
+          </motion.div>
+        )}
+        {view === 'onboard' && (
+          <motion.div key="ob" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.6 }}>
+            <Onboard onDone={(m) => { setMonument(m); setView('home'); }} onCancel={() => setView('landing')} />
+          </motion.div>
+        )}
+        {['home', 'timeline', 'mentor', 'community', 'profile'].includes(view) && monument && (
+          <motion.div key={view} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.5 }}>
+            <Shell view={view} setView={setView} monument={monument}>
+              {view === 'home' && <Home monument={monument} setView={setView} />}
+              {view === 'timeline' && <Timeline monument={monument} />}
+              {view === 'mentor' && <Mentor />}
+              {view === 'community' && <Community />}
+              {view === 'profile' && <Profile monument={monument} />}
+            </Shell>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+}
+
+export default App;
