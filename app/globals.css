@@ -140,3 +140,20 @@ html, body { background: var(--obsidian); }
   background: linear-gradient(180deg, #ffffff 0%, #f5efe4 100%);
   -webkit-background-clip: text; background-clip: text; color: transparent;
 }
+
+/* Earth continuous rotation */
+@keyframes earthspin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+.animate-earthspin { animation: earthspin 180s linear infinite; will-change: transform; transform-origin: center; }
+
+/* Very slow atmospheric halo pulse */
+@keyframes atmospherebreath {
+  0%, 100% { opacity: 0.55; transform: scale(1); }
+  50% { opacity: 0.75; transform: scale(1.04); }
+}
+.animate-atmosphere-breath { animation: atmospherebreath 9s ease-in-out infinite; }
+
+/* Hide horizontal overflow globally */
+html, body { overflow-x: hidden; }
