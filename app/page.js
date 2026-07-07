@@ -101,178 +101,334 @@ function Counter({ value, duration = 1600 }) {
   return <span>{n.toLocaleString()}</span>;
 }
 
+function SectionCinematic({ id, image, overlay = 'bg-black/60', children }) {
+  return (
+    <section id={id} className="relative overflow-hidden">
+      <div className="absolute inset-0">
+        <img src={image} alt="" className="w-full h-full object-cover animate-kenburns" loading="lazy" />
+        <div className={`absolute inset-0 ${overlay}`} />
+      </div>
+      <div className="relative">{children}</div>
+    </section>
+  );
+}
+
+function MethodRow({ step, reverse }) {
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 40 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, margin: '-120px' }}
+      transition={{ duration: 1.6, ease: [0.16, 1, 0.3, 1] }}
+      className={`grid md:grid-cols-12 gap-10 md:gap-20 items-center`}
+    >
+      <div className={`md:col-span-7 ${reverse ? 'md:order-2' : ''}`}>
+        <div className="relative aspect-[16/10] overflow-hidden">
+          <img src={step.img} alt="" className="w-full h-full object-cover animate-kenburns" loading="lazy" />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
+        </div>
+      </div>
+      <div className="md:col-span-5">
+        <div className="text-[10px] tracking-[0.38em] uppercase text-champagne/70 mb-8">{step.n}</div>
+        <div className="font-serif text-[36px] md:text-[48px] text-white leading-[1.05] tracking-[-0.01em] mb-8">{step.t}</div>
+        <div className="text-white/55 text-[16px] leading-[1.85] font-light max-w-md">{step.d}</div>
+      </div>
+    </motion.div>
+  );
+}
+
 function Landing({ onBegin, onExplore, stats }) {
   const { scrollYProgress } = useScroll();
-  const parY = useTransform(scrollYProgress, [0, 1], [0, -80]);
+  const heroY = useTransform(scrollYProgress, [0, 0.35], [0, 180]);
+  const heroOpacity = useTransform(scrollYProgress, [0, 0.22], [1, 0]);
+
   return (
-    <div className="relative">
-      <nav className="fixed top-0 inset-x-0 z-40">
-        <div className="max-w-7xl mx-auto px-8 py-6 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <div className="w-6 h-6 rounded-sm bg-gradient-to-br from-champagne to-platinum/40" />
-            <span className="text-sm tracking-[0.2em] uppercase text-platinum/90">Monument of Dreams</span>
+    <div className="relative bg-black">
+      {/* NAV */}
+      <nav className="fixed top-0 inset-x-0 z-50 backdrop-blur-md bg-black/20">
+        <div className="max-w-[1440px] mx-auto px-8 md:px-14 py-6 flex items-center justify-between">
+          <div className="flex items-center gap-2.5">
+            <div className="w-1.5 h-1.5 rounded-full bg-champagne" />
+            <span className="text-[11px] tracking-[0.3em] uppercase text-white/90 font-medium">Monument of Dreams</span>
           </div>
-          <div className="hidden md:flex items-center gap-8 text-sm text-platinum/60">
-            <a className="hover:text-platinum transition" href="#how">How it works</a>
-            <a className="hover:text-platinum transition" href="#world">Live</a>
-            <a className="hover:text-platinum transition" href="#mentor">Mentor</a>
-            <a className="hover:text-platinum transition" href="#premium">Premium</a>
+          <div className="hidden md:flex items-center gap-10 text-[12px] tracking-wide text-white/55">
+            <a href="#ethos" className="hover:text-white transition-colors duration-500">Ethos</a>
+            <a href="#how" className="hover:text-white transition-colors duration-500">Method</a>
+            <a href="#world" className="hover:text-white transition-colors duration-500">Live</a>
+            <a href="#mentor" className="hover:text-white transition-colors duration-500">Mentor</a>
+            <a href="#premium" className="hover:text-white transition-colors duration-500">Eternal</a>
           </div>
-          <button onClick={onBegin} className="text-xs tracking-widest uppercase text-platinum/80 hover:text-champagne transition flex items-center gap-2">
+          <button onClick={onBegin} className="text-[11px] tracking-[0.24em] uppercase text-white/80 hover:text-white transition-colors duration-500 flex items-center gap-2">
             Enter <ArrowUpRight className="w-3 h-3" />
           </button>
         </div>
       </nav>
 
-      <section className="relative min-h-screen flex items-center justify-center px-8 pt-24">
-        <motion.div style={{ y: parY }} className="absolute inset-0 flex items-center justify-center pointer-events-none">
-          <Globe size={720} />
+      {/* HERO — Photorealistic Earth from orbit */}
+      <section className="relative min-h-[100svh] overflow-hidden flex items-center justify-center">
+        <motion.div style={{ y: heroY }} className="absolute inset-0 pointer-events-none">
+          <div className="absolute inset-0 bg-black">
+            <img
+              src="https://images.unsplash.com/photo-1534996858221-380b92700493?auto=format&fit=crop&w=2600&q=90"
+              alt=""
+              className="w-full h-full object-cover object-center animate-earthdrift"
+              fetchpriority="high"
+            />
+          </div>
+          {/* soft atmospheric vignette */}
+          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_25%,rgba(0,0,0,0.45)_60%,rgba(0,0,0,0.92)_100%)]" />
+          <div className="absolute inset-0 bg-gradient-to-b from-black/70 via-transparent to-black/85" />
         </motion.div>
-        <div className="relative max-w-5xl mx-auto text-center">
-          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 1.2 }}>
-            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full glass text-xs tracking-[0.2em] uppercase text-platinum/70 mb-10">
-              <span className="w-1.5 h-1.5 rounded-full bg-champagne animate-pulse" />
-              A new category of software
-            </div>
+
+        <motion.div style={{ opacity: heroOpacity }} className="relative text-center px-8 max-w-5xl">
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 2.2, delay: 0.4 }} className="text-[10px] tracking-[0.4em] uppercase text-white/50 mb-12">
+            Monument of Dreams
           </motion.div>
-          <motion.h1 initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 1.6, delay: 0.2 }} className="font-serif text-[54px] md:text-[92px] leading-[1.02] tracking-tight text-platinum">
-            Every dream deserves<br />a <em className="text-gold-shimmer not-italic">monument</em>.
+          <motion.h1
+            initial={{ opacity: 0, y: 24 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 2.2, delay: 0.7, ease: [0.16, 1, 0.3, 1] }}
+            className="font-serif text-[13vw] md:text-[104px] leading-[0.98] tracking-[-0.025em] text-white"
+          >
+            Every dream deserves<br />
+            <span className="italic text-white/90">a monument.</span>
           </motion.h1>
-          <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 1.6, delay: 0.8 }} className="mt-8 text-lg md:text-xl text-platinum/60 max-w-2xl mx-auto font-light leading-relaxed">
+          <motion.p
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 2, delay: 1.4 }}
+            className="mt-10 text-[15px] md:text-[17px] text-white/60 max-w-xl mx-auto leading-[1.85] font-light tracking-wide"
+          >
             Preserve your journey. Build your future.<br />Become who you dream of becoming.
           </motion.p>
-          <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 1.2, delay: 1.2 }} className="mt-14 flex flex-col md:flex-row items-center justify-center gap-4">
-            <button onClick={onBegin} className="group relative px-8 py-4 rounded-full bg-platinum text-obsidian text-sm tracking-[0.15em] uppercase font-medium hover:bg-white transition-all gold-glow">
-              <span className="flex items-center gap-2">Create My Monument <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition" /></span>
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 1.6, delay: 1.9 }}
+            className="mt-16 flex flex-col sm:flex-row items-center justify-center gap-4"
+          >
+            <button
+              onClick={onBegin}
+              className="group px-10 py-4 rounded-full bg-white text-black text-[11px] tracking-[0.24em] uppercase font-medium hover:bg-white/95 transition-all duration-500 flex items-center gap-3"
+            >
+              Create My Monument
+              <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform duration-500" />
             </button>
-            <button onClick={onExplore} className="px-8 py-4 rounded-full glass text-sm tracking-[0.15em] uppercase text-platinum/90 hover:text-platinum hover:border-champagne/40 transition-all">
+            <button
+              onClick={onExplore}
+              className="px-10 py-4 rounded-full border border-white/15 text-[11px] tracking-[0.24em] uppercase text-white/80 hover:text-white hover:border-white/40 transition-all duration-500"
+            >
               Explore the Community
             </button>
           </motion.div>
-        </div>
-        <div className="absolute bottom-10 left-1/2 -translate-x-1/2 text-platinum/40 text-[10px] tracking-[0.3em] uppercase flex flex-col items-center gap-3">
+        </motion.div>
+
+        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 2.8, duration: 1.5 }} className="absolute bottom-10 left-1/2 -translate-x-1/2 text-white/40 text-[9px] tracking-[0.4em] uppercase flex flex-col items-center gap-4">
           <span>Scroll</span>
-          <div className="w-px h-10 shimmer-line" />
-        </div>
+          <div className="w-px h-16 bg-gradient-to-b from-white/40 to-transparent" />
+        </motion.div>
       </section>
 
-      <section id="how" className="relative px-8 py-40">
-        <div className="max-w-6xl mx-auto">
-          <div className="text-xs tracking-[0.3em] uppercase text-champagne/80 mb-6">How it works</div>
-          <h2 className="font-serif text-5xl md:text-6xl text-platinum tracking-tight max-w-3xl leading-tight">
-            Three acts. One life. <em className="text-platinum/50 not-italic">Preserved forever.</em>
-          </h2>
-          <div className="mt-20 grid md:grid-cols-3 gap-px bg-white/[0.04] rounded-2xl overflow-hidden border hairline">
+      {/* ETHOS */}
+      <SectionCinematic
+        id="ethos"
+        image="https://images.unsplash.com/photo-1579722139701-f9222eded3b6?auto=format&fit=crop&w=2400&q=85"
+        overlay="bg-gradient-to-b from-black via-black/45 to-black"
+      >
+        <div className="relative max-w-4xl mx-auto text-center px-8 py-56 md:py-72">
+          <motion.div initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} viewport={{ once: true, margin: '-100px' }} transition={{ duration: 2 }} className="text-[10px] tracking-[0.4em] uppercase text-white/40 mb-12">
+            The Mission
+          </motion.div>
+          <motion.h2 initial={{ opacity: 0, y: 24 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, margin: '-100px' }} transition={{ duration: 1.8, ease: [0.16, 1, 0.3, 1] }} className="font-serif text-[42px] md:text-[72px] leading-[1.08] tracking-[-0.02em] text-white">
+            We help people become<br />
+            <span className="italic text-white/85">who they dream of becoming.</span>
+          </motion.h2>
+          <motion.p initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} viewport={{ once: true, margin: '-100px' }} transition={{ duration: 2, delay: 0.5 }} className="mt-14 text-white/55 text-base md:text-lg font-light leading-[2] max-w-2xl mx-auto">
+            The world celebrates results. We preserve the journey. Every step you take — every quiet victory, every honest failure — is placed forever into a monument only you can build.
+          </motion.p>
+        </div>
+      </SectionCinematic>
+
+      {/* METHOD */}
+      <section id="how" className="relative bg-black">
+        <div className="max-w-[1200px] mx-auto px-8 md:px-14 py-40 md:py-56">
+          <div className="grid md:grid-cols-2 gap-20 items-end mb-32">
+            <div>
+              <div className="text-[10px] tracking-[0.4em] uppercase text-white/40 mb-10">The Method</div>
+              <h2 className="font-serif text-[44px] md:text-[64px] leading-[1.05] tracking-[-0.02em] text-white">
+                Three acts.<br />
+                <span className="italic text-white/60">One life.</span>
+              </h2>
+            </div>
+            <p className="text-white/50 text-[16px] leading-[1.85] font-light max-w-md md:justify-self-end">
+              Not another productivity app. A single, deliberate ritual repeated across a lifetime — until it becomes the thing you leave behind.
+            </p>
+          </div>
+
+          <div className="space-y-40">
             {[
-              { n: '01', t: 'Choose your Dream', d: 'Declare what you are here to become. Not a task list. A north star.' },
-              { n: '02', t: 'Build your Journey', d: 'Every reflection, victory, failure and restart becomes a permanent brick in the wall.' },
-              { n: '03', t: 'Leave your Monument', d: 'A living museum of your becoming, curated by an AI Mentor who remembers everything.' },
+              { n: '01', t: 'Choose your Dream', d: 'Declare what you are here to become. Not a task list. A north star that will outlast every bad day.', img: 'https://images.pexels.com/photos/2102546/pexels-photo-2102546.jpeg?auto=compress&cs=tinysrgb&w=1800' },
+              { n: '02', t: 'Build your Journey', d: 'Every reflection, victory, failure and restart becomes a permanent brick in the wall. Nothing disappears.', img: 'https://images.unsplash.com/photo-1468322638156-074863f9362e?auto=format&fit=crop&w=1800&q=85' },
+              { n: '03', t: 'Leave your Monument', d: 'A living museum of your becoming, curated by an intelligence that has been paying attention for years.', img: 'https://images.pexels.com/photos/16827297/pexels-photo-16827297.jpeg?auto=compress&cs=tinysrgb&w=1800' },
             ].map((s, i) => (
-              <motion.div key={s.n} initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, margin: '-80px' }} transition={{ duration: 0.9, delay: i * 0.15 }} className="bg-obsidian p-10 md:p-12 min-h-[320px] flex flex-col justify-between hover:bg-obsidian-2 transition">
-                <div className="text-xs tracking-[0.3em] text-champagne/70">{s.n}</div>
-                <div>
-                  <div className="font-serif text-3xl text-platinum mb-4">{s.t}</div>
-                  <div className="text-platinum/50 leading-relaxed">{s.d}</div>
-                </div>
-              </motion.div>
+              <MethodRow key={s.n} step={s} reverse={i % 2 === 1} />
             ))}
           </div>
         </div>
       </section>
 
-      <section id="world" className="relative px-8 py-40 border-t hairline">
-        <div className="max-w-6xl mx-auto">
-          <div className="flex items-end justify-between mb-16 flex-wrap gap-6">
-            <div>
-              <div className="text-xs tracking-[0.3em] uppercase text-champagne/80 mb-4">Live · Global</div>
-              <h2 className="font-serif text-5xl md:text-6xl text-platinum tracking-tight max-w-2xl leading-tight">
-                The world is <em className="text-gold-shimmer not-italic">building</em>.
-              </h2>
-            </div>
-            <div className="text-platinum/40 text-sm max-w-sm">Real dreams. Real people. Preserved in a living monument, in real time.</div>
-          </div>
-          <div className="grid md:grid-cols-4 gap-6">
+      {/* WORLD LIVE */}
+      <SectionCinematic
+        id="world"
+        image="https://images.unsplash.com/photo-1577438569227-4b3445c673cf?auto=format&fit=crop&w=2400&q=90"
+        overlay="bg-gradient-to-b from-black/85 via-black/55 to-black"
+      >
+        <div className="relative max-w-[1200px] mx-auto px-8 md:px-14 py-40 md:py-56">
+          <div className="text-[10px] tracking-[0.4em] uppercase text-white/45 mb-10">Live · Global</div>
+          <h2 className="font-serif text-[44px] md:text-[64px] leading-[1.05] tracking-[-0.02em] text-white max-w-2xl">
+            The world is <span className="italic text-white/80">building.</span>
+          </h2>
+          <p className="mt-10 text-white/55 text-[16px] font-light max-w-xl leading-[1.85]">
+            Real dreams. Real people. Preserved in a living monument, in real time.
+          </p>
+
+          <div className="mt-28 grid md:grid-cols-4 gap-12 md:gap-8">
             {[
               { label: 'Dreams created', value: stats?.dreamsCreated ?? 12847 },
               { label: 'Completed today', value: stats?.dreamsCompletedToday ?? 342 },
               { label: 'Builders online', value: stats?.buildersOnline ?? 1247 },
               { label: 'Countries', value: stats?.countries ?? 96 },
             ].map((s, i) => (
-              <motion.div key={s.label} initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.8, delay: i * 0.1 }} className="glass rounded-xl p-8">
-                <div className="font-serif text-5xl text-platinum"><Counter value={s.value} /></div>
-                <div className="text-xs tracking-[0.2em] uppercase text-platinum/50 mt-3">{s.label}</div>
+              <motion.div
+                key={s.label}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, margin: '-80px' }}
+                transition={{ duration: 1.4, delay: i * 0.15, ease: [0.16, 1, 0.3, 1] }}
+              >
+                <div className="font-serif text-[56px] md:text-[76px] text-white leading-none tracking-[-0.03em]">
+                  <Counter value={s.value} duration={2400} />
+                </div>
+                <div className="mt-6 text-[10px] tracking-[0.32em] uppercase text-white/45">{s.label}</div>
+                <div className="mt-6 h-px w-14 bg-white/20" />
               </motion.div>
             ))}
           </div>
-          <div className="mt-16 flex justify-center"><Globe size={520} /></div>
         </div>
-      </section>
+      </SectionCinematic>
 
-      <section id="mentor" className="relative px-8 py-40 border-t hairline">
-        <div className="max-w-6xl mx-auto grid md:grid-cols-2 gap-16 items-center">
-          <div>
-            <div className="text-xs tracking-[0.3em] uppercase text-champagne/80 mb-6">Monument AI</div>
-            <h2 className="font-serif text-5xl md:text-6xl text-platinum tracking-tight leading-tight">
-              A mentor who <em className="text-gold-shimmer not-italic">remembers</em>.
+      {/* MENTOR */}
+      <section id="mentor" className="relative bg-black">
+        <div className="max-w-[1200px] mx-auto px-8 md:px-14 py-40 md:py-56 grid md:grid-cols-12 gap-16 md:gap-20 items-center">
+          <div className="md:col-span-6">
+            <div className="text-[10px] tracking-[0.4em] uppercase text-champagne/70 mb-10">Monument Mentor</div>
+            <h2 className="font-serif text-[44px] md:text-[64px] leading-[1.05] tracking-[-0.02em] text-white">
+              A mentor who <span className="italic text-white/70">remembers.</span>
             </h2>
-            <p className="mt-8 text-platinum/60 text-lg leading-relaxed font-light">
-              Not another chatbot. The Monument Mentor knows your dream, your journey, your patterns, your relapses, your victories. It speaks with the calm of a curator and the precision of a friend who has been paying attention for years.
+            <p className="mt-10 text-white/55 text-[16px] leading-[1.95] font-light max-w-lg">
+              Not a chatbot. The Monument Mentor knows your dream, your patterns, your relapses and your victories. It speaks with the calm of a curator and the precision of a friend who has been paying attention for years.
             </p>
-            <div className="mt-10 space-y-4">
-              {['Reflects on your actual entries', 'Names patterns you cannot see', 'Gives one specific next step', 'Remembers forever'].map((f, i) => (
-                <div key={i} className="flex items-center gap-4 text-platinum/70">
-                  <div className="w-6 h-6 rounded-full glass flex items-center justify-center"><Check className="w-3 h-3 text-champagne" /></div>
-                  <span className="text-sm">{f}</span>
+            <div className="mt-14 space-y-5 max-w-md">
+              {['Reflects on your actual entries', 'Names the patterns you cannot see', 'Gives one specific next step', 'Remembers forever'].map((f) => (
+                <div key={f} className="flex items-start gap-4 text-white/70">
+                  <div className="mt-2.5 w-1 h-1 rounded-full bg-champagne shrink-0" />
+                  <span className="text-[15px] font-light leading-relaxed">{f}</span>
                 </div>
               ))}
             </div>
           </div>
-          <motion.div initial={{ opacity: 0, x: 30 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }} transition={{ duration: 1 }} className="glass rounded-2xl p-8 space-y-4 animate-floaty">
-            <div className="text-xs tracking-[0.3em] uppercase text-champagne/80">Session · Sunday</div>
-            <div className="text-platinum/80 leading-relaxed font-serif text-xl">
-              &ldquo;I see three restarts this month around the same block. This is not weakness. It is a signal. The dream is asking for a smaller commitment, not a bigger one. Try 12 minutes tomorrow. Only 12.&rdquo;
+          <motion.div initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, margin: '-100px' }} transition={{ duration: 1.8, ease: [0.16, 1, 0.3, 1] }} className="md:col-span-6">
+            <div className="relative border border-white/8 bg-[#0a0a0a] p-10 md:p-14">
+              <div className="text-[10px] tracking-[0.35em] uppercase text-white/40 mb-8">Session · Sunday, 07:14</div>
+              <div className="font-serif text-[22px] md:text-[28px] leading-[1.4] text-white/90">
+                &ldquo;I see three restarts this month around the same block. This is not weakness. It is a signal. The dream is asking for a smaller commitment, not a bigger one. Try twelve minutes tomorrow. Only twelve.&rdquo;
+              </div>
+              <div className="mt-12 pt-6 border-t border-white/8 flex items-center justify-between">
+                <div className="text-[10px] tracking-[0.32em] uppercase text-white/45">Monument Mentor</div>
+                <div className="text-[10px] tracking-wider text-white/25">preserved forever</div>
+              </div>
             </div>
-            <div className="text-xs text-platinum/40 pt-4 border-t hairline">Monument Mentor</div>
           </motion.div>
         </div>
       </section>
 
-      <section id="premium" className="relative px-8 py-40 border-t hairline">
-        <div className="max-w-4xl mx-auto text-center">
-          <div className="text-xs tracking-[0.3em] uppercase text-champagne/80 mb-6">Monument Eternal</div>
-          <h2 className="font-serif text-5xl md:text-6xl text-platinum tracking-tight leading-tight">
-            For those who <em className="text-gold-shimmer not-italic">refuse</em> to disappear.
-          </h2>
-          <p className="mt-8 text-platinum/60 text-lg font-light max-w-2xl mx-auto">
-            Unlimited Monument. Yearly Life Book. Time Capsules. Life Chapters. Advanced pattern analytics.
-          </p>
-          <div className="mt-12 flex justify-center">
-            <div className="glass rounded-2xl p-12 max-w-md w-full gold-glow">
-              <div className="text-xs tracking-[0.3em] uppercase text-champagne mb-6">Eternal</div>
-              <div className="font-serif text-6xl text-platinum">$12<span className="text-lg text-platinum/40">/mo</span></div>
-              <div className="mt-8 space-y-3 text-left">
-                {['Unlimited Monument', 'Monument AI Mentor', 'Yearly Life Book', 'Timeline forever', 'Life Chapters', 'Time Capsules', 'Journey Export'].map((f) => (
-                  <div key={f} className="flex items-center gap-3 text-platinum/70 text-sm">
-                    <Circle className="w-1.5 h-1.5 fill-champagne text-champagne" />{f}
+      {/* PREMIUM */}
+      <section id="premium" className="relative bg-black border-t border-white/5">
+        <div className="max-w-[1200px] mx-auto px-8 md:px-14 py-40 md:py-56">
+          <div className="max-w-2xl mb-28">
+            <div className="text-[10px] tracking-[0.4em] uppercase text-white/40 mb-10">Monument Eternal</div>
+            <h2 className="font-serif text-[44px] md:text-[64px] leading-[1.05] tracking-[-0.02em] text-white">
+              For those who <span className="italic text-white/70">refuse to disappear.</span>
+            </h2>
+          </div>
+          <div className="grid md:grid-cols-12 gap-16 md:gap-20 items-start">
+            <div className="md:col-span-5 space-y-0">
+              {['Unlimited Monument', 'Monument AI Mentor', 'Yearly Life Book, printed', 'Timeline forever', 'Life Chapters', 'Time Capsules', 'Journey Export'].map((f) => (
+                <div key={f} className="flex items-center gap-4 border-b border-white/6 py-5">
+                  <Check className="w-3 h-3 text-champagne shrink-0" strokeWidth={2.5} />
+                  <span className="text-white/80 text-[15px] font-light">{f}</span>
+                </div>
+              ))}
+            </div>
+            <div className="md:col-span-6 md:col-start-7">
+              <div className="border border-white/10 p-10 md:p-14 bg-gradient-to-b from-white/[0.02] to-transparent">
+                <div className="flex items-baseline justify-between mb-10">
+                  <div>
+                    <div className="text-[10px] tracking-[0.4em] uppercase text-champagne mb-4">Eternal</div>
+                    <div className="text-white/55 text-[13px] font-light">Monthly · billed yearly</div>
                   </div>
-                ))}
+                  <div className="font-serif text-[72px] md:text-[88px] text-white leading-none tracking-[-0.03em]">$12</div>
+                </div>
+                <p className="text-white/50 text-[15px] font-light leading-[1.95] max-w-md mb-12">
+                  A single, quiet subscription. No tiers. No ads. No noise. Only the monument, in the highest resolution we can render a human life.
+                </p>
+                <button onClick={onBegin} className="group w-full py-4 rounded-full bg-white text-black text-[11px] tracking-[0.24em] uppercase font-medium hover:bg-white/95 transition-all duration-500 flex items-center justify-center gap-3">
+                  Begin Eternal
+                  <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform duration-500" />
+                </button>
               </div>
-              <button onClick={onBegin} className="mt-10 w-full py-4 rounded-full bg-platinum text-obsidian text-xs tracking-[0.2em] uppercase font-medium hover:bg-white transition">Begin Eternal</button>
             </div>
           </div>
         </div>
       </section>
 
-      <section className="relative px-8 py-40 border-t hairline text-center">
-        <h2 className="font-serif text-6xl md:text-8xl text-platinum tracking-tight leading-[0.95] max-w-4xl mx-auto">
-          Your life<br />is <em className="text-gold-shimmer not-italic">moving</em>.
-        </h2>
-        <p className="mt-8 text-platinum/50 text-lg">Let it leave a monument.</p>
-        <button onClick={onBegin} className="mt-14 group px-10 py-5 rounded-full bg-platinum text-obsidian text-sm tracking-[0.2em] uppercase font-medium hover:bg-white transition-all gold-glow">
-          <span className="flex items-center gap-2">Begin <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition" /></span>
-        </button>
-        <div className="mt-32 text-xs tracking-[0.3em] uppercase text-platinum/30">Monument of Dreams · MMXXV</div>
-      </section>
+      {/* FINAL CTA */}
+      <SectionCinematic
+        image="https://images.unsplash.com/photo-1534996858221-380b92700493?auto=format&fit=crop&w=2400&q=90"
+        overlay="bg-gradient-to-b from-black/85 via-black/60 to-black"
+      >
+        <div className="relative max-w-4xl mx-auto text-center px-8 py-56 md:py-72">
+          <motion.h2 initial={{ opacity: 0, y: 24 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, margin: '-100px' }} transition={{ duration: 2, ease: [0.16, 1, 0.3, 1] }} className="font-serif text-[56px] md:text-[104px] leading-[0.98] tracking-[-0.025em] text-white">
+            Your life<br />
+            <span className="italic text-white/85">is moving.</span>
+          </motion.h2>
+          <motion.p initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} viewport={{ once: true }} transition={{ duration: 2, delay: 0.4 }} className="mt-12 text-white/55 text-[16px] font-light tracking-wide">
+            Let it leave a monument.
+          </motion.p>
+          <motion.button
+            initial={{ opacity: 0, y: 10 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 1.6, delay: 0.7 }}
+            onClick={onBegin}
+            className="mt-16 group px-12 py-5 rounded-full bg-white text-black text-[11px] tracking-[0.24em] uppercase font-medium hover:bg-white/95 transition-all duration-500 inline-flex items-center gap-3"
+          >
+            Begin
+            <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform duration-500" />
+          </motion.button>
+        </div>
+      </SectionCinematic>
+
+      {/* FOOTER */}
+      <footer className="bg-black border-t border-white/5">
+        <div className="max-w-[1200px] mx-auto px-8 md:px-14 py-14 flex flex-col md:flex-row items-center justify-between gap-6">
+          <div className="flex items-center gap-2.5">
+            <div className="w-1.5 h-1.5 rounded-full bg-champagne" />
+            <span className="text-[11px] tracking-[0.3em] uppercase text-white/70">Monument of Dreams</span>
+          </div>
+          <div className="text-[10px] tracking-[0.35em] uppercase text-white/30">MMXXV · Every journey preserved</div>
+        </div>
+      </footer>
     </div>
   );
 }
