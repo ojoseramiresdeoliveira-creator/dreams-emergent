@@ -286,6 +286,7 @@ function Landing({ onBegin, onExplore, stats }) {
           <Starfield density={0.00028} parallax={0.4} />
           <div className="absolute inset-0 dot-field opacity-20" />
           <div className="absolute inset-0 vignette" />
+          <div className="film-grain" />
         </div>
 
         <div className="relative w-full max-w-[1400px] mx-auto px-6 md:px-14 pt-28 md:pt-24 pb-20 md:pb-0 grid md:grid-cols-2 gap-14 md:gap-4 items-center">
@@ -295,7 +296,7 @@ function Landing({ onBegin, onExplore, stats }) {
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 2.4, ease: [0.16, 1, 0.3, 1] }}
-            className="relative flex justify-center md:justify-start order-1"
+            className="relative flex justify-center md:justify-start order-1 animate-hero-drift"
           >
             <EarthGlobe size="large" />
           </motion.div>
@@ -338,7 +339,7 @@ function Landing({ onBegin, onExplore, stats }) {
             >
               <button
                 onClick={onBegin}
-                className="group w-full sm:w-auto whitespace-nowrap px-8 md:px-10 py-4 rounded-full bg-white text-black text-[11px] tracking-[0.24em] uppercase font-medium hover:bg-white/95 hover:-translate-y-0.5 hover:shadow-[0_20px_50px_-15px_rgba(255,255,255,0.35)] active:translate-y-0 active:scale-[0.98] transition-all duration-500 flex items-center justify-center gap-3"
+                className="group w-full sm:w-auto whitespace-nowrap px-8 md:px-10 py-4 rounded-full bg-white text-black text-[11px] tracking-[0.24em] uppercase font-medium hover:bg-white/95 hover:-translate-y-0.5 hover:shadow-[0_20px_50px_-15px_rgba(255,255,255,0.35)] active:translate-y-0 active:scale-[0.98] transition-all duration-500 sheen flex items-center justify-center gap-3"
               >
                 Create My Monument
                 <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform duration-500" />
@@ -517,7 +518,7 @@ function Landing({ onBegin, onExplore, stats }) {
                 <p className="text-white/50 text-[15px] font-light leading-[1.95] max-w-md mb-12">
                   A single, quiet subscription. No tiers. No ads. No noise. Only the monument, in the highest resolution we can render a human life.
                 </p>
-                <button onClick={onBegin} className="group w-full py-4 rounded-full bg-white text-black text-[11px] tracking-[0.24em] uppercase font-medium hover:bg-white/95 hover:-translate-y-0.5 hover:shadow-[0_20px_50px_-15px_rgba(255,255,255,0.35)] active:translate-y-0 active:scale-[0.98] transition-all duration-500 flex items-center justify-center gap-3">
+                <button onClick={onBegin} className="group w-full py-4 rounded-full bg-white text-black text-[11px] tracking-[0.24em] uppercase font-medium hover:bg-white/95 hover:-translate-y-0.5 hover:shadow-[0_20px_50px_-15px_rgba(255,255,255,0.35)] active:translate-y-0 active:scale-[0.98] transition-all duration-500 sheen flex items-center justify-center gap-3">
                   Begin Eternal
                   <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform duration-500" />
                 </button>
@@ -546,7 +547,7 @@ function Landing({ onBegin, onExplore, stats }) {
             viewport={{ once: true }}
             transition={{ duration: 1.6, delay: 0.7 }}
             onClick={onBegin}
-            className="mt-16 group px-12 py-5 rounded-full bg-white text-black text-[11px] tracking-[0.24em] uppercase font-medium hover:bg-white/95 hover:-translate-y-0.5 hover:shadow-[0_20px_50px_-15px_rgba(255,255,255,0.35)] active:translate-y-0 active:scale-[0.98] transition-all duration-500 inline-flex items-center gap-3"
+            className="mt-16 group px-12 py-5 rounded-full bg-white text-black text-[11px] tracking-[0.24em] uppercase font-medium hover:bg-white/95 hover:-translate-y-0.5 hover:shadow-[0_20px_50px_-15px_rgba(255,255,255,0.35)] active:translate-y-0 active:scale-[0.98] transition-all duration-500 sheen inline-flex items-center gap-3"
           >
             Begin
             <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform duration-500" />
@@ -616,14 +617,19 @@ function Onboard({ onDone, onCancel }) {
   }
 
   return (
-    <div className="min-h-screen flex flex-col relative">
+    <div className="min-h-screen flex flex-col relative bg-black overflow-hidden">
+      <div className="absolute inset-0 pointer-events-none">
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_50%_20%,rgba(20,35,75,0.2),transparent_60%)]" />
+        <div className="absolute inset-0 dot-field opacity-15" />
+        <div className="absolute inset-0 vignette" />
+      </div>
       <div className="absolute top-0 inset-x-0 px-6 md:px-8 py-5 md:py-6 flex justify-between items-center z-10">
-        <button onClick={onCancel} className="text-[10px] md:text-xs tracking-[0.2em] uppercase text-platinum/40 hover:text-platinum transition">← Back</button>
+        <button onClick={onCancel} className="text-[10px] md:text-xs tracking-[0.2em] uppercase text-platinum/40 hover:text-platinum transition-colors duration-500">← Back</button>
         <div className="flex gap-1.5 md:gap-2">
-          {steps.map((_, i) => (<div key={i} className={`w-6 md:w-8 h-px transition ${i <= step ? 'bg-champagne' : 'bg-platinum/15'}`} />))}
+          {steps.map((_, i) => (<div key={i} className={`h-px transition-all duration-500 ${i <= step ? 'bg-champagne w-8 md:w-10' : 'bg-platinum/15 w-6 md:w-8'}`} />))}
         </div>
       </div>
-      <div className="flex-1 flex items-center justify-center px-6 md:px-8 pt-20 pb-10">
+      <div className="relative flex-1 flex items-center justify-center px-6 md:px-8 pt-20 pb-10">
         <div className="max-w-3xl w-full">
           <AnimatePresence mode="wait">
             <motion.div key={step} initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -24 }} transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}>
@@ -765,31 +771,36 @@ function Shell({ view, setView, children, monument }) {
 
 function Home({ monument, setView }) {
   const [insight, setInsight] = useState(null);
-  const [entries, setEntries] = useState([]);
+  const [entries, setEntries] = useState(null);
   useEffect(() => {
     const uid = getUserId();
     fetch(`/api/insight?userId=${uid}`).then(r => r.json()).then(d => setInsight(d));
     fetch(`/api/entries?monumentId=${monument.id}`).then(r => r.json()).then(d => setEntries(d.entries || []));
   }, [monument.id]);
   const daysSince = Math.floor((Date.now() - new Date(monument.createdAt).getTime()) / 86400000) + 1;
+  const entriesCount = entries?.length ?? 0;
+  const cardVariants = {
+    hidden: { opacity: 0, y: 16 },
+    show: (i) => ({ opacity: 1, y: 0, transition: { duration: 0.7, delay: 0.08 * i, ease: [0.16, 1, 0.3, 1] } }),
+  };
   return (
     <div className="px-6 md:px-16 py-10 md:py-16 max-w-6xl">
       <div className="text-[10px] md:text-xs tracking-[0.3em] uppercase text-champagne/80 mb-4">{new Date().toLocaleDateString('en', { weekday: 'long', month: 'long', day: 'numeric' })}</div>
       <h1 className="font-serif text-4xl sm:text-5xl md:text-6xl text-platinum tracking-tight leading-[1.05]">Welcome back, <em className="text-gold-shimmer not-italic">{monument.name}</em>.</h1>
       <p className="mt-4 text-platinum/50 text-base md:text-lg">Day {daysSince} of your monument.</p>
-      <div className="mt-10 md:mt-16 grid sm:grid-cols-3 gap-4 md:gap-6">
-        <div className="glass rounded-xl p-6">
+      <motion.div initial="hidden" animate="show" className="mt-10 md:mt-16 grid sm:grid-cols-3 gap-4 md:gap-6">
+        <motion.div custom={0} variants={cardVariants} className="glass rounded-xl p-6">
           <div className="text-[10px] tracking-[0.3em] uppercase text-platinum/40 mb-3">Today&apos;s progress</div>
-          <div className="font-serif text-4xl text-platinum">{entries.length}</div>
+          <div className="font-serif text-4xl text-platinum tabular">{entries === null ? <span className="skeleton inline-block w-10 h-10" /> : entriesCount}</div>
           <div className="text-xs text-platinum/50 mt-1">bricks laid</div>
-        </div>
-        <div className="glass rounded-xl p-6 sm:col-span-2">
+        </motion.div>
+        <motion.div custom={1} variants={cardVariants} className="glass rounded-xl p-6 sm:col-span-2">
           <div className="text-[10px] tracking-[0.3em] uppercase text-champagne/70 mb-3">Your Dream</div>
           <div className="font-serif text-xl md:text-2xl text-platinum leading-tight">{monument.dream}</div>
           <div className="mt-3 text-xs text-platinum/40">By {monument.timeframe}</div>
-        </div>
-      </div>
-      <div className="mt-6 glass rounded-xl p-6 md:p-8">
+        </motion.div>
+      </motion.div>
+      <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7, delay: 0.24, ease: [0.16, 1, 0.3, 1] }} className="mt-6 glass rounded-xl p-6 md:p-8">
         <div className="flex items-center gap-2 mb-4">
           <Sparkles className="w-4 h-4 text-champagne" />
           <div className="text-[10px] tracking-[0.3em] uppercase text-champagne/70">Monument AI · Today&apos;s insight</div>
@@ -798,9 +809,15 @@ function Home({ monument, setView }) {
           <div className="space-y-3">
             {insight.insight.map((s, i) => (<div key={i} className="text-platinum/80 leading-relaxed font-light text-[15px] md:text-base">{s}</div>))}
           </div>
-        ) : <div className="text-platinum/40 text-sm">Loading reflection…</div>}
-        <button onClick={() => setView('mentor')} className="mt-6 text-xs tracking-[0.2em] uppercase text-champagne hover:text-champagne-soft transition flex items-center gap-2">Ask the Mentor <ArrowRight className="w-3 h-3" /></button>
-      </div>
+        ) : (
+          <div className="space-y-3">
+            <div className="skeleton h-3 w-3/4" />
+            <div className="skeleton h-3 w-2/3" />
+            <div className="skeleton h-3 w-1/2" />
+          </div>
+        )}
+        <button onClick={() => setView('mentor')} className="mt-6 text-xs tracking-[0.2em] uppercase text-champagne hover:text-champagne-soft transition-colors duration-500 flex items-center gap-2 group">Ask the Mentor <ArrowRight className="w-3 h-3 group-hover:translate-x-1 transition-transform duration-500" /></button>
+      </motion.div>
       <div className="mt-14 md:mt-16 flex items-end justify-between">
         <h2 className="font-serif text-2xl md:text-3xl text-platinum">Next step</h2>
         <button onClick={() => setView('timeline')} className="text-[10px] md:text-xs tracking-[0.2em] uppercase text-platinum/50 hover:text-platinum">Open Monument →</button>
@@ -873,15 +890,23 @@ function Timeline({ monument }) {
             const t = ENTRY_TYPES.find((x) => x.key === e.type) || { icon: Mountain, label: e.type };
             const Icon = t.icon;
             return (
-              <motion.div key={e.id} initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.7, delay: i * 0.05 }} className="relative">
-                <div className="absolute -left-10 md:-left-12 top-1 w-7 h-7 md:w-8 md:h-8 rounded-full glass flex items-center justify-center border border-champagne/20"><Icon className="w-3 h-3 md:w-3.5 md:h-3.5 text-champagne" /></div>
+              <motion.div key={e.id} initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.7, delay: i * 0.05, ease: [0.16, 1, 0.3, 1] }} whileHover={{ x: 4 }} className="relative group">
+                <div className="absolute -left-10 md:-left-12 top-1 w-7 h-7 md:w-8 md:h-8 rounded-full glass flex items-center justify-center border border-champagne/20 group-hover:border-champagne/50 group-hover:shadow-[0_0_20px_-5px_rgba(212,180,131,0.35)] transition-all duration-500"><Icon className="w-3 h-3 md:w-3.5 md:h-3.5 text-champagne" /></div>
                 <div className="text-[10px] tracking-[0.3em] uppercase text-champagne/70 mb-2">{t.label} · {new Date(e.createdAt).toLocaleDateString('en', { month: 'long', day: 'numeric', year: 'numeric' })}</div>
                 {e.title && <div className="font-serif text-xl md:text-2xl text-platinum mb-2 leading-tight">{e.title}</div>}
                 <div className="text-platinum/70 leading-relaxed font-light whitespace-pre-wrap text-[15px] md:text-base">{e.content}</div>
               </motion.div>
             );
           })}
-          {entries.length === 0 && (<div className="text-platinum/40 text-sm">The monument awaits its first inscription.</div>)}
+          {entries.length === 0 && (
+            <div className="glass rounded-xl p-10 md:p-14 max-w-xl">
+              <div className="w-10 h-10 rounded-full glass flex items-center justify-center border border-champagne/25 mb-5">
+                <Feather className="w-3.5 h-3.5 text-champagne" />
+              </div>
+              <div className="font-serif text-xl md:text-2xl text-platinum/85 leading-tight">The monument awaits its first inscription.</div>
+              <div className="mt-3 text-platinum/50 text-sm">Preserve one thought, one victory, one honest failure. It becomes permanent.</div>
+            </div>
+          )}
         </div>
       </div>
     </div>
@@ -917,15 +942,33 @@ function Mentor() {
         <div className="text-[10px] md:text-xs tracking-[0.3em] uppercase text-champagne/80">Monument Mentor</div>
         <div className="font-serif text-2xl md:text-3xl text-platinum mt-1">A conversation, preserved.</div>
       </div>
-      <div ref={scrollRef} className="flex-1 overflow-y-auto px-6 md:px-16 py-8 md:py-10">
+      <div ref={scrollRef} className="relative flex-1 overflow-y-auto px-6 md:px-16 py-8 md:py-10">
+        {/* subtle top/bottom fades for premium feel */}
+        <div className="pointer-events-none sticky top-0 -mt-8 md:-mt-10 h-8 md:h-10 bg-gradient-to-b from-obsidian to-transparent z-10" />
         <div className="max-w-3xl mx-auto space-y-6 md:space-y-8">
           {messages.length === 0 && (
-            <div className="space-y-6">
-              <div className="text-platinum/60 leading-relaxed max-w-xl text-[15px] md:text-base">I have been reading your monument. Ask me anything about the journey. I remember all of it.</div>
-              <div className="flex flex-wrap gap-2">
-                {starters.map((s) => (<button key={s} onClick={() => setInput(s)} className="text-xs px-4 py-2 rounded-full glass hover:border-champagne/40 transition text-platinum/70">{s}</button>))}
+            <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 1, ease: [0.16, 1, 0.3, 1] }} className="space-y-8">
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 rounded-full glass flex items-center justify-center border border-champagne/25">
+                  <Sparkles className="w-3.5 h-3.5 text-champagne" />
+                </div>
+                <div className="text-[10px] tracking-[0.3em] uppercase text-champagne/70">Mentor · ready</div>
               </div>
-            </div>
+              <div className="font-serif text-2xl md:text-3xl text-platinum/85 leading-[1.35] max-w-xl">
+                I have been reading your monument. Ask me anything about the journey. I remember all of it.
+              </div>
+              <div className="flex flex-wrap gap-2">
+                {starters.map((s) => (
+                  <button
+                    key={s}
+                    onClick={() => setInput(s)}
+                    className="text-xs px-4 py-2.5 rounded-full glass hover:border-champagne/40 hover:-translate-y-0.5 active:scale-[0.98] transition-all duration-500 text-platinum/70"
+                  >
+                    {s}
+                  </button>
+                ))}
+              </div>
+            </motion.div>
           )}
           {messages.map((m, i) => (
             <motion.div key={i} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className={`flex ${m.role === 'user' ? 'justify-end' : 'justify-start'}`}>
@@ -935,7 +978,16 @@ function Mentor() {
               </div>
             </motion.div>
           ))}
-          {sending && (<div className="flex items-center gap-3 text-platinum/40 text-sm"><Loader2 className="w-3 h-3 animate-spin" /> the mentor is reflecting…</div>)}
+          {sending && (
+            <motion.div initial={{ opacity: 0, y: 4 }} animate={{ opacity: 1, y: 0 }} className="flex items-center gap-3">
+              <div className="text-[10px] tracking-[0.3em] uppercase text-champagne/70">Mentor</div>
+              <div className="flex items-center gap-1.5">
+                <span className="typing-dot w-1.5 h-1.5 rounded-full bg-champagne/80" />
+                <span className="typing-dot w-1.5 h-1.5 rounded-full bg-champagne/80" />
+                <span className="typing-dot w-1.5 h-1.5 rounded-full bg-champagne/80" />
+              </div>
+            </motion.div>
+          )}
         </div>
       </div>
       <div className="border-t hairline px-4 md:px-16 py-4 md:py-6">
@@ -969,7 +1021,17 @@ function Community() {
             <div className="mt-4 text-[10px] tracking-widest uppercase text-platinum/30">Building since {new Date(b.createdAt).toLocaleDateString('en', { month: 'short', year: 'numeric' })}</div>
           </motion.div>
         ))}
-        {builders.length === 0 && (<div className="text-platinum/40 col-span-full text-sm">The first monuments are being raised.</div>)}
+        {builders.length === 0 && (
+          <div className="col-span-full">
+            <div className="glass rounded-xl p-10 md:p-16 text-center max-w-2xl mx-auto">
+              <div className="mx-auto w-12 h-12 rounded-full glass flex items-center justify-center border border-champagne/25 mb-6">
+                <Users className="w-4 h-4 text-champagne" />
+              </div>
+              <div className="font-serif text-2xl md:text-3xl text-platinum/85 leading-tight">The first monuments are being raised.</div>
+              <div className="mt-4 text-platinum/50 text-sm max-w-md mx-auto">You will be among the very first builders. Your monument will stand here soon, alongside others building their own.</div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
@@ -1013,7 +1075,27 @@ function App() {
     ]).then(([m, s]) => { setStats(s); if (m.monument) { setMonument(m.monument); setView('home'); } setReady(true); }).catch(() => setReady(true));
   }, []);
   if (!ready) {
-    return (<div className="min-h-screen flex items-center justify-center"><Ambient /><Loader2 className="w-5 h-5 animate-spin text-champagne" /></div>);
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-black">
+        <Ambient />
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 1.2, ease: [0.16, 1, 0.3, 1] }}
+          className="flex flex-col items-center gap-8"
+        >
+          <div className="relative w-20 h-20">
+            <div className="absolute inset-[-40%] rounded-full pointer-events-none animate-atmosphere-breath"
+                 style={{ background: 'radial-gradient(circle, rgba(90,145,225,0.28) 40%, transparent 74%)' }} />
+            <div className="relative w-full h-full rounded-full overflow-hidden animate-earthspin"
+                 style={{ boxShadow: '0 0 40px -5px rgba(88,140,220,0.4), inset 0 -4px 20px rgba(0,0,0,0.55)' }}>
+              <img src="/earth.jpg" alt="" className="absolute inset-0 w-full h-full object-cover" style={{ transform: 'scale(1.55)' }} draggable="false" />
+            </div>
+          </div>
+          <div className="text-[10px] tracking-[0.4em] uppercase text-white/50">Monument of Dreams</div>
+        </motion.div>
+      </div>
+    );
   }
   return (
     <div className="min-h-screen grain">

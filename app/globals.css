@@ -123,6 +123,26 @@ html, body { background: var(--obsidian); }
   --shadow-glow: 0 0 60px -20px rgba(212,180,131,0.25);
 }
 
+/* Premium type rendering globally */
+html {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+  font-feature-settings: 'ss01', 'ss02', 'cv11', 'kern';
+}
+.font-serif { font-feature-settings: 'liga', 'dlig', 'kern'; letter-spacing: -0.01em; }
+.tabular { font-variant-numeric: tabular-nums; }
+
+/* Respect reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
 /* Premium glass — soft top light, inner rim, ambient shadow */
 .glass {
   background:
@@ -144,6 +164,27 @@ html, body { background: var(--obsidian); }
     inset 0 -1px 0 rgba(0,0,0,0.5);
 }
 
+/* Sheen sweep on primary buttons */
+.sheen {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+}
+.sheen::before {
+  content: '';
+  position: absolute;
+  top: 0; bottom: 0;
+  left: -60%;
+  width: 40%;
+  background: linear-gradient(120deg, transparent 0%, rgba(255,255,255,0.35) 50%, transparent 100%);
+  transform: skewX(-20deg);
+  transition: left var(--dur-slow) var(--ease-out);
+  pointer-events: none;
+  z-index: 0;
+}
+.sheen:hover::before { left: 130%; }
+.sheen > * { position: relative; z-index: 1; }
+
 /* Premium button micro-interactions (apply via .btn-premium) */
 .btn-premium {
   transition: transform var(--dur-fast) var(--ease-out), background-color var(--dur) var(--ease-out), box-shadow var(--dur) var(--ease-out), border-color var(--dur) var(--ease-out), color var(--dur) var(--ease-out);
@@ -151,6 +192,13 @@ html, body { background: var(--obsidian); }
 .btn-premium:hover { transform: translateY(-1px); }
 .btn-premium:active { transform: translateY(0) scale(0.98); }
 .btn-premium:focus-visible { outline: 2px solid rgba(212,180,131,0.5); outline-offset: 3px; }
+
+/* Focus visible — premium ring on any interactive el */
+:focus-visible {
+  outline: 2px solid rgba(212,180,131,0.55);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
 
 /* Nav item underline slide */
 .nav-link {
@@ -165,6 +213,61 @@ html, body { background: var(--obsidian); }
   transition: right var(--dur) var(--ease-out);
 }
 .nav-link:hover::after { right: 0; }
+
+/* Sidebar item — slide-in indicator */
+.sidebar-item {
+  position: relative;
+  transition: color var(--dur) var(--ease-out), background-color var(--dur) var(--ease-out);
+}
+.sidebar-item::before {
+  content: '';
+  position: absolute;
+  left: 0; top: 50%;
+  width: 2px; height: 0;
+  background: rgba(212,180,131,0.9);
+  transform: translateY(-50%);
+  transition: height var(--dur) var(--ease-out), opacity var(--dur) var(--ease-out);
+  opacity: 0;
+  border-radius: 2px;
+}
+.sidebar-item.active::before { height: 60%; opacity: 1; }
+
+/* Typing dots (mentor) */
+@keyframes dotpulse {
+  0%, 60%, 100% { opacity: 0.2; transform: translateY(0); }
+  30% { opacity: 1; transform: translateY(-2px); }
+}
+.typing-dot { animation: dotpulse 1.4s ease-in-out infinite; display: inline-block; }
+.typing-dot:nth-child(1) { animation-delay: 0ms; }
+.typing-dot:nth-child(2) { animation-delay: 180ms; }
+.typing-dot:nth-child(3) { animation-delay: 360ms; }
+
+/* Skeleton shimmer */
+@keyframes skelshimmer {
+  0% { background-position: -400% 0; }
+  100% { background-position: 400% 0; }
+}
+.skeleton {
+  background: linear-gradient(90deg, rgba(255,255,255,0.03) 0%, rgba(255,255,255,0.06) 50%, rgba(255,255,255,0.03) 100%);
+  background-size: 200% 100%;
+  animation: skelshimmer 2.4s linear infinite;
+  border-radius: 6px;
+}
+
+/* Film grain overlay for hero cinematic quality */
+.film-grain {
+  position: absolute; inset: 0; pointer-events: none;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='180' height='180'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0.9 0 0 0 0 0.85 0 0 0 0 0.75 0 0 0 0.06 0'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
+  opacity: 0.5;
+  mix-blend-mode: overlay;
+}
+
+/* Very subtle floating drift for hero elements */
+@keyframes hero-drift {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-6px); }
+}
+.animate-hero-drift { animation: hero-drift 10s ease-in-out infinite; }
 
 /* Starfield twinkle */
 @keyframes twinkle { 0%,100% { opacity: 0.35 } 50% { opacity: 0.8 } }
