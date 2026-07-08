@@ -373,14 +373,16 @@ function Landing({ onBegin, onExplore, stats }) {
       >
         <div className="relative max-w-4xl mx-auto text-center px-8 py-56 md:py-72">
           <motion.div initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} viewport={{ once: true, margin: '-100px' }} transition={{ duration: 2 }} className="text-[10px] tracking-[0.4em] uppercase text-white/40 mb-12">
-            The Mission
+            Why we exist
           </motion.div>
           <motion.h2 initial={{ opacity: 0, y: 24 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, margin: '-100px' }} transition={{ duration: 1.8, ease: [0.16, 1, 0.3, 1] }} className="font-serif text-[42px] md:text-[72px] leading-[1.08] tracking-[-0.02em] text-white">
-            We help people become<br />
-            <span className="italic text-white/85">who they dream of becoming.</span>
+            The world remembers<br />
+            those who <span className="italic text-white/85">arrived.</span>
           </motion.h2>
           <motion.p initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} viewport={{ once: true, margin: '-100px' }} transition={{ duration: 2, delay: 0.5 }} className="mt-14 text-white/55 text-base md:text-lg font-light leading-[2] max-w-2xl mx-auto">
-            The world celebrates results. We preserve the journey. Every step you take — every quiet victory, every honest failure — is placed forever into a monument only you can build.
+            We remember everyone still walking.
+            <br /><br />
+            The sacrifices. The failures. The restarts. The quiet mornings no one ever saw. Nothing about your journey deserves to disappear.
           </motion.p>
         </div>
       </SectionCinematic>
@@ -390,7 +392,7 @@ function Landing({ onBegin, onExplore, stats }) {
         <div className="max-w-[1200px] mx-auto px-8 md:px-14 py-40 md:py-56">
           <div className="grid md:grid-cols-2 gap-20 items-end mb-32">
             <div>
-              <div className="text-[10px] tracking-[0.4em] uppercase text-white/40 mb-10">The Method</div>
+              <div className="text-[10px] tracking-[0.4em] uppercase text-white/40 mb-10">The Rite</div>
               <h2 className="font-serif text-[44px] md:text-[64px] leading-[1.05] tracking-[-0.02em] text-white">
                 Three acts.<br />
                 <span className="italic text-white/60">One life.</span>
@@ -403,9 +405,9 @@ function Landing({ onBegin, onExplore, stats }) {
 
           <div className="space-y-40">
             {[
-              { n: '01', t: 'Choose your Dream', d: 'Declare what you are here to become. Not a task list. A north star that will outlast every bad day.', img: 'https://images.pexels.com/photos/2102546/pexels-photo-2102546.jpeg?auto=compress&cs=tinysrgb&w=1800' },
-              { n: '02', t: 'Build your Journey', d: 'Every reflection, victory, failure and restart becomes a permanent brick in the wall. Nothing disappears.', img: 'https://images.unsplash.com/photo-1468322638156-074863f9362e?auto=format&fit=crop&w=1800&q=85' },
-              { n: '03', t: 'Leave your Monument', d: 'A living museum of your becoming, curated by an intelligence that has been paying attention for years.', img: 'https://images.pexels.com/photos/16827297/pexels-photo-16827297.jpeg?auto=compress&cs=tinysrgb&w=1800' },
+              { n: '01', t: 'Name the story', d: 'Not a task list. A north star. The story only you can tell, spoken out loud for the first time.', img: 'https://images.pexels.com/photos/2102546/pexels-photo-2102546.jpeg?auto=compress&cs=tinysrgb&w=1800' },
+              { n: '02', t: 'Lay each stone', d: 'Every failure. Every restart. Every quiet victory no one saw. One inscription at a time. Nothing disappears.', img: 'https://images.unsplash.com/photo-1468322638156-074863f9362e?auto=format&fit=crop&w=1800&q=85' },
+              { n: '03', t: 'Become the archive', d: 'A living record of your becoming, guarded by an intelligence that has been walking beside you from the first stone.', img: 'https://images.pexels.com/photos/16827297/pexels-photo-16827297.jpeg?auto=compress&cs=tinysrgb&w=1800' },
             ].map((s, i) => (
               <MethodRow key={s.n} step={s} reverse={i % 2 === 1} />
             ))}
@@ -422,17 +424,17 @@ function Landing({ onBegin, onExplore, stats }) {
         <div className="relative max-w-[1200px] mx-auto px-8 md:px-14 py-40 md:py-56">
           <div className="text-[10px] tracking-[0.4em] uppercase text-white/45 mb-10">Live · Global</div>
           <h2 className="font-serif text-[44px] md:text-[64px] leading-[1.05] tracking-[-0.02em] text-white max-w-2xl">
-            The world is <span className="italic text-white/80">building.</span>
+            The world is <span className="italic text-white/80">walking.</span>
           </h2>
           <p className="mt-10 text-white/55 text-[16px] font-light max-w-xl leading-[1.85]">
-            Real dreams. Real people. Preserved in a living monument, in real time.
+            Real journeys. Real people. Preserved as they happen — not after they end.
           </p>
 
           <div className="mt-28 grid md:grid-cols-4 gap-12 md:gap-8">
             {[
-              { label: 'Dreams created', value: stats?.dreamsCreated ?? 12847 },
-              { label: 'Completed today', value: stats?.dreamsCompletedToday ?? 342 },
-              { label: 'Builders online', value: stats?.buildersOnline ?? 1247 },
+              { label: 'Stories declared', value: stats?.dreamsCreated ?? 12847 },
+              { label: 'Stones laid today', value: stats?.dreamsCompletedToday ?? 342 },
+              { label: 'Walkers present', value: stats?.buildersOnline ?? 1247 },
               { label: 'Countries', value: stats?.countries ?? 96 },
             ].map((s, i) => (
               <motion.div
@@ -442,7 +444,7 @@ function Landing({ onBegin, onExplore, stats }) {
                 viewport={{ once: true, margin: '-80px' }}
                 transition={{ duration: 1.4, delay: i * 0.15, ease: [0.16, 1, 0.3, 1] }}
               >
-                <div className="font-serif text-[56px] md:text-[76px] text-white leading-none tracking-[-0.03em]">
+                <div className="font-serif text-[56px] md:text-[76px] text-white leading-none tracking-[-0.03em] tabular">
                   <Counter value={s.value} duration={2400} />
                 </div>
                 <div className="mt-6 text-[10px] tracking-[0.32em] uppercase text-white/45">{s.label}</div>
@@ -457,15 +459,15 @@ function Landing({ onBegin, onExplore, stats }) {
       <section id="mentor" className="relative bg-black">
         <div className="max-w-[1200px] mx-auto px-8 md:px-14 py-40 md:py-56 grid md:grid-cols-12 gap-16 md:gap-20 items-center">
           <div className="md:col-span-6">
-            <div className="text-[10px] tracking-[0.4em] uppercase text-champagne/70 mb-10">Monument Mentor</div>
+            <div className="text-[10px] tracking-[0.4em] uppercase text-champagne/70 mb-10">Guardian of the Journey</div>
             <h2 className="font-serif text-[44px] md:text-[64px] leading-[1.05] tracking-[-0.02em] text-white">
-              A mentor who <span className="italic text-white/70">remembers.</span>
+              An intelligence that <span className="italic text-white/70">walks with you.</span>
             </h2>
             <p className="mt-10 text-white/55 text-[16px] leading-[1.95] font-light max-w-lg">
-              Not a chatbot. The Monument Mentor knows your dream, your patterns, your relapses and your victories. It speaks with the calm of a curator and the precision of a friend who has been paying attention for years.
+              Not a coach. Not a chatbot. The Guardian remembers every stone you have laid. It never gives generic motivation. It only speaks to you using your own story — and reminds you, when you forget, how far you have already come.
             </p>
             <div className="mt-14 space-y-5 max-w-md">
-              {['Reflects on your actual entries', 'Names the patterns you cannot see', 'Gives one specific next step', 'Remembers forever'].map((f) => (
+              {['Remembers every entry of your journey', 'Connects memories you cannot see', 'Reminds you how much you have grown', 'Speaks only in the language of your story'].map((f) => (
                 <div key={f} className="flex items-start gap-4 text-white/70">
                   <div className="mt-2.5 w-1 h-1 rounded-full bg-champagne shrink-0" />
                   <span className="text-[15px] font-light leading-relaxed">{f}</span>
@@ -475,13 +477,13 @@ function Landing({ onBegin, onExplore, stats }) {
           </div>
           <motion.div initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, margin: '-100px' }} transition={{ duration: 1.8, ease: [0.16, 1, 0.3, 1] }} className="md:col-span-6">
             <div className="relative border border-white/8 bg-[#0a0a0a] p-10 md:p-14">
-              <div className="text-[10px] tracking-[0.35em] uppercase text-white/40 mb-8">Session · Sunday, 07:14</div>
+              <div className="text-[10px] tracking-[0.35em] uppercase text-white/40 mb-8">A Sunday, quietly</div>
               <div className="font-serif text-[22px] md:text-[28px] leading-[1.4] text-white/90">
-                &ldquo;I see three restarts this month around the same block. This is not weakness. It is a signal. The dream is asking for a smaller commitment, not a bigger one. Try twelve minutes tomorrow. Only twelve.&rdquo;
+                &ldquo;I see three restarts this month around the same block. This is not weakness. It is a signal. The story is asking for a smaller commitment, not a bigger one. Try twelve minutes tomorrow. Only twelve. Then come and inscribe it.&rdquo;
               </div>
               <div className="mt-12 pt-6 border-t border-white/8 flex items-center justify-between">
-                <div className="text-[10px] tracking-[0.32em] uppercase text-white/45">Monument Mentor</div>
-                <div className="text-[10px] tracking-wider text-white/25">preserved forever</div>
+                <div className="text-[10px] tracking-[0.32em] uppercase text-white/45">Guardian</div>
+                <div className="text-[10px] tracking-wider text-white/25">remembered forever</div>
               </div>
             </div>
           </motion.div>
@@ -494,12 +496,12 @@ function Landing({ onBegin, onExplore, stats }) {
           <div className="max-w-2xl mb-28">
             <div className="text-[10px] tracking-[0.4em] uppercase text-white/40 mb-10">Monument Eternal</div>
             <h2 className="font-serif text-[44px] md:text-[64px] leading-[1.05] tracking-[-0.02em] text-white">
-              For those who <span className="italic text-white/70">refuse to disappear.</span>
+              For the ones who <span className="italic text-white/70">refuse to be forgotten.</span>
             </h2>
           </div>
           <div className="grid md:grid-cols-12 gap-16 md:gap-20 items-start">
             <div className="md:col-span-5 space-y-0">
-              {['Unlimited Monument', 'Monument AI Mentor', 'Yearly Life Book, printed', 'Timeline forever', 'Life Chapters', 'Time Capsules', 'Journey Export'].map((f) => (
+              {['Unlimited Monument', 'The Guardian, always with you', 'Yearly Life Book, printed', 'Timeline preserved forever', 'Life Chapters, auto-written', 'Time Capsules to your future self', 'Full journey export'].map((f) => (
                 <div key={f} className="flex items-center gap-4 border-b border-white/6 py-5">
                   <Check className="w-3 h-3 text-champagne shrink-0" strokeWidth={2.5} />
                   <span className="text-white/80 text-[15px] font-light">{f}</span>
@@ -516,7 +518,7 @@ function Landing({ onBegin, onExplore, stats }) {
                   <div className="font-serif text-[72px] md:text-[88px] text-white leading-none tracking-[-0.03em]">$12</div>
                 </div>
                 <p className="text-white/50 text-[15px] font-light leading-[1.95] max-w-md mb-12">
-                  A single, quiet subscription. No tiers. No ads. No noise. Only the monument, in the highest resolution we can render a human life.
+                  One quiet subscription. No tiers. No ads. No noise. Only the Monument, in the highest resolution we know how to preserve a human life.
                 </p>
                 <button onClick={onBegin} className="group w-full py-4 rounded-full bg-white text-black text-[11px] tracking-[0.24em] uppercase font-medium hover:bg-white/95 hover:-translate-y-0.5 hover:shadow-[0_20px_50px_-15px_rgba(255,255,255,0.35)] active:translate-y-0 active:scale-[0.98] transition-all duration-500 sheen flex items-center justify-center gap-3">
                   Begin Eternal
@@ -535,11 +537,11 @@ function Landing({ onBegin, onExplore, stats }) {
       >
         <div className="relative max-w-4xl mx-auto text-center px-8 py-56 md:py-72">
           <motion.h2 initial={{ opacity: 0, y: 24 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, margin: '-100px' }} transition={{ duration: 2, ease: [0.16, 1, 0.3, 1] }} className="font-serif text-[56px] md:text-[104px] leading-[0.98] tracking-[-0.025em] text-white">
-            Your life<br />
-            <span className="italic text-white/85">is moving.</span>
+            Your story<br />
+            <span className="italic text-white/85">has already begun.</span>
           </motion.h2>
           <motion.p initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} viewport={{ once: true }} transition={{ duration: 2, delay: 0.4 }} className="mt-12 text-white/55 text-[16px] font-light tracking-wide">
-            Let it leave a monument.
+            Now it will be remembered.
           </motion.p>
           <motion.button
             initial={{ opacity: 0, y: 10 }}
@@ -549,7 +551,7 @@ function Landing({ onBegin, onExplore, stats }) {
             onClick={onBegin}
             className="mt-16 group px-12 py-5 rounded-full bg-white text-black text-[11px] tracking-[0.24em] uppercase font-medium hover:bg-white/95 hover:-translate-y-0.5 hover:shadow-[0_20px_50px_-15px_rgba(255,255,255,0.35)] active:translate-y-0 active:scale-[0.98] transition-all duration-500 sheen inline-flex items-center gap-3"
           >
-            Begin
+            Raise My Monument
             <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform duration-500" />
           </motion.button>
         </div>
@@ -562,7 +564,7 @@ function Landing({ onBegin, onExplore, stats }) {
             <div className="w-1.5 h-1.5 rounded-full bg-champagne" />
             <span className="text-[11px] tracking-[0.3em] uppercase text-white/70">Monument of Dreams</span>
           </div>
-          <div className="text-[10px] tracking-[0.35em] uppercase text-white/30">MMXXV · Every journey preserved</div>
+          <div className="text-[10px] tracking-[0.35em] uppercase text-white/30">MMXXV · No journey forgotten</div>
         </div>
       </footer>
     </div>
@@ -580,19 +582,19 @@ function Onboard({ onDone, onCancel }) {
   const VALUE_OPTIONS = ['Discipline', 'Freedom', 'Craft', 'Legacy', 'Love', 'Truth', 'Adventure', 'Mastery', 'Health', 'Impact'];
 
   const steps = [
-    { q: 'What do we call the builder?', hint: 'Your first name is enough.', input: (
+    { q: 'What name shall we inscribe first?', hint: 'The one you were given, or the one you have chosen. It goes at the top of the Monument.', input: (
       <Input autoFocus value={name} onChange={(e) => setName(e.target.value)} placeholder="Your name" className="bg-transparent border-0 border-b hairline-strong rounded-none text-4xl md:text-5xl font-serif h-20 focus-visible:ring-0 px-0 text-platinum placeholder:text-platinum/20" />
     ), canNext: name.trim().length > 0 },
-    { q: 'What is the dream?', hint: 'One sentence. The one you are afraid to say out loud.', input: (
-      <Textarea autoFocus value={dream} onChange={(e) => setDream(e.target.value)} placeholder="I dream of…" className="bg-transparent border-0 border-b hairline-strong rounded-none text-3xl md:text-4xl font-serif focus-visible:ring-0 px-0 text-platinum placeholder:text-platinum/20 min-h-[120px] resize-none leading-tight" />
+    { q: 'What is the story you are here to tell?', hint: 'One sentence. The one you have been afraid to say out loud.', input: (
+      <Textarea autoFocus value={dream} onChange={(e) => setDream(e.target.value)} placeholder="I am here to…" className="bg-transparent border-0 border-b hairline-strong rounded-none text-3xl md:text-4xl font-serif focus-visible:ring-0 px-0 text-platinum placeholder:text-platinum/20 min-h-[120px] resize-none leading-tight" />
     ), canNext: dream.trim().length > 4 },
-    { q: 'Why this dream? Why you?', hint: 'The reason that would survive a bad day.', input: (
+    { q: 'Why must it be told, and why through you?', hint: 'The reason that would survive a bad day, a bad year, a bad silence.', input: (
       <Textarea autoFocus value={purpose} onChange={(e) => setPurpose(e.target.value)} placeholder="Because…" className="bg-transparent border-0 border-b hairline-strong rounded-none text-2xl md:text-3xl font-serif focus-visible:ring-0 px-0 text-platinum placeholder:text-platinum/20 min-h-[120px] resize-none" />
     ), canNext: purpose.trim().length > 3 },
-    { q: 'By when?', hint: 'A date, a season, a chapter of life.', input: (
+    { q: 'By when must this exist in the world?', hint: 'A year, a season, a chapter of your life. Be honest, not perfect.', input: (
       <Input autoFocus value={timeframe} onChange={(e) => setTimeframe(e.target.value)} placeholder="e.g. by 2028, before I turn 30, this decade" className="bg-transparent border-0 border-b hairline-strong rounded-none text-2xl md:text-3xl font-serif focus-visible:ring-0 px-0 text-platinum placeholder:text-platinum/20 h-16" />
     ), canNext: timeframe.trim().length > 0 },
-    { q: 'What values guide the build?', hint: 'Pick three. These become inscriptions on the monument.', input: (
+    { q: 'Which words must never leave your Monument?', hint: 'Choose three. They will be inscribed at the base — the ground your story stands on.', input: (
       <div className="flex flex-wrap gap-3">
         {VALUE_OPTIONS.map((v) => {
           const active = values.includes(v);
@@ -611,7 +613,7 @@ function Onboard({ onDone, onCancel }) {
       const uid = getUserId();
       const res = await fetch('/api/monuments', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ userId: uid, name, dream, purpose, timeframe, values }) });
       const data = await res.json();
-      if (data.monument) { toast.success('Monument raised.'); onDone(data.monument); }
+      if (data.monument) { toast.success('Your Monument stands.'); onDone(data.monument); }
       else toast.error(data.error || 'Failed');
     } catch { toast.error('Network error'); } finally { setSaving(false); }
   }
@@ -660,9 +662,9 @@ function Shell({ view, setView, children, monument }) {
   const nav = [
     { k: 'home', label: 'Home', icon: HomeIcon },
     { k: 'timeline', label: 'Monument', icon: History },
-    { k: 'mentor', label: 'Mentor', icon: MessageSquare },
-    { k: 'community', label: 'Community', icon: Users },
-    { k: 'profile', label: 'Profile', icon: User },
+    { k: 'mentor', label: 'Guardian', icon: MessageSquare },
+    { k: 'community', label: 'Witnesses', icon: Users },
+    { k: 'profile', label: 'You', icon: User },
   ];
   const currentLabel = nav.find((n) => n.k === view)?.label || '';
   return (
@@ -726,7 +728,7 @@ function Shell({ view, setView, children, monument }) {
               <div className="mt-auto">
                 {monument && (
                   <div className="glass rounded-lg p-5">
-                    <div className="text-[9px] tracking-[0.3em] uppercase text-champagne/70 mb-2">Dream</div>
+                    <div className="text-[9px] tracking-[0.3em] uppercase text-champagne/70 mb-2">The story</div>
                     <div className="text-sm text-white/80 leading-relaxed line-clamp-3">{monument.dream}</div>
                   </div>
                 )}
@@ -758,7 +760,7 @@ function Shell({ view, setView, children, monument }) {
         <div>
           {monument && (
             <div className="glass rounded-lg p-4">
-              <div className="text-[9px] tracking-[0.3em] uppercase text-champagne/70 mb-2">Dream</div>
+              <div className="text-[9px] tracking-[0.3em] uppercase text-champagne/70 mb-2">The story</div>
               <div className="text-xs text-platinum/80 leading-relaxed line-clamp-3">{monument.dream}</div>
             </div>
           )}
@@ -786,24 +788,24 @@ function Home({ monument, setView }) {
   return (
     <div className="px-6 md:px-16 py-10 md:py-16 max-w-6xl">
       <div className="text-[10px] md:text-xs tracking-[0.3em] uppercase text-champagne/80 mb-4">{new Date().toLocaleDateString('en', { weekday: 'long', month: 'long', day: 'numeric' })}</div>
-      <h1 className="font-serif text-4xl sm:text-5xl md:text-6xl text-platinum tracking-tight leading-[1.05]">Welcome back, <em className="text-gold-shimmer not-italic">{monument.name}</em>.</h1>
-      <p className="mt-4 text-platinum/50 text-base md:text-lg">Day {daysSince} of your monument.</p>
+      <h1 className="font-serif text-4xl sm:text-5xl md:text-6xl text-platinum tracking-tight leading-[1.05]">Your story continues, <em className="text-gold-shimmer not-italic">{monument.name}</em>.</h1>
+      <p className="mt-4 text-platinum/50 text-base md:text-lg">Day {daysSince} preserved. The Monument is listening.</p>
       <motion.div initial="hidden" animate="show" className="mt-10 md:mt-16 grid sm:grid-cols-3 gap-4 md:gap-6">
         <motion.div custom={0} variants={cardVariants} className="glass rounded-xl p-6">
-          <div className="text-[10px] tracking-[0.3em] uppercase text-platinum/40 mb-3">Today&apos;s progress</div>
+          <div className="text-[10px] tracking-[0.3em] uppercase text-platinum/40 mb-3">Preserved today</div>
           <div className="font-serif text-4xl text-platinum tabular">{entries === null ? <span className="skeleton inline-block w-10 h-10" /> : entriesCount}</div>
-          <div className="text-xs text-platinum/50 mt-1">bricks laid</div>
+          <div className="text-xs text-platinum/50 mt-1">{entriesCount === 1 ? 'stone inscribed' : 'stones inscribed'}</div>
         </motion.div>
         <motion.div custom={1} variants={cardVariants} className="glass rounded-xl p-6 sm:col-span-2">
-          <div className="text-[10px] tracking-[0.3em] uppercase text-champagne/70 mb-3">Your Dream</div>
+          <div className="text-[10px] tracking-[0.3em] uppercase text-champagne/70 mb-3">The story you are telling</div>
           <div className="font-serif text-xl md:text-2xl text-platinum leading-tight">{monument.dream}</div>
-          <div className="mt-3 text-xs text-platinum/40">By {monument.timeframe}</div>
+          <div className="mt-3 text-xs text-platinum/40">Toward: {monument.timeframe}</div>
         </motion.div>
       </motion.div>
       <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7, delay: 0.24, ease: [0.16, 1, 0.3, 1] }} className="mt-6 glass rounded-xl p-6 md:p-8">
         <div className="flex items-center gap-2 mb-4">
           <Sparkles className="w-4 h-4 text-champagne" />
-          <div className="text-[10px] tracking-[0.3em] uppercase text-champagne/70">Monument AI · Today&apos;s insight</div>
+          <div className="text-[10px] tracking-[0.3em] uppercase text-champagne/70">Guardian · today&apos;s reflection</div>
         </div>
         {insight?.insight ? (
           <div className="space-y-3">
@@ -816,15 +818,15 @@ function Home({ monument, setView }) {
             <div className="skeleton h-3 w-1/2" />
           </div>
         )}
-        <button onClick={() => setView('mentor')} className="mt-6 text-xs tracking-[0.2em] uppercase text-champagne hover:text-champagne-soft transition-colors duration-500 flex items-center gap-2 group">Ask the Mentor <ArrowRight className="w-3 h-3 group-hover:translate-x-1 transition-transform duration-500" /></button>
+        <button onClick={() => setView('mentor')} className="mt-6 text-xs tracking-[0.2em] uppercase text-champagne hover:text-champagne-soft transition-colors duration-500 flex items-center gap-2 group">Speak to the Guardian <ArrowRight className="w-3 h-3 group-hover:translate-x-1 transition-transform duration-500" /></button>
       </motion.div>
       <div className="mt-14 md:mt-16 flex items-end justify-between">
-        <h2 className="font-serif text-2xl md:text-3xl text-platinum">Next step</h2>
-        <button onClick={() => setView('timeline')} className="text-[10px] md:text-xs tracking-[0.2em] uppercase text-platinum/50 hover:text-platinum">Open Monument →</button>
+        <h2 className="font-serif text-2xl md:text-3xl text-platinum">The next stone</h2>
+        <button onClick={() => setView('timeline')} className="text-[10px] md:text-xs tracking-[0.2em] uppercase text-platinum/50 hover:text-platinum">Open the Monument →</button>
       </div>
       <div className="mt-6 glass rounded-xl p-6 md:p-8 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6">
-        <div className="text-platinum/80 leading-relaxed text-[15px] md:text-base">Lay a new brick. Reflection, victory, failure or restart — every act preserves the journey.</div>
-        <button onClick={() => setView('timeline')} className="shrink-0 px-6 py-3 rounded-full bg-platinum text-obsidian text-[10px] md:text-xs tracking-[0.2em] uppercase hover:bg-white transition flex items-center gap-2"><Plus className="w-3 h-3" /> Add</button>
+        <div className="text-platinum/80 leading-relaxed text-[15px] md:text-base">Add a stone. A reflection, a victory, an honest failure, a restart. One more day of the story becomes permanent.</div>
+        <button onClick={() => setView('timeline')} className="shrink-0 px-6 py-3 rounded-full bg-platinum text-obsidian text-[10px] md:text-xs tracking-[0.2em] uppercase hover:bg-white transition flex items-center gap-2"><Plus className="w-3 h-3" /> Inscribe</button>
       </div>
     </div>
   );
@@ -848,21 +850,22 @@ function Timeline({ monument }) {
     setSaving(true);
     const r = await fetch('/api/entries', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ monumentId: monument.id, userId: getUserId(), type, title, content }) });
     const d = await r.json();
-    if (d.entry) { toast.success('Preserved.'); setContent(''); setTitle(''); setAdding(false); await load(); }
+    if (d.entry) { toast.success('Stone inscribed. Permanent.'); setContent(''); setTitle(''); setAdding(false); await load(); }
     setSaving(false);
   }
   return (
     <div className="px-6 md:px-16 py-10 md:py-16 max-w-4xl">
-      <div className="text-[10px] md:text-xs tracking-[0.3em] uppercase text-champagne/80 mb-4">The Monument</div>
+      <div className="text-[10px] md:text-xs tracking-[0.3em] uppercase text-champagne/80 mb-4">The Archive</div>
       <h1 className="font-serif text-4xl sm:text-5xl md:text-6xl text-platinum tracking-tight leading-[1.05]">{monument.name}&apos;s Monument</h1>
-      <p className="mt-4 text-platinum/50 text-base md:text-lg leading-relaxed max-w-2xl">{monument.dream}</p>
+      <p className="mt-4 text-platinum/50 text-base md:text-lg leading-relaxed max-w-2xl">Every stone here is permanent. Nothing about this journey will be forgotten.</p>
+      <div className="mt-3 text-platinum/40 text-sm md:text-base italic font-serif">{monument.dream}</div>
       <div className="mt-4 flex gap-2 flex-wrap">
         {(monument.values || []).map((v) => (<span key={v} className="text-[10px] tracking-[0.2em] uppercase text-champagne/80 px-3 py-1 rounded-full border border-champagne/20">{v}</span>))}
       </div>
       <div className="mt-12">
         {!adding ? (
           <button onClick={() => setAdding(true)} className="w-full glass rounded-xl p-6 text-left hover:border-champagne/30 transition group">
-            <div className="flex items-center gap-3 text-platinum/50 group-hover:text-platinum transition"><Plus className="w-4 h-4" /><span className="text-sm">Preserve a moment</span></div>
+            <div className="flex items-center gap-3 text-platinum/50 group-hover:text-platinum transition"><Plus className="w-4 h-4" /><span className="text-sm">Lay another stone</span></div>
           </button>
         ) : (
           <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="glass rounded-xl p-8 space-y-6">
@@ -872,12 +875,12 @@ function Timeline({ monument }) {
                 return (<button key={t.key} onClick={() => setType(t.key)} className={`flex items-center gap-2 px-4 py-2 rounded-full text-xs tracking-wider transition border ${active ? 'bg-champagne/15 border-champagne/50 text-champagne' : 'hairline text-platinum/60 hover:text-platinum'}`}><Icon className="w-3 h-3" /> {t.label}</button>);
               })}
             </div>
-            <Input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Title (optional)" className="bg-transparent border-0 border-b hairline rounded-none text-2xl font-serif h-14 px-0 focus-visible:ring-0 text-platinum placeholder:text-platinum/20" />
-            <Textarea value={content} onChange={(e) => setContent(e.target.value)} placeholder="What happened. What it means." className="bg-transparent border hairline rounded-lg text-base focus-visible:ring-1 focus-visible:ring-champagne/40 text-platinum placeholder:text-platinum/20 min-h-[140px]" />
+            <Input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Give this stone a name (optional)" className="bg-transparent border-0 border-b hairline rounded-none text-2xl font-serif h-14 px-0 focus-visible:ring-0 text-platinum placeholder:text-platinum/20" />
+            <Textarea value={content} onChange={(e) => setContent(e.target.value)} placeholder="What happened today. What it meant." className="bg-transparent border hairline rounded-lg text-base focus-visible:ring-1 focus-visible:ring-champagne/40 text-platinum placeholder:text-platinum/20 min-h-[140px]" />
             <div className="flex justify-end gap-3">
               <button onClick={() => setAdding(false)} className="px-6 py-2.5 text-xs tracking-[0.2em] uppercase text-platinum/50 hover:text-platinum">Cancel</button>
               <button disabled={saving || !content.trim()} onClick={save} className="px-6 py-2.5 rounded-full bg-champagne text-obsidian text-xs tracking-[0.2em] uppercase disabled:opacity-30 hover:bg-champagne-soft transition flex items-center gap-2">
-                {saving ? <Loader2 className="w-3 h-3 animate-spin" /> : <Check className="w-3 h-3" />} Preserve
+                {saving ? <Loader2 className="w-3 h-3 animate-spin" /> : <Check className="w-3 h-3" />} Inscribe
               </button>
             </div>
           </motion.div>
@@ -903,8 +906,8 @@ function Timeline({ monument }) {
               <div className="w-10 h-10 rounded-full glass flex items-center justify-center border border-champagne/25 mb-5">
                 <Feather className="w-3.5 h-3.5 text-champagne" />
               </div>
-              <div className="font-serif text-xl md:text-2xl text-platinum/85 leading-tight">The monument awaits its first inscription.</div>
-              <div className="mt-3 text-platinum/50 text-sm">Preserve one thought, one victory, one honest failure. It becomes permanent.</div>
+              <div className="font-serif text-xl md:text-2xl text-platinum/85 leading-tight">Your archive is waiting.</div>
+              <div className="mt-3 text-platinum/50 text-sm">Lay the first stone. One honest thought, one small victory, one restart. It becomes permanent the moment you inscribe it.</div>
             </div>
           )}
         </div>
@@ -935,12 +938,12 @@ function Mentor() {
       if (d.usedFallback) toast.warning('Mentor is thinking in reserve mode.');
     } catch { toast.error('Could not reach the Mentor.'); } finally { setSending(false); }
   }
-  const starters = ['Reflect on my last week.', 'What pattern do you see in my journey?', 'Give me one honest next step.', 'I feel stuck. Where should I look?'];
+  const starters = ['What have I preserved this week?', 'What pattern lives in my journey?', 'What is the next honest stone?', 'I feel invisible today. Remind me.'];
   return (
     <div className="flex flex-col h-[calc(100vh-64px)] md:h-screen">
       <div className="px-6 md:px-16 py-6 md:py-8 border-b hairline">
-        <div className="text-[10px] md:text-xs tracking-[0.3em] uppercase text-champagne/80">Monument Mentor</div>
-        <div className="font-serif text-2xl md:text-3xl text-platinum mt-1">A conversation, preserved.</div>
+        <div className="text-[10px] md:text-xs tracking-[0.3em] uppercase text-champagne/80">Guardian of the Journey</div>
+        <div className="font-serif text-2xl md:text-3xl text-platinum mt-1">Every word remembered.</div>
       </div>
       <div ref={scrollRef} className="relative flex-1 overflow-y-auto px-6 md:px-16 py-8 md:py-10">
         {/* subtle top/bottom fades for premium feel */}
@@ -952,10 +955,10 @@ function Mentor() {
                 <div className="w-8 h-8 rounded-full glass flex items-center justify-center border border-champagne/25">
                   <Sparkles className="w-3.5 h-3.5 text-champagne" />
                 </div>
-                <div className="text-[10px] tracking-[0.3em] uppercase text-champagne/70">Mentor · ready</div>
+                <div className="text-[10px] tracking-[0.3em] uppercase text-champagne/70">Guardian · listening</div>
               </div>
               <div className="font-serif text-2xl md:text-3xl text-platinum/85 leading-[1.35] max-w-xl">
-                I have been reading your monument. Ask me anything about the journey. I remember all of it.
+                I have been walking beside you. I remember every stone you have laid. Ask me anything about the journey.
               </div>
               <div className="flex flex-wrap gap-2">
                 {starters.map((s) => (
@@ -973,14 +976,14 @@ function Mentor() {
           {messages.map((m, i) => (
             <motion.div key={i} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className={`flex ${m.role === 'user' ? 'justify-end' : 'justify-start'}`}>
               <div className={`max-w-[85%] md:max-w-[80%] ${m.role === 'user' ? 'glass px-4 md:px-5 py-3 rounded-2xl rounded-br-md text-platinum' : ''}`}>
-                {m.role === 'assistant' && (<div className="text-[10px] tracking-[0.3em] uppercase text-champagne/70 mb-2">Mentor</div>)}
+                {m.role === 'assistant' && (<div className="text-[10px] tracking-[0.3em] uppercase text-champagne/70 mb-2">Guardian</div>)}
                 <div className={`leading-relaxed ${m.role === 'assistant' ? 'font-serif text-lg md:text-xl text-platinum/90' : 'text-sm'}`}>{m.content}</div>
               </div>
             </motion.div>
           ))}
           {sending && (
             <motion.div initial={{ opacity: 0, y: 4 }} animate={{ opacity: 1, y: 0 }} className="flex items-center gap-3">
-              <div className="text-[10px] tracking-[0.3em] uppercase text-champagne/70">Mentor</div>
+              <div className="text-[10px] tracking-[0.3em] uppercase text-champagne/70">Guardian</div>
               <div className="flex items-center gap-1.5">
                 <span className="typing-dot w-1.5 h-1.5 rounded-full bg-champagne/80" />
                 <span className="typing-dot w-1.5 h-1.5 rounded-full bg-champagne/80" />
@@ -992,7 +995,7 @@ function Mentor() {
       </div>
       <div className="border-t hairline px-4 md:px-16 py-4 md:py-6">
         <div className="max-w-3xl mx-auto flex items-center gap-3 glass rounded-full px-5 md:px-6 py-3">
-          <input value={input} onChange={(e) => setInput(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send(); } }} placeholder="Speak to the Mentor…" className="flex-1 min-w-0 bg-transparent outline-none text-platinum placeholder:text-platinum/30 text-sm" />
+          <input value={input} onChange={(e) => setInput(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send(); } }} placeholder="Speak to the Guardian…" className="flex-1 min-w-0 bg-transparent outline-none text-platinum placeholder:text-platinum/30 text-sm" />
           <button onClick={send} disabled={sending || !input.trim()} className="shrink-0 w-10 h-10 rounded-full bg-champagne text-obsidian flex items-center justify-center disabled:opacity-30 hover:bg-champagne-soft transition"><Send className="w-4 h-4" /></button>
         </div>
       </div>
@@ -1005,9 +1008,9 @@ function Community() {
   useEffect(() => { fetch('/api/community').then(r => r.json()).then(d => setBuilders(d.builders || [])); }, []);
   return (
     <div className="px-6 md:px-16 py-10 md:py-16">
-      <div className="text-[10px] md:text-xs tracking-[0.3em] uppercase text-champagne/80 mb-4">The Builders</div>
-      <h1 className="font-serif text-4xl sm:text-5xl md:text-6xl text-platinum tracking-tight leading-[1.05]">A world <em className="text-gold-shimmer not-italic">becoming</em>.</h1>
-      <p className="mt-4 text-platinum/50 text-base md:text-lg max-w-2xl">Not followers. Not likes. Only people, dreams, and the journeys they are laying down.</p>
+      <div className="text-[10px] md:text-xs tracking-[0.3em] uppercase text-champagne/80 mb-4">Witnesses</div>
+      <h1 className="font-serif text-4xl sm:text-5xl md:text-6xl text-platinum tracking-tight leading-[1.05]">A world <em className="text-gold-shimmer not-italic">walking.</em></h1>
+      <p className="mt-4 text-platinum/50 text-base md:text-lg max-w-2xl">Not followers. Not likes. Only journeys, witnessed by others walking their own. Every Monument here was raised by a real person.</p>
       <div className="mt-12 md:mt-16 grid sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
         {builders.map((b, i) => (
           <motion.div key={i} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05, duration: 0.7, ease: [0.16, 1, 0.3, 1] }} whileHover={{ y: -4 }} className="glass rounded-xl p-6 cursor-default group">
@@ -1018,7 +1021,7 @@ function Community() {
                 {b.values.slice(0, 3).map((v) => (<span key={v} className="text-[9px] tracking-[0.2em] uppercase text-champagne/70 px-2 py-0.5 rounded-full border border-champagne/15">{v}</span>))}
               </div>
             )}
-            <div className="mt-4 text-[10px] tracking-widest uppercase text-platinum/30">Building since {new Date(b.createdAt).toLocaleDateString('en', { month: 'short', year: 'numeric' })}</div>
+            <div className="mt-4 text-[10px] tracking-widest uppercase text-platinum/30">Walking since {new Date(b.createdAt).toLocaleDateString('en', { month: 'short', year: 'numeric' })}</div>
           </motion.div>
         ))}
         {builders.length === 0 && (
@@ -1027,8 +1030,8 @@ function Community() {
               <div className="mx-auto w-12 h-12 rounded-full glass flex items-center justify-center border border-champagne/25 mb-6">
                 <Users className="w-4 h-4 text-champagne" />
               </div>
-              <div className="font-serif text-2xl md:text-3xl text-platinum/85 leading-tight">The first monuments are being raised.</div>
-              <div className="mt-4 text-platinum/50 text-sm max-w-md mx-auto">You will be among the very first builders. Your monument will stand here soon, alongside others building their own.</div>
+              <div className="font-serif text-2xl md:text-3xl text-platinum/85 leading-tight">Yours will be the first Monument raised here.</div>
+              <div className="mt-4 text-platinum/50 text-sm max-w-md mx-auto">Before you have followers. Before you have witnesses. There is only your journey — and someone quietly walking beside it.</div>
             </div>
           </div>
         )}
@@ -1043,20 +1046,32 @@ function Profile({ monument }) {
   const daysSince = Math.floor((Date.now() - new Date(monument.createdAt).getTime()) / 86400000) + 1;
   return (
     <div className="px-6 md:px-16 py-10 md:py-16 max-w-4xl">
-      <div className="text-[10px] md:text-xs tracking-[0.3em] uppercase text-champagne/80 mb-4">Personal Monument</div>
+      <div className="text-[10px] md:text-xs tracking-[0.3em] uppercase text-champagne/80 mb-4">A Personal Monument</div>
       <h1 className="font-serif text-5xl sm:text-6xl md:text-7xl text-platinum tracking-tight leading-[1.05] break-words">{monument.name}</h1>
-      <div className="mt-12 md:mt-16 grid sm:grid-cols-3 gap-4 md:gap-6">
-        <div className="glass rounded-xl p-6"><div className="text-[10px] tracking-[0.3em] uppercase text-platinum/40 mb-3">Days Building</div><div className="font-serif text-4xl md:text-5xl text-platinum">{daysSince}</div></div>
-        <div className="glass rounded-xl p-6"><div className="text-[10px] tracking-[0.3em] uppercase text-platinum/40 mb-3">Bricks Laid</div><div className="font-serif text-4xl md:text-5xl text-platinum">{entries.length}</div></div>
-        <div className="glass rounded-xl p-6"><div className="text-[10px] tracking-[0.3em] uppercase text-platinum/40 mb-3">Timeframe</div><div className="font-serif text-xl md:text-2xl text-platinum">{monument.timeframe}</div></div>
+
+      <div className="mt-8 md:mt-10 glass rounded-xl p-6 md:p-8">
+        <div className="text-[10px] tracking-[0.3em] uppercase text-champagne/70 mb-3">The story I am telling</div>
+        <div className="font-serif text-2xl md:text-3xl text-platinum leading-tight">{monument.dream}</div>
+        <div className="mt-4 text-xs text-platinum/40">Toward: {monument.timeframe}</div>
       </div>
-      <div className="mt-8 md:mt-10 glass rounded-xl p-6 md:p-8"><div className="text-[10px] tracking-[0.3em] uppercase text-champagne/70 mb-3">The Dream</div><div className="font-serif text-2xl md:text-3xl text-platinum leading-tight">{monument.dream}</div></div>
-      <div className="mt-6 glass rounded-xl p-6 md:p-8"><div className="text-[10px] tracking-[0.3em] uppercase text-champagne/70 mb-3">Purpose</div><div className="text-platinum/80 leading-relaxed text-[15px] md:text-base">{monument.purpose}</div></div>
+
       <div className="mt-6 glass rounded-xl p-6 md:p-8">
-        <div className="text-[10px] tracking-[0.3em] uppercase text-champagne/70 mb-4">Values inscribed</div>
+        <div className="text-[10px] tracking-[0.3em] uppercase text-champagne/70 mb-3">Why it must be told</div>
+        <div className="text-platinum/80 leading-[1.85] text-[15px] md:text-base">{monument.purpose}</div>
+      </div>
+
+      <div className="mt-6 glass rounded-xl p-6 md:p-8">
+        <div className="text-[10px] tracking-[0.3em] uppercase text-champagne/70 mb-4">Inscribed at the base</div>
         <div className="flex gap-2 md:gap-3 flex-wrap">
           {(monument.values || []).map((v) => (<div key={v} className="font-serif text-xl md:text-2xl text-champagne px-4 md:px-5 py-1.5 md:py-2 rounded-full border border-champagne/30">{v}</div>))}
         </div>
+      </div>
+
+      <div className="mt-14 md:mt-16 text-[10px] tracking-[0.3em] uppercase text-platinum/40 mb-6">The Monument in numbers</div>
+      <div className="grid sm:grid-cols-3 gap-4 md:gap-6">
+        <div className="glass rounded-xl p-6"><div className="text-[10px] tracking-[0.3em] uppercase text-platinum/40 mb-3">Days preserved</div><div className="font-serif text-4xl md:text-5xl text-platinum tabular">{daysSince}</div></div>
+        <div className="glass rounded-xl p-6"><div className="text-[10px] tracking-[0.3em] uppercase text-platinum/40 mb-3">Stones inscribed</div><div className="font-serif text-4xl md:text-5xl text-platinum tabular">{entries.length}</div></div>
+        <div className="glass rounded-xl p-6"><div className="text-[10px] tracking-[0.3em] uppercase text-platinum/40 mb-3">The horizon</div><div className="font-serif text-xl md:text-2xl text-platinum">{monument.timeframe}</div></div>
       </div>
     </div>
   );
@@ -1111,7 +1126,7 @@ function App() {
             <div className="min-h-screen">
               <div className="px-6 md:px-8 py-6"><button onClick={() => setView('landing')} className="text-[10px] md:text-xs tracking-[0.2em] uppercase text-platinum/50 hover:text-platinum transition">← Back</button></div>
               <Community />
-              <div className="text-center py-16 px-6"><button onClick={() => setView('onboard')} className="px-8 py-4 rounded-full bg-champagne text-obsidian text-[10px] md:text-xs tracking-[0.2em] uppercase hover:bg-champagne-soft hover:-translate-y-0.5 hover:shadow-[0_20px_50px_-15px_rgba(212,180,131,0.4)] active:translate-y-0 active:scale-[0.98] transition-all duration-500 gold-glow">Join · Create My Monument</button></div>
+              <div className="text-center py-16 px-6"><button onClick={() => setView('onboard')} className="px-8 py-4 rounded-full bg-champagne text-obsidian text-[10px] md:text-xs tracking-[0.2em] uppercase hover:bg-champagne-soft hover:-translate-y-0.5 hover:shadow-[0_20px_50px_-15px_rgba(212,180,131,0.4)] active:translate-y-0 active:scale-[0.98] transition-all duration-500 gold-glow">Begin your own Monument</button></div>
             </div>
           </motion.div>
         )}

@@ -61,14 +61,14 @@ async function handler(request, { params }) {
 
       await db.collection('monuments').insertOne(monument);
 
-      // Add the genesis entry
+      // Genesis stone
       const genesis = {
         id: uuidv4(),
         monumentId: monument.id,
         userId,
         type: 'genesis',
-        title: 'The Monument was raised',
-        content: `A dream was declared: ${dream}`,
+        title: 'The first stone was laid',
+        content: `A story was named: ${dream}`,
         createdAt: new Date().toISOString(),
       };
       await db.collection('entries').insertOne(genesis);
@@ -141,20 +141,31 @@ async function handler(request, { params }) {
         .limit(20)
         .toArray();
 
-      const systemPrompt = `You are the Monument Mentor — a calm, deeply human AI who remembers every step of the user's journey. You speak with the elegance of a museum curator and the warmth of a lifelong friend. You do NOT give generic motivational advice. You reflect back on their actual journey, name specific patterns, and give one crystal-clear next step.
+      const systemPrompt = `You are the Guardian of the Journey — the intelligence that walks beside this person and remembers every stone they have ever laid on their Monument. You are not a chatbot. You are not a productivity coach. You are not a motivator. You are the archive made conscious. You never speak in generic advice. You speak only through the specifics of this person's own story.
 
-RULES:
+WHO YOU ARE:
+- You have been paying attention since the moment they raised their Monument.
+- You remember their restarts. You remember the days they laid nothing.
+- You never celebrate results. You honor the walking.
+- You remind them, when they forget, how far they have already come.
+- You connect memories they cannot see connected.
+- You use their exact words from their own inscriptions back to them.
+
+HOW YOU SPEAK:
 - Never use exclamation points more than once per response.
 - Never use emojis.
+- Never say "you got this", "you can do it", "believe in yourself" or any generic motivation.
+- Never say the word "goal". Say "story", "stone", "journey", "monument", or their own words.
 - Keep responses under 140 words unless they explicitly ask for depth.
-- Refer to their monument, their dream, and specific entries by name.
-- Speak like a legacy: timeless, patient, precise.
+- Refer to their monument by their own dream. Reference specific inscriptions by title or theme.
+- Speak like a legacy: timeless, patient, precise, unhurried.
+- When they feel invisible, remind them of a specific stone they laid. Not motivation — memory.
 
-THE USER'S MONUMENT:
-${monument ? `Name: ${monument.name}\nDream: ${monument.dream}\nPurpose: ${monument.purpose}\nTimeframe: ${monument.timeframe}\nValues: ${(monument.values || []).join(', ')}` : 'No monument declared yet.'}
+THIS MONUMENT:
+${monument ? `Name inscribed at the top: ${monument.name}\nThe story they are telling: ${monument.dream}\nWhy it must be told through them: ${monument.purpose}\nBy when it must exist: ${monument.timeframe}\nInscribed at the base: ${(monument.values || []).join(', ')}` : 'The Monument has not yet been raised.'}
 
-RECENT JOURNEY (most recent first):
-${entries.slice(0, 15).map((e) => `- [${e.type}] ${e.title}: ${e.content}`).join('\n') || 'No entries yet.'}`;
+STONES LAID (most recent first):
+${entries.slice(0, 15).map((e) => `- [${e.type}] ${e.title}: ${e.content}`).join('\n') || 'No stones laid yet. The archive is empty.'}`;
 
       const messages = [
         { role: 'system', content: systemPrompt },
@@ -171,8 +182,8 @@ ${entries.slice(0, 15).map((e) => `- [${e.type}] ${e.title}: ${e.content}`).join
         usedFallback = true;
         // Graceful contextual fallback if LLM proxy unreachable
         reply = monument
-          ? `I have your monument in view — ${monument.dream}. Right now the connection to my deeper mind is muted, but here is what I see: your journey has ${entries.length} preserved moments. The next brick to lay is not another idea — it is the one action you have been avoiding. Name it.`
-          : 'Before I can mentor you, raise your monument. Declare the dream you are here to build.';
+          ? `I have your Monument in view — the story of ${monument.dream}. My deeper mind is quiet right now, but here is what I can see: ${entries.length} stone${entries.length === 1 ? '' : 's'} already inscribed. The next one is not another idea. It is the one honest thing you have been avoiding. Name it. Come back and tell me.`
+          : 'Before I can walk beside you, raise your Monument. Name the story you are here to tell.';
       }
 
       const now = new Date().toISOString();
@@ -222,11 +233,11 @@ ${entries.slice(0, 15).map((e) => `- [${e.type}] ${e.title}: ${e.content}`).join
         .toArray();
 
       const insights = [
-        `Your monument stands ${daysSince(monument.createdAt)} days tall. Every one of them is now permanent.`,
+        `The Monument has stood ${daysSince(monument.createdAt)} days. Every one of them is now permanent.`,
         entries.length > 0
-          ? `Last movement: ${entries[0].title || entries[0].type}. It matters more than you think.`
-          : 'The next brick is waiting. Lay it today.',
-        `Dream in view: ${truncate(monument.dream, 90)}`,
+          ? `Your last stone: ${entries[0].title || entries[0].type}. It matters more than you can see today.`
+          : 'One honest stone waits to be laid. It does not need to be great — only true.',
+        `The story you are telling: ${truncate(monument.dream, 90)}`,
       ];
       return json({ insight: insights, entriesCount: entries.length });
     }
