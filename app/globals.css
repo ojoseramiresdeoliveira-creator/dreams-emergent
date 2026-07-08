@@ -3,33 +3,33 @@
 @tailwind utilities;
 
 :root {
-  --obsidian: #090909;
-  --obsidian-2: #0d0d0e;
-  --platinum: #eeece5;
-  --platinum-muted: #a8a49a;
-  --champagne: #d4b483;
-  --champagne-soft: #e6cfa4;
-  --hairline: rgba(238, 236, 229, 0.08);
-  --hairline-strong: rgba(238, 236, 229, 0.14);
-  --background: 0 0% 3.5%;
-  --foreground: 44 15% 91%;
-  --card: 0 0% 5%;
-  --card-foreground: 44 15% 91%;
-  --popover: 0 0% 5%;
-  --popover-foreground: 44 15% 91%;
-  --primary: 44 15% 91%;
-  --primary-foreground: 0 0% 5%;
-  --secondary: 0 0% 10%;
-  --secondary-foreground: 44 15% 91%;
-  --muted: 0 0% 10%;
+  --obsidian: #0A0A0B;
+  --obsidian-2: #101012;
+  --platinum: #F5F5F3;
+  --platinum-muted: #A8A49A;
+  --champagne: #D4B06A;
+  --champagne-soft: #E8C88A;
+  --hairline: rgba(245, 245, 243, 0.06);
+  --hairline-strong: rgba(245, 245, 243, 0.10);
+  --background: 240 4% 4%;
+  --foreground: 60 8% 96%;
+  --card: 240 4% 6%;
+  --card-foreground: 60 8% 96%;
+  --popover: 240 4% 6%;
+  --popover-foreground: 60 8% 96%;
+  --primary: 60 8% 96%;
+  --primary-foreground: 240 4% 5%;
+  --secondary: 240 4% 10%;
+  --secondary-foreground: 60 8% 96%;
+  --muted: 240 4% 10%;
   --muted-foreground: 40 8% 63%;
-  --accent: 39 46% 67%;
-  --accent-foreground: 0 0% 5%;
+  --accent: 39 52% 62%;
+  --accent-foreground: 240 4% 5%;
   --destructive: 0 63% 45%;
-  --destructive-foreground: 44 15% 91%;
-  --border: 44 15% 91% / 0.08;
-  --input: 0 0% 12%;
-  --ring: 39 46% 67%;
+  --destructive-foreground: 60 8% 96%;
+  --border: 60 8% 96% / 0.06;
+  --input: 240 4% 12%;
+  --ring: 39 52% 62%;
   --radius: 0.75rem;
 }
 
@@ -59,12 +59,12 @@ html, body { background: var(--obsidian); }
 
 /* Champagne gradient text */
 .text-gold-shimmer {
-  background: linear-gradient(120deg, #b48a52 0%, #e6cfa4 45%, #d4b483 70%, #f5e4bd 100%);
+  background: linear-gradient(120deg, #b8955a 0%, #E8C88A 45%, #D4B06A 70%, #F0DBAA 100%);
   -webkit-background-clip: text; background-clip: text; color: transparent;
 }
 
 /* Glow */
-.gold-glow { box-shadow: 0 0 60px -20px rgba(212,180,131,0.35), inset 0 1px 0 rgba(255,255,255,0.05); }
+.gold-glow { box-shadow: 0 0 60px -20px rgba(212,176,106,0.35), inset 0 1px 0 rgba(255,255,255,0.05); }
 .glass {
   background: linear-gradient(180deg, rgba(255,255,255,0.03) 0%, rgba(255,255,255,0.015) 100%);
   backdrop-filter: blur(20px) saturate(1.2);

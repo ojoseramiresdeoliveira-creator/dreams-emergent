@@ -476,12 +476,12 @@ function Landing({ onBegin, onExplore, stats }) {
             </div>
           </div>
           <motion.div initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, margin: '-100px' }} transition={{ duration: 1.8, ease: [0.16, 1, 0.3, 1] }} className="md:col-span-6">
-            <div className="relative border border-white/8 bg-[#0a0a0a] p-10 md:p-14">
+            <div className="relative bg-gradient-to-br from-white/[0.04] via-white/[0.015] to-transparent p-10 md:p-14 rounded-sm" style={{ boxShadow: '0 40px 100px -40px rgba(212,176,106,0.15), inset 0 1px 0 rgba(255,255,255,0.05)' }}>
               <div className="text-[10px] tracking-[0.35em] uppercase text-white/40 mb-8">A Sunday, quietly</div>
               <div className="font-serif text-[22px] md:text-[28px] leading-[1.4] text-white/90">
                 &ldquo;I see three restarts this month around the same block. This is not weakness. It is a signal. The story is asking for a smaller commitment, not a bigger one. Try twelve minutes tomorrow. Only twelve. Then come and inscribe it.&rdquo;
               </div>
-              <div className="mt-12 pt-6 border-t border-white/8 flex items-center justify-between">
+              <div className="mt-12 pt-6 flex items-center justify-between" style={{ borderTop: '1px solid rgba(255,255,255,0.05)' }}>
                 <div className="text-[10px] tracking-[0.32em] uppercase text-white/45">Guardian</div>
                 <div className="text-[10px] tracking-wider text-white/25">remembered forever</div>
               </div>
@@ -491,7 +491,7 @@ function Landing({ onBegin, onExplore, stats }) {
       </section>
 
       {/* PREMIUM */}
-      <section id="premium" className="relative bg-black border-t border-white/5">
+      <section id="premium" className="relative bg-black">
         <div className="max-w-[1200px] mx-auto px-8 md:px-14 py-40 md:py-56">
           <div className="max-w-2xl mb-28">
             <div className="text-[10px] tracking-[0.4em] uppercase text-white/40 mb-10">Monument Eternal</div>
@@ -502,14 +502,14 @@ function Landing({ onBegin, onExplore, stats }) {
           <div className="grid md:grid-cols-12 gap-16 md:gap-20 items-start">
             <div className="md:col-span-5 space-y-0">
               {['Unlimited Monument', 'The Guardian, always with you', 'Yearly Life Book, printed', 'Timeline preserved forever', 'Life Chapters, auto-written', 'Time Capsules to your future self', 'Full journey export'].map((f) => (
-                <div key={f} className="flex items-center gap-4 border-b border-white/6 py-5">
+                <div key={f} className="flex items-center gap-4 py-5" style={{ borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
                   <Check className="w-3 h-3 text-champagne shrink-0" strokeWidth={2.5} />
                   <span className="text-white/80 text-[15px] font-light">{f}</span>
                 </div>
               ))}
             </div>
             <div className="md:col-span-6 md:col-start-7">
-              <div className="border border-white/10 p-10 md:p-14 bg-gradient-to-b from-white/[0.02] to-transparent">
+              <div className="p-10 md:p-14 rounded-sm bg-gradient-to-br from-white/[0.04] via-white/[0.015] to-transparent" style={{ boxShadow: '0 40px 100px -40px rgba(212,176,106,0.18), inset 0 1px 0 rgba(255,255,255,0.05)' }}>
                 <div className="flex items-baseline justify-between mb-10">
                   <div>
                     <div className="text-[10px] tracking-[0.4em] uppercase text-champagne mb-4">Eternal</div>
@@ -558,13 +558,13 @@ function Landing({ onBegin, onExplore, stats }) {
       </SectionCinematic>
 
       {/* FOOTER */}
-      <footer className="bg-black border-t border-white/5">
-        <div className="max-w-[1200px] mx-auto px-8 md:px-14 py-14 flex flex-col md:flex-row items-center justify-between gap-6">
+      <footer className="bg-black">
+        <div className="max-w-[1200px] mx-auto px-8 md:px-14 py-14 flex flex-col md:flex-row items-center justify-between gap-6" style={{ borderTop: '1px solid rgba(255,255,255,0.04)' }}>
           <div className="flex items-center gap-2.5">
             <div className="w-1.5 h-1.5 rounded-full bg-champagne" />
-            <span className="text-[11px] tracking-[0.3em] uppercase text-white/70">Monument of Dreams</span>
+            <span className="text-[11px] tracking-[0.3em] uppercase text-platinum/70">Monument of Dreams</span>
           </div>
-          <div className="text-[10px] tracking-[0.35em] uppercase text-white/30">MMXXV · No journey forgotten</div>
+          <div className="text-[10px] tracking-[0.35em] uppercase text-platinum/30">MMXXV · No journey forgotten</div>
         </div>
       </footer>
     </div>

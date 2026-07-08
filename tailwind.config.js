@@ -18,11 +18,11 @@ module.exports = {
       },
       extend: {
         colors: {
-          obsidian: '#090909',
-          'obsidian-2': '#0d0d0e',
-          platinum: '#eeece5',
-          champagne: '#d4b483',
-          'champagne-soft': '#e6cfa4',
+          obsidian: '#0A0A0B',
+          'obsidian-2': '#101012',
+          platinum: '#F5F5F3',
+          champagne: '#D4B06A',
+          'champagne-soft': '#E8C88A',
           border: 'hsl(var(--border))',
           input: 'hsl(var(--input))',
           ring: 'hsl(var(--ring))',
