@@ -13,6 +13,15 @@ import { toast } from 'sonner';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 
+// Races a promise against a timeout so auth/network calls can never hang the UI silently.
+function withTimeout(promise, ms, message) {
+  let timer;
+  const timeout = new Promise((_, reject) => {
+    timer = setTimeout(() => reject(new Error(message)), ms);
+  });
+  return Promise.race([promise, timeout]).finally(() => clearTimeout(timer));
+}
+
 const ENTRY_TYPES = [
   { key: 'milestone', label: 'Milestone', icon: Trophy },
   { key: 'reflection', label: 'Reflection', icon: Feather },
@@ -1093,7 +1102,11 @@ function AuthModal({ mode: initialMode = 'signup', onSuccess, onClose }) {
     try {
       const supabase = getBrowserClient();
       if (mode === 'signup') {
-        const { data, error: err } = await supabase.auth.signUp({ email, password });
+        const { data, error: err } = await withTimeout(
+          supabase.auth.signUp({ email, password }),
+          15000,
+          'Sign up is taking too long. Check your connection and try again.'
+        );
         if (err) { setError(err.message); return; }
         if (!data.session) {
           setInfo('Account created. Check your email to confirm your address, then sign in.');
@@ -1102,12 +1115,16 @@ function AuthModal({ mode: initialMode = 'signup', onSuccess, onClose }) {
           onSuccess();
         }
       } else {
-        const { error: err } = await supabase.auth.signInWithPassword({ email, password });
+        const { error: err } = await withTimeout(
+          supabase.auth.signInWithPassword({ email, password }),
+          15000,
+          'Sign in is taking too long. Check your connection and try again.'
+        );
         if (err) { setError(err.message); return; }
         onSuccess();
       }
     } catch (e) {
-      setError(e.message || 'Something went wrong');
+      setError(e.message || 'Something went wrong. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -1224,14 +1241,31 @@ function App() {
 
   useEffect(() => {
     const supabase = getBrowserClient();
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    let cancelled = false;
+
+    withTimeout(supabase.auth.getSession(), 10000, 'Session check timed out')
+      .then(({ data: { session }, error }) => {
+        if (cancelled) return;
+        if (error) throw error;
+        setUser(session?.user ?? null);
+      })
+      .catch((e) => {
+        console.error('Auth session check failed:', e);
+        if (cancelled) return;
+        setUser(null);
+        toast.error('Could not verify your session. Please sign in again.');
+      })
+      .finally(() => {
+        if (!cancelled) setAuthChecked(true);
+      });
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (cancelled) return;
       setUser(session?.user ?? null);
       setAuthChecked(true);
     });
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      setUser(session?.user ?? null);
-    });
-    return () => subscription.unsubscribe();
+
+    return () => { cancelled = true; subscription.unsubscribe(); };
   }, []);
 
   useEffect(() => {
@@ -1242,16 +1276,25 @@ function App() {
       setReady(true);
       return;
     }
+    let cancelled = false;
     setReady(false);
     Promise.all([
-      fetch(`/api/journeys/me?userId=${user.id}`).then(r => r.json()).catch(() => ({ monument: null })),
-      fetch('/api/stats').then(r => r.json()).catch(() => null),
+      withTimeout(fetch(`/api/journeys/me?userId=${user.id}`).then(r => r.json()), 10000, 'Timed out loading your Monument').catch(() => ({ monument: null })),
+      withTimeout(fetch('/api/stats').then(r => r.json()), 10000, 'Timed out loading stats').catch(() => null),
     ]).then(([m, s]) => {
+      if (cancelled) return;
       setStats(s);
       if (m.monument) { setMonument(m.monument); setView('home'); }
       else { setView('onboard'); }
       setReady(true);
-    }).catch(() => { setView('onboard'); setReady(true); });
+    }).catch((e) => {
+      console.error('Failed to load account state:', e);
+      if (cancelled) return;
+      toast.error('Something went wrong loading your account. Please refresh.');
+      setView('onboard');
+      setReady(true);
+    });
+    return () => { cancelled = true; };
   }, [authChecked, user]);
 
   function handleBegin() {
