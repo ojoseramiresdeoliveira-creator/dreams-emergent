@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { motion, AnimatePresence, useScroll, useTransform } from 'framer-motion';
-import { v4 as uuidv4 } from 'uuid';
+import { getBrowserClient } from '@/lib/supabase';
 import {
   ArrowRight, ArrowUpRight, Sparkles, Feather, Flame, Mountain,
   MessageSquare, Send, Plus, Users, Home as HomeIcon,
@@ -12,14 +12,6 @@ import {
 import { toast } from 'sonner';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-
-/* ============ Helpers ============ */
-function getUserId() {
-  if (typeof window === 'undefined') return null;
-  let uid = localStorage.getItem('mod_uid');
-  if (!uid) { uid = uuidv4(); localStorage.setItem('mod_uid', uid); }
-  return uid;
-}
 
 const ENTRY_TYPES = [
   { key: 'milestone', label: 'Milestone', icon: Trophy },
@@ -252,7 +244,7 @@ function EarthGlobe({ size = 'large' }) {
   );
 }
 
-function Landing({ onBegin, onExplore, stats }) {
+function Landing({ onBegin, onExplore, onSignIn, stats }) {
   const { scrollYProgress } = useScroll();
   const heroY = useTransform(scrollYProgress, [0, 0.35], [0, 120]);
   const heroOpacity = useTransform(scrollYProgress, [0, 0.22], [1, 0]);
@@ -273,9 +265,12 @@ function Landing({ onBegin, onExplore, stats }) {
             <a href="#mentor" className="nav-link hover:text-white">Mentor</a>
             <a href="#premium" className="nav-link hover:text-white">Eternal</a>
           </div>
-          <button onClick={onBegin} className="text-[10px] md:text-[11px] tracking-[0.24em] uppercase text-white/80 hover:text-white transition-colors duration-500 flex items-center gap-2">
-            Enter <ArrowUpRight className="w-3 h-3" />
-          </button>
+          <div className="flex items-center gap-5">
+            {onSignIn && <button onClick={onSignIn} className="text-[10px] md:text-[11px] tracking-[0.24em] uppercase text-white/55 hover:text-white transition-colors duration-500">Sign In</button>}
+            <button onClick={onBegin} className="text-[10px] md:text-[11px] tracking-[0.24em] uppercase text-white/80 hover:text-white transition-colors duration-500 flex items-center gap-2">
+              Enter <ArrowUpRight className="w-3 h-3" />
+            </button>
+          </div>
         </div>
       </nav>
 
@@ -571,7 +566,7 @@ function Landing({ onBegin, onExplore, stats }) {
   );
 }
 
-function Onboard({ onDone, onCancel }) {
+function Onboard({ onDone, onCancel, userId }) {
   const [step, setStep] = useState(0);
   const [name, setName] = useState('');
   const [dream, setDream] = useState('');
@@ -608,10 +603,10 @@ function Onboard({ onDone, onCancel }) {
   const s = steps[step];
 
   async function submit() {
+    if (!userId) { toast.error('Please sign in first.'); return; }
     setSaving(true);
     try {
-      const uid = getUserId();
-      const res = await fetch('/api/monuments', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ userId: uid, name, dream, purpose, timeframe, values }) });
+      const res = await fetch('/api/journeys', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ userId, name, dream, purpose, timeframe, values }) });
       const data = await res.json();
       if (data.monument) { toast.success('Your Monument stands.'); onDone(data.monument); }
       else toast.error(data.error || 'Failed');
@@ -657,7 +652,7 @@ function Onboard({ onDone, onCancel }) {
   );
 }
 
-function Shell({ view, setView, children, monument }) {
+function Shell({ view, setView, children, monument, onLogout }) {
   const [mobileOpen, setMobileOpen] = useState(false);
   const nav = [
     { k: 'home', label: 'Home', icon: HomeIcon },
@@ -732,6 +727,9 @@ function Shell({ view, setView, children, monument }) {
                     <div className="text-sm text-white/80 leading-relaxed line-clamp-3">{monument.dream}</div>
                   </div>
                 )}
+                <button onClick={() => { onLogout(); setMobileOpen(false); }} className="mt-6 w-full text-[10px] tracking-[0.22em] uppercase text-platinum/30 hover:text-platinum/60 transition py-2">
+                  Sign out
+                </button>
               </div>
             </motion.div>
           </motion.div>
@@ -764,6 +762,9 @@ function Shell({ view, setView, children, monument }) {
               <div className="text-xs text-platinum/80 leading-relaxed line-clamp-3">{monument.dream}</div>
             </div>
           )}
+          <button onClick={onLogout} className="mt-4 w-full text-[10px] tracking-[0.22em] uppercase text-platinum/30 hover:text-platinum/60 transition py-2">
+            Sign out
+          </button>
         </div>
       </aside>
       <main className="flex-1 min-w-0 w-full">{children}</main>
@@ -771,12 +772,11 @@ function Shell({ view, setView, children, monument }) {
   );
 }
 
-function Home({ monument, setView }) {
+function Home({ monument, setView, userId }) {
   const [insight, setInsight] = useState(null);
   const [entries, setEntries] = useState(null);
   useEffect(() => {
-    const uid = getUserId();
-    fetch(`/api/insight?userId=${uid}`).then(r => r.json()).then(d => setInsight(d));
+    if (userId) fetch(`/api/insight?userId=${userId}`).then(r => r.json()).then(d => setInsight(d));
     fetch(`/api/entries?monumentId=${monument.id}`).then(r => r.json()).then(d => setEntries(d.entries || []));
   }, [monument.id]);
   const daysSince = Math.floor((Date.now() - new Date(monument.createdAt).getTime()) / 86400000) + 1;
@@ -832,7 +832,7 @@ function Home({ monument, setView }) {
   );
 }
 
-function Timeline({ monument }) {
+function Timeline({ monument, userId }) {
   const [entries, setEntries] = useState([]);
   const [adding, setAdding] = useState(false);
   const [type, setType] = useState('reflection');
@@ -848,7 +848,7 @@ function Timeline({ monument }) {
   async function save() {
     if (!content.trim()) return;
     setSaving(true);
-    const r = await fetch('/api/entries', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ monumentId: monument.id, userId: getUserId(), type, title, content }) });
+    const r = await fetch('/api/entries', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ monumentId: monument.id, userId, type, title, content }) });
     const d = await r.json();
     if (d.entry) { toast.success('Stone inscribed. Permanent.'); setContent(''); setTitle(''); setAdding(false); await load(); }
     setSaving(false);
@@ -916,23 +916,23 @@ function Timeline({ monument }) {
   );
 }
 
-function Mentor() {
+function Mentor({ userId }) {
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState('');
   const [sending, setSending] = useState(false);
   const scrollRef = useRef(null);
   useEffect(() => {
-    const uid = getUserId();
-    fetch(`/api/mentor/history?userId=${uid}`).then(r => r.json()).then(d => setMessages(d.messages || []));
-  }, []);
+    if (!userId) return;
+    fetch(`/api/mentor/history?userId=${userId}`).then(r => r.json()).then(d => setMessages(d.messages || []));
+  }, [userId]);
   useEffect(() => { scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: 'smooth' }); }, [messages]);
   async function send() {
-    if (!input.trim()) return;
-    const uid = getUserId(); const msg = input.trim(); setInput('');
+    if (!input.trim() || !userId) return;
+    const msg = input.trim(); setInput('');
     setMessages((m) => [...m, { role: 'user', content: msg, createdAt: new Date().toISOString() }]);
     setSending(true);
     try {
-      const r = await fetch('/api/mentor', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ userId: uid, message: msg }) });
+      const r = await fetch('/api/mentor', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ userId, message: msg }) });
       const d = await r.json();
       setMessages((m) => [...m, { role: 'assistant', content: d.reply, createdAt: new Date().toISOString() }]);
       if (d.usedFallback) toast.warning('Mentor is thinking in reserve mode.');
@@ -1077,48 +1077,213 @@ function Profile({ monument }) {
   );
 }
 
+function AuthModal({ mode: initialMode = 'signup', onSuccess, onClose }) {
+  const [mode, setMode] = useState(initialMode);
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+  const [info, setInfo] = useState(null);
+
+  async function submit(e) {
+    e.preventDefault();
+    setLoading(true);
+    setError(null);
+    setInfo(null);
+    try {
+      const supabase = getBrowserClient();
+      if (mode === 'signup') {
+        const { data, error: err } = await supabase.auth.signUp({ email, password });
+        if (err) { setError(err.message); return; }
+        if (!data.session) {
+          setInfo('Account created. Check your email to confirm your address, then sign in.');
+          setMode('login');
+        } else {
+          onSuccess();
+        }
+      } else {
+        const { error: err } = await supabase.auth.signInWithPassword({ email, password });
+        if (err) { setError(err.message); return; }
+        onSuccess();
+      }
+    } catch (e) {
+      setError(e.message || 'Something went wrong');
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  return (
+    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-md" onClick={onClose}>
+      <motion.div
+        initial={{ opacity: 0, scale: 0.96, y: 16 }}
+        animate={{ opacity: 1, scale: 1, y: 0 }}
+        exit={{ opacity: 0, scale: 0.96, y: 16 }}
+        transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+        className="relative w-full max-w-md mx-4 bg-[#0a0a0a] border hairline rounded-sm p-10 md:p-14"
+        onClick={e => e.stopPropagation()}
+      >
+        <button onClick={onClose} className="absolute top-5 right-5 text-platinum/40 hover:text-platinum transition">
+          <X className="w-4 h-4" />
+        </button>
+
+        <div className="flex items-center gap-2.5 mb-10">
+          <div className="w-1.5 h-1.5 rounded-full bg-champagne" />
+          <span className="text-[10px] tracking-[0.3em] uppercase text-white/70">Monument of Dreams</span>
+        </div>
+
+        <h2 className="font-serif text-3xl text-platinum mb-2">
+          {mode === 'signup' ? 'Raise your monument.' : 'Return to your monument.'}
+        </h2>
+        <p className="text-platinum/40 text-sm mb-10">
+          {mode === 'signup' ? 'Create an account to begin.' : 'Sign in to continue your story.'}
+        </p>
+
+        {info && <div className="mb-6 text-sm text-champagne/90 bg-champagne/10 border border-champagne/20 rounded px-4 py-3">{info}</div>}
+        {error && <div className="mb-6 text-sm text-red-400/90 bg-red-900/20 border border-red-500/20 rounded px-4 py-3">{error}</div>}
+
+        <form onSubmit={submit} className="space-y-6">
+          <div>
+            <label className="text-[10px] tracking-[0.25em] uppercase text-platinum/50 block mb-2">Email</label>
+            <Input
+              type="email"
+              value={email}
+              onChange={e => setEmail(e.target.value)}
+              required
+              placeholder="your@email.com"
+              className="bg-transparent border-0 border-b hairline-strong rounded-none focus-visible:ring-0 text-platinum placeholder:text-platinum/20 h-12 px-0"
+            />
+          </div>
+          <div>
+            <label className="text-[10px] tracking-[0.25em] uppercase text-platinum/50 block mb-2">Password</label>
+            <Input
+              type="password"
+              value={password}
+              onChange={e => setPassword(e.target.value)}
+              required
+              minLength={6}
+              placeholder="At least 6 characters"
+              className="bg-transparent border-0 border-b hairline-strong rounded-none focus-visible:ring-0 text-platinum placeholder:text-platinum/20 h-12 px-0"
+            />
+          </div>
+          <button
+            type="submit"
+            disabled={loading}
+            className="w-full py-4 rounded-full bg-white text-black text-[11px] tracking-[0.24em] uppercase font-medium hover:bg-white/95 disabled:opacity-40 transition-all duration-500 flex items-center justify-center gap-2"
+          >
+            {loading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : mode === 'signup' ? 'Create Account' : 'Sign In'}
+          </button>
+        </form>
+
+        <div className="mt-8 text-center">
+          <button
+            onClick={() => { setMode(mode === 'signup' ? 'login' : 'signup'); setError(null); setInfo(null); }}
+            className="text-[11px] tracking-wide text-platinum/40 hover:text-platinum/80 transition"
+          >
+            {mode === 'signup' ? 'Already have an account? Sign in.' : "Don't have an account? Sign up."}
+          </button>
+        </div>
+      </motion.div>
+    </div>
+  );
+}
+
+function LoadingScreen() {
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-black">
+      <Ambient />
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 1.2, ease: [0.16, 1, 0.3, 1] }}
+        className="flex flex-col items-center gap-8"
+      >
+        <div className="relative w-20 h-20">
+          <div className="absolute inset-[-40%] rounded-full pointer-events-none animate-atmosphere-breath"
+               style={{ background: 'radial-gradient(circle, rgba(90,145,225,0.28) 40%, transparent 74%)' }} />
+          <div className="relative w-full h-full rounded-full overflow-hidden animate-earthspin"
+               style={{ boxShadow: '0 0 40px -5px rgba(88,140,220,0.4), inset 0 -4px 20px rgba(0,0,0,0.55)' }}>
+            <img src="/earth.jpg" alt="" className="absolute inset-0 w-full h-full object-cover" style={{ transform: 'scale(1.55)' }} draggable="false" />
+          </div>
+        </div>
+        <div className="text-[10px] tracking-[0.4em] uppercase text-white/50">Monument of Dreams</div>
+      </motion.div>
+    </div>
+  );
+}
+
 function App() {
+  const [user, setUser] = useState(null);
+  const [authChecked, setAuthChecked] = useState(false);
+  const [showAuth, setShowAuth] = useState(false);
+  const [authMode, setAuthMode] = useState('signup');
   const [ready, setReady] = useState(false);
   const [view, setView] = useState('landing');
   const [monument, setMonument] = useState(null);
   const [stats, setStats] = useState(null);
+
   useEffect(() => {
-    const uid = getUserId();
-    Promise.all([
-      fetch(`/api/monuments/me?userId=${uid}`).then(r => r.json()),
-      fetch(`/api/stats`).then(r => r.json()),
-    ]).then(([m, s]) => { setStats(s); if (m.monument) { setMonument(m.monument); setView('home'); } setReady(true); }).catch(() => setReady(true));
+    const supabase = getBrowserClient();
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setUser(session?.user ?? null);
+      setAuthChecked(true);
+    });
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUser(session?.user ?? null);
+    });
+    return () => subscription.unsubscribe();
   }, []);
-  if (!ready) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-black">
-        <Ambient />
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 1.2, ease: [0.16, 1, 0.3, 1] }}
-          className="flex flex-col items-center gap-8"
-        >
-          <div className="relative w-20 h-20">
-            <div className="absolute inset-[-40%] rounded-full pointer-events-none animate-atmosphere-breath"
-                 style={{ background: 'radial-gradient(circle, rgba(90,145,225,0.28) 40%, transparent 74%)' }} />
-            <div className="relative w-full h-full rounded-full overflow-hidden animate-earthspin"
-                 style={{ boxShadow: '0 0 40px -5px rgba(88,140,220,0.4), inset 0 -4px 20px rgba(0,0,0,0.55)' }}>
-              <img src="/earth.jpg" alt="" className="absolute inset-0 w-full h-full object-cover" style={{ transform: 'scale(1.55)' }} draggable="false" />
-            </div>
-          </div>
-          <div className="text-[10px] tracking-[0.4em] uppercase text-white/50">Monument of Dreams</div>
-        </motion.div>
-      </div>
-    );
+
+  useEffect(() => {
+    if (!authChecked) return;
+    if (!user) {
+      setMonument(null);
+      setView('landing');
+      setReady(true);
+      return;
+    }
+    setReady(false);
+    Promise.all([
+      fetch(`/api/journeys/me?userId=${user.id}`).then(r => r.json()).catch(() => ({ monument: null })),
+      fetch('/api/stats').then(r => r.json()).catch(() => null),
+    ]).then(([m, s]) => {
+      setStats(s);
+      if (m.monument) { setMonument(m.monument); setView('home'); }
+      else { setView('onboard'); }
+      setReady(true);
+    }).catch(() => { setView('onboard'); setReady(true); });
+  }, [authChecked, user]);
+
+  function handleBegin() {
+    if (user) setView('onboard');
+    else { setAuthMode('signup'); setShowAuth(true); }
   }
+
+  function handleAuthSuccess() {
+    setShowAuth(false);
+  }
+
+  async function handleLogout() {
+    await getBrowserClient().auth.signOut();
+    setUser(null);
+    setMonument(null);
+    setView('landing');
+  }
+
+  if (!authChecked || !ready) return <LoadingScreen />;
+
   return (
     <div className="min-h-screen grain">
       <Ambient />
+      <AnimatePresence>
+        {showAuth && (
+          <AuthModal key="auth" mode={authMode} onSuccess={handleAuthSuccess} onClose={() => setShowAuth(false)} />
+        )}
+      </AnimatePresence>
       <AnimatePresence mode="wait">
         {view === 'landing' && (
           <motion.div key="landing" initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -12 }} transition={{ duration: 0.9, ease: [0.16, 1, 0.3, 1] }}>
-            <Landing stats={stats} onBegin={() => setView('onboard')} onExplore={() => setView('community-preview')} />
+            <Landing stats={stats} onBegin={handleBegin} onExplore={() => setView('community-preview')} onSignIn={() => { setAuthMode('login'); setShowAuth(true); }} />
           </motion.div>
         )}
         {view === 'community-preview' && (
@@ -1126,21 +1291,21 @@ function App() {
             <div className="min-h-screen">
               <div className="px-6 md:px-8 py-6"><button onClick={() => setView('landing')} className="text-[10px] md:text-xs tracking-[0.2em] uppercase text-platinum/50 hover:text-platinum transition">← Back</button></div>
               <Community />
-              <div className="text-center py-16 px-6"><button onClick={() => setView('onboard')} className="px-8 py-4 rounded-full bg-champagne text-obsidian text-[10px] md:text-xs tracking-[0.2em] uppercase hover:bg-champagne-soft hover:-translate-y-0.5 hover:shadow-[0_20px_50px_-15px_rgba(212,180,131,0.4)] active:translate-y-0 active:scale-[0.98] transition-all duration-500 gold-glow">Begin your own Monument</button></div>
+              <div className="text-center py-16 px-6"><button onClick={handleBegin} className="px-8 py-4 rounded-full bg-champagne text-obsidian text-[10px] md:text-xs tracking-[0.2em] uppercase hover:bg-champagne-soft hover:-translate-y-0.5 hover:shadow-[0_20px_50px_-15px_rgba(212,180,131,0.4)] active:translate-y-0 active:scale-[0.98] transition-all duration-500 gold-glow">Begin your own Monument</button></div>
             </div>
           </motion.div>
         )}
         {view === 'onboard' && (
           <motion.div key="ob" initial={{ opacity: 0, scale: 0.985, y: 8 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 1.01, y: -8 }} transition={{ duration: 0.85, ease: [0.16, 1, 0.3, 1] }}>
-            <Onboard onDone={(m) => { setMonument(m); setView('home'); }} onCancel={() => setView('landing')} />
+            <Onboard userId={user?.id} onDone={(m) => { setMonument(m); setView('home'); }} onCancel={() => setView('landing')} />
           </motion.div>
         )}
         {['home', 'timeline', 'mentor', 'community', 'profile'].includes(view) && monument && (
           <motion.div key={view} initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}>
-            <Shell view={view} setView={setView} monument={monument}>
-              {view === 'home' && <Home monument={monument} setView={setView} />}
-              {view === 'timeline' && <Timeline monument={monument} />}
-              {view === 'mentor' && <Mentor />}
+            <Shell view={view} setView={setView} monument={monument} onLogout={handleLogout}>
+              {view === 'home' && <Home monument={monument} setView={setView} userId={user?.id} />}
+              {view === 'timeline' && <Timeline monument={monument} userId={user?.id} />}
+              {view === 'mentor' && <Mentor userId={user?.id} />}
               {view === 'community' && <Community />}
               {view === 'profile' && <Profile monument={monument} />}
             </Shell>
