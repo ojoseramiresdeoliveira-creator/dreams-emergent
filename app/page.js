@@ -22,6 +22,35 @@ function withTimeout(promise, ms, message) {
   return Promise.race([promise, timeout]).finally(() => clearTimeout(timer));
 }
 
+// Single path for every API call: attaches the Supabase JWT, enforces a hard
+// timeout, and throws with the server's error message on non-2xx responses.
+async function apiFetch(path, { method = 'GET', body, timeoutMs = 15000 } = {}) {
+  const supabase = getBrowserClient();
+  const { data: { session } } = await withTimeout(
+    supabase.auth.getSession(), 5000, 'Session lookup timed out'
+  );
+  const headers = { 'Content-Type': 'application/json' };
+  if (session?.access_token) headers.Authorization = `Bearer ${session.access_token}`;
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+  try {
+    const res = await fetch(path, {
+      method,
+      headers,
+      body: body !== undefined ? JSON.stringify(body) : undefined,
+      signal: controller.signal,
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(data.error || `Request failed (${res.status})`);
+    return data;
+  } catch (e) {
+    if (e.name === 'AbortError') throw new Error('Request timed out');
+    throw e;
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
 const ENTRY_TYPES = [
   { key: 'milestone', label: 'Milestone', icon: Trophy },
   { key: 'reflection', label: 'Reflection', icon: Feather },
@@ -615,11 +644,11 @@ function Onboard({ onDone, onCancel, userId }) {
     if (!userId) { toast.error('Please sign in first.'); return; }
     setSaving(true);
     try {
-      const res = await fetch('/api/journeys', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ userId, name, dream, purpose, timeframe, values }) });
-      const data = await res.json();
+      // The server derives the user from the JWT — no userId in the body.
+      const data = await apiFetch('/api/journeys', { method: 'POST', body: { name, dream, purpose, timeframe, values } });
       if (data.monument) { toast.success('Your Monument stands.'); onDone(data.monument); }
       else toast.error(data.error || 'Failed');
-    } catch { toast.error('Network error'); } finally { setSaving(false); }
+    } catch (e) { toast.error(e.message || 'Network error'); } finally { setSaving(false); }
   }
 
   return (
@@ -783,11 +812,20 @@ function Shell({ view, setView, children, monument, onLogout }) {
 
 function Home({ monument, setView, userId }) {
   const [insight, setInsight] = useState(null);
+  const [insightFailed, setInsightFailed] = useState(false);
   const [entries, setEntries] = useState(null);
   useEffect(() => {
-    if (userId) fetch(`/api/insight?userId=${userId}`).then(r => r.json()).then(d => setInsight(d));
-    fetch(`/api/entries?monumentId=${monument.id}`).then(r => r.json()).then(d => setEntries(d.entries || []));
-  }, [monument.id]);
+    let cancelled = false;
+    setInsight(null);
+    setInsightFailed(false);
+    apiFetch('/api/insight')
+      .then(d => { if (!cancelled) setInsight(d); })
+      .catch(() => { if (!cancelled) setInsightFailed(true); });
+    apiFetch(`/api/entries?monumentId=${monument.id}`)
+      .then(d => { if (!cancelled) setEntries(d.entries || []); })
+      .catch(() => { if (!cancelled) { setEntries([]); toast.error('Could not load your stones. Refresh to try again.'); } });
+    return () => { cancelled = true; };
+  }, [monument.id, userId]);
   const daysSince = Math.floor((Date.now() - new Date(monument.createdAt).getTime()) / 86400000) + 1;
   const entriesCount = entries?.length ?? 0;
   const cardVariants = {
@@ -820,6 +858,8 @@ function Home({ monument, setView, userId }) {
           <div className="space-y-3">
             {insight.insight.map((s, i) => (<div key={i} className="text-platinum/80 leading-relaxed font-light text-[15px] md:text-base">{s}</div>))}
           </div>
+        ) : insightFailed ? (
+          <div className="text-platinum/50 leading-relaxed font-light text-[15px] md:text-base">The Guardian is quiet for a moment. The Monument still stands.</div>
         ) : (
           <div className="space-y-3">
             <div className="skeleton h-3 w-3/4" />
@@ -848,19 +888,40 @@ function Timeline({ monument, userId }) {
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
   const [saving, setSaving] = useState(false);
+  // Idempotency key for the current submission intent. Stable across an
+  // unedited retry (so a timeout-retry replays instead of duplicating);
+  // rotated whenever the text changes (edited resubmission = new stone).
+  const [clientRef, setClientRef] = useState(null);
+  const newRef = () => (typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : null);
   async function load() {
-    const r = await fetch(`/api/entries?monumentId=${monument.id}`);
-    const d = await r.json();
-    setEntries(d.entries || []);
+    try {
+      const d = await apiFetch(`/api/entries?monumentId=${monument.id}`);
+      setEntries(d.entries || []);
+    } catch (e) {
+      toast.error(e.message || 'Could not load the Monument.');
+    }
   }
-  useEffect(() => { load(); }, [monument.id]);
+  useEffect(() => {
+    let cancelled = false;
+    apiFetch(`/api/entries?monumentId=${monument.id}`)
+      .then(d => { if (!cancelled) setEntries(d.entries || []); })
+      .catch(e => { if (!cancelled) toast.error(e.message || 'Could not load the Monument.'); });
+    return () => { cancelled = true; };
+  }, [monument.id]);
   async function save() {
-    if (!content.trim()) return;
+    // Re-entrancy guard: the button is disabled while saving, but this makes
+    // double-submission impossible even if the click path changes.
+    if (saving || !content.trim()) return;
     setSaving(true);
-    const r = await fetch('/api/entries', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ monumentId: monument.id, userId, type, title, content }) });
-    const d = await r.json();
-    if (d.entry) { toast.success('Stone inscribed. Permanent.'); setContent(''); setTitle(''); setAdding(false); await load(); }
-    setSaving(false);
+    try {
+      const d = await apiFetch('/api/entries', { method: 'POST', body: { monumentId: monument.id, type, title, content, ...(clientRef ? { clientRef } : {}) } });
+      if (d.entry) { toast.success('Stone inscribed. Permanent.'); setContent(''); setTitle(''); setAdding(false); await load(); }
+      else toast.error(d.error || 'Could not inscribe the stone.');
+    } catch (e) {
+      toast.error(e.message || 'Could not inscribe the stone.');
+    } finally {
+      setSaving(false);
+    }
   }
   return (
     <div className="px-6 md:px-16 py-10 md:py-16 max-w-4xl">
@@ -873,7 +934,7 @@ function Timeline({ monument, userId }) {
       </div>
       <div className="mt-12">
         {!adding ? (
-          <button onClick={() => setAdding(true)} className="w-full glass rounded-xl p-6 text-left hover:border-champagne/30 transition group">
+          <button onClick={() => { setAdding(true); setClientRef(newRef()); }} className="w-full glass rounded-xl p-6 text-left hover:border-champagne/30 transition group">
             <div className="flex items-center gap-3 text-platinum/50 group-hover:text-platinum transition"><Plus className="w-4 h-4" /><span className="text-sm">Lay another stone</span></div>
           </button>
         ) : (
@@ -884,10 +945,10 @@ function Timeline({ monument, userId }) {
                 return (<button key={t.key} onClick={() => setType(t.key)} className={`flex items-center gap-2 px-4 py-2 rounded-full text-xs tracking-wider transition border ${active ? 'bg-champagne/15 border-champagne/50 text-champagne' : 'hairline text-platinum/60 hover:text-platinum'}`}><Icon className="w-3 h-3" /> {t.label}</button>);
               })}
             </div>
-            <Input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Give this stone a name (optional)" className="bg-transparent border-0 border-b hairline rounded-none text-2xl font-serif h-14 px-0 focus-visible:ring-0 text-platinum placeholder:text-platinum/20" />
-            <Textarea value={content} onChange={(e) => setContent(e.target.value)} placeholder="What happened today. What it meant." className="bg-transparent border hairline rounded-lg text-base focus-visible:ring-1 focus-visible:ring-champagne/40 text-platinum placeholder:text-platinum/20 min-h-[140px]" />
+            <Input disabled={saving} value={title} onChange={(e) => { setTitle(e.target.value); setClientRef(newRef()); }} placeholder="Give this stone a name (optional)" className="bg-transparent border-0 border-b hairline rounded-none text-2xl font-serif h-14 px-0 focus-visible:ring-0 text-platinum placeholder:text-platinum/20" />
+            <Textarea disabled={saving} value={content} onChange={(e) => { setContent(e.target.value); setClientRef(newRef()); }} placeholder="What happened today. What it meant." className="bg-transparent border hairline rounded-lg text-base focus-visible:ring-1 focus-visible:ring-champagne/40 text-platinum placeholder:text-platinum/20 min-h-[140px]" />
             <div className="flex justify-end gap-3">
-              <button onClick={() => setAdding(false)} className="px-6 py-2.5 text-xs tracking-[0.2em] uppercase text-platinum/50 hover:text-platinum">Cancel</button>
+              <button disabled={saving} onClick={() => setAdding(false)} className="px-6 py-2.5 text-xs tracking-[0.2em] uppercase text-platinum/50 hover:text-platinum disabled:opacity-30">Cancel</button>
               <button disabled={saving || !content.trim()} onClick={save} className="px-6 py-2.5 rounded-full bg-champagne text-obsidian text-xs tracking-[0.2em] uppercase disabled:opacity-30 hover:bg-champagne-soft transition flex items-center gap-2">
                 {saving ? <Loader2 className="w-3 h-3 animate-spin" /> : <Check className="w-3 h-3" />} Inscribe
               </button>
@@ -932,20 +993,29 @@ function Mentor({ userId }) {
   const scrollRef = useRef(null);
   useEffect(() => {
     if (!userId) return;
-    fetch(`/api/mentor/history?userId=${userId}`).then(r => r.json()).then(d => setMessages(d.messages || []));
+    let cancelled = false;
+    apiFetch('/api/mentor/history')
+      .then(d => { if (!cancelled) setMessages(d.messages || []); })
+      .catch(() => { if (!cancelled) toast.error('Could not load the Guardian’s memory.'); });
+    return () => { cancelled = true; };
   }, [userId]);
   useEffect(() => { scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: 'smooth' }); }, [messages]);
   async function send() {
-    if (!input.trim() || !userId) return;
+    if (!input.trim() || !userId || sending) return;
     const msg = input.trim(); setInput('');
     setMessages((m) => [...m, { role: 'user', content: msg, createdAt: new Date().toISOString() }]);
     setSending(true);
     try {
-      const r = await fetch('/api/mentor', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ userId, message: msg }) });
-      const d = await r.json();
-      setMessages((m) => [...m, { role: 'assistant', content: d.reply, createdAt: new Date().toISOString() }]);
+      // Long timeout: the reply comes from an LLM call.
+      const d = await apiFetch('/api/mentor', { method: 'POST', body: { message: msg }, timeoutMs: 45000 });
+      if (!d.reply) throw new Error(d.error || 'The Guardian did not answer.');
+      setMessages((m) => [...m, { role: 'guardian', content: d.reply, createdAt: new Date().toISOString() }]);
       if (d.usedFallback) toast.warning('Mentor is thinking in reserve mode.');
-    } catch { toast.error('Could not reach the Mentor.'); } finally { setSending(false); }
+    } catch (e) {
+      toast.error(e.message || 'Could not reach the Mentor.');
+    } finally {
+      setSending(false);
+    }
   }
   const starters = ['What have I preserved this week?', 'What pattern lives in my journey?', 'What is the next honest stone?', 'I feel invisible today. Remind me.'];
   return (
@@ -985,8 +1055,8 @@ function Mentor({ userId }) {
           {messages.map((m, i) => (
             <motion.div key={i} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className={`flex ${m.role === 'user' ? 'justify-end' : 'justify-start'}`}>
               <div className={`max-w-[85%] md:max-w-[80%] ${m.role === 'user' ? 'glass px-4 md:px-5 py-3 rounded-2xl rounded-br-md text-platinum' : ''}`}>
-                {m.role === 'assistant' && (<div className="text-[10px] tracking-[0.3em] uppercase text-champagne/70 mb-2">Guardian</div>)}
-                <div className={`leading-relaxed ${m.role === 'assistant' ? 'font-serif text-lg md:text-xl text-platinum/90' : 'text-sm'}`}>{m.content}</div>
+                {m.role !== 'user' && (<div className="text-[10px] tracking-[0.3em] uppercase text-champagne/70 mb-2">Guardian</div>)}
+                <div className={`leading-relaxed ${m.role !== 'user' ? 'font-serif text-lg md:text-xl text-platinum/90' : 'text-sm'}`}>{m.content}</div>
               </div>
             </motion.div>
           ))}
@@ -1014,7 +1084,13 @@ function Mentor({ userId }) {
 
 function Community() {
   const [builders, setBuilders] = useState([]);
-  useEffect(() => { fetch('/api/community').then(r => r.json()).then(d => setBuilders(d.builders || [])); }, []);
+  useEffect(() => {
+    let cancelled = false;
+    apiFetch('/api/community')
+      .then(d => { if (!cancelled) setBuilders(d.builders || []); })
+      .catch(() => { if (!cancelled) setBuilders([]); });
+    return () => { cancelled = true; };
+  }, []);
   return (
     <div className="px-6 md:px-16 py-10 md:py-16">
       <div className="text-[10px] md:text-xs tracking-[0.3em] uppercase text-champagne/80 mb-4">Witnesses</div>
@@ -1051,7 +1127,13 @@ function Community() {
 
 function Profile({ monument }) {
   const [entries, setEntries] = useState([]);
-  useEffect(() => { fetch(`/api/entries?monumentId=${monument.id}`).then(r => r.json()).then(d => setEntries(d.entries || [])); }, [monument.id]);
+  useEffect(() => {
+    let cancelled = false;
+    apiFetch(`/api/entries?monumentId=${monument.id}`)
+      .then(d => { if (!cancelled) setEntries(d.entries || []); })
+      .catch(() => { if (!cancelled) setEntries([]); });
+    return () => { cancelled = true; };
+  }, [monument.id]);
   const daysSince = Math.floor((Date.now() - new Date(monument.createdAt).getTime()) / 86400000) + 1;
   return (
     <div className="px-6 md:px-16 py-10 md:py-16 max-w-4xl">
@@ -1268,9 +1350,12 @@ function App() {
     return () => { cancelled = true; subscription.unsubscribe(); };
   }, []);
 
+  // Keyed on user id (not the user object) so hourly token refreshes don't
+  // remount the whole app into the loading screen.
+  const userId = user?.id ?? null;
   useEffect(() => {
     if (!authChecked) return;
-    if (!user) {
+    if (!userId) {
       setMonument(null);
       setView('landing');
       setReady(true);
@@ -1279,23 +1364,28 @@ function App() {
     let cancelled = false;
     setReady(false);
     Promise.all([
-      withTimeout(fetch(`/api/journeys/me?userId=${user.id}`).then(r => r.json()), 10000, 'Timed out loading your Monument').catch(() => ({ monument: null })),
-      withTimeout(fetch('/api/stats').then(r => r.json()), 10000, 'Timed out loading stats').catch(() => null),
-    ]).then(([m, s]) => {
+      // Distinguish "no journey yet" (→ onboarding) from "request failed"
+      // (→ landing + toast). Failing into onboarding used to let a transient
+      // error create a duplicate journey for an existing user.
+      apiFetch('/api/journeys/me').then(m => ({ ok: true, m })).catch(e => ({ ok: false, e })),
+      apiFetch('/api/stats').catch(() => null),
+    ]).then(([journeyRes, s]) => {
       if (cancelled) return;
       setStats(s);
-      if (m.monument) { setMonument(m.monument); setView('home'); }
-      else { setView('onboard'); }
-      setReady(true);
-    }).catch((e) => {
-      console.error('Failed to load account state:', e);
-      if (cancelled) return;
-      toast.error('Something went wrong loading your account. Please refresh.');
-      setView('onboard');
+      if (!journeyRes.ok) {
+        console.error('Failed to load account state:', journeyRes.e);
+        toast.error('Something went wrong loading your account. Please refresh.');
+        setView('landing');
+      } else if (journeyRes.m.monument) {
+        setMonument(journeyRes.m.monument);
+        setView('home');
+      } else {
+        setView('onboard');
+      }
       setReady(true);
     });
     return () => { cancelled = true; };
-  }, [authChecked, user]);
+  }, [authChecked, userId]);
 
   function handleBegin() {
     if (user) setView('onboard');
@@ -1307,7 +1397,12 @@ function App() {
   }
 
   async function handleLogout() {
-    await getBrowserClient().auth.signOut();
+    try {
+      await withTimeout(getBrowserClient().auth.signOut(), 5000, 'Sign out timed out');
+    } catch (e) {
+      console.error('Sign out failed:', e);
+      // Local state is cleared regardless — the user asked to leave.
+    }
     setUser(null);
     setMonument(null);
     setView('landing');

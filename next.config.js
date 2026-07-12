@@ -6,8 +6,6 @@ const nextConfig = {
       { protocol: 'https', hostname: 'avatars.githubusercontent.com', pathname: '/**' },
     ],
   },
-  // Renamed from experimental.serverComponentsExternalPackages in Next 15
-  serverExternalPackages: ['mongodb'],
   webpack(config, { dev }) {
     if (dev) {
       // Reduce CPU/memory from file watching
@@ -24,18 +22,21 @@ const nextConfig = {
     pagesBufferLength: 2,
   },
   async headers() {
-    return [
-      {
-        source: "/(.*)",
-        headers: [
-          { key: "X-Frame-Options", value: "ALLOWALL" },
-          { key: "Content-Security-Policy", value: "frame-ancestors *;" },
-          { key: "Access-Control-Allow-Origin", value: process.env.CORS_ORIGINS || "*" },
-          { key: "Access-Control-Allow-Methods", value: "GET, POST, PUT, DELETE, OPTIONS" },
-          { key: "Access-Control-Allow-Headers", value: "*" },
-        ],
-      },
+    // Cross-origin access is opt-in only: without CORS_ORIGINS set, no CORS
+    // headers are emitted and the API is same-origin only. Framing stays open
+    // for the Emergent preview iframe; revisit before public production.
+    const headers = [
+      { key: "X-Frame-Options", value: "ALLOWALL" },
+      { key: "Content-Security-Policy", value: "frame-ancestors *;" },
     ];
+    if (process.env.CORS_ORIGINS) {
+      headers.push(
+        { key: "Access-Control-Allow-Origin", value: process.env.CORS_ORIGINS },
+        { key: "Access-Control-Allow-Methods", value: "GET, POST, PUT, DELETE, OPTIONS" },
+        { key: "Access-Control-Allow-Headers", value: "Content-Type, Authorization" },
+      );
+    }
+    return [{ source: "/(.*)", headers }];
   },
 };
 

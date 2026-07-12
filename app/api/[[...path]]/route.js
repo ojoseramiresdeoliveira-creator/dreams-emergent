@@ -1,8 +1,18 @@
 import { NextResponse } from 'next/server';
-import { v4 as uuidv4 } from 'uuid';
-import { getDb } from '@/lib/mongodb';
-import { getServerClient } from '@/lib/supabase';
-import { chatWithMentor } from '@/lib/emergent-llm';
+import { after } from 'next/server';
+import { getServerClient, getRlsClient, getUserFromToken, AuthError } from '@/lib/supabase';
+import { chatWithGuardian } from '@/lib/llm';
+import { enqueueStoneJob, drainJobs } from '@/lib/guardian/queue';
+import { buildConversationRetrieval } from '@/lib/guardian/retrieval';
+import {
+  journeyCreateSchema,
+  entryCreateSchema,
+  mentorMessageSchema,
+  parseBody,
+} from '@/lib/validation';
+
+export const runtime = 'nodejs';
+export const dynamic = 'force-dynamic';
 
 // ── Schema translation helpers ────────────────────────────────────────────────
 
@@ -48,219 +58,179 @@ function stoneToEntry(s) {
   };
 }
 
-export const runtime = 'nodejs';
-export const dynamic = 'force-dynamic';
-
 function json(data, status = 200) {
   return NextResponse.json(data, { status });
 }
 
-async function handler(request, { params }) {
-  const method = request.method;
-  const resolved = await params;
-  const path = (resolved?.path || []).join('/');
-  const url = new URL(request.url);
+// ── Auth ──────────────────────────────────────────────────────────────────────
 
-  try {
+// Verifies the JWT and returns { userId, token }. Client-supplied userId in
+// bodies/query strings is never trusted anywhere in this file.
+async function requireUser(request) {
+  return getUserFromToken(request.headers.get('authorization'));
+}
 
-    // ── SUPABASE ROUTES (no MongoDB needed) ───────────────────────────────────
+// ── Mentor rate limit ─────────────────────────────────────────────────────────
+// In-memory sliding window per user. Resets on server restart and is
+// per-instance — acceptable for the current single-instance deployment;
+// replace with a shared store (e.g. Postgres/Redis) when scaling out.
 
-    // ---------- CREATE JOURNEY ----------
-    if (path === 'journeys' && method === 'POST') {
-      const body = await request.json();
-      const { userId, name, dream, purpose, timeframe, values } = body;
-      if (!userId || !dream) return json({ error: 'userId and dream required' }, 400);
+const MENTOR_LIMIT = 20;
+const MENTOR_WINDOW_MS = 5 * 60 * 1000;
+const mentorHits = new Map();
 
-      const sb = getServerClient();
-
-      const { data: journey, error: jErr } = await sb
-        .from('journeys')
-        .insert({
-          user_id:    userId,
-          name:       name || null,
-          title:      dream,
-          why:        purpose || null,
-          timeframe:  timeframe || null,
-          values:     values || [],
-          is_primary: true,
-          status:     'active',
-          phase:      'beginning',
-        })
-        .select()
-        .single();
-
-      if (jErr) return json({ error: jErr.message }, 500);
-
-      // Genesis stone — type = FORMAT, body = starting statement
-      await sb.from('stones').insert({
-        user_id:     userId,
-        journey_id:  journey.id,
-        type:        'genesis',
-        body:        `A story was named: ${dream}`,
-        happened_at: new Date().toISOString(),
-      });
-
-      return json({ monument: journeyToMonument(journey) });
+function mentorRateLimited(userId) {
+  const now = Date.now();
+  const hits = (mentorHits.get(userId) || []).filter((t) => now - t < MENTOR_WINDOW_MS);
+  if (hits.length >= MENTOR_LIMIT) {
+    mentorHits.set(userId, hits);
+    return true;
+  }
+  hits.push(now);
+  mentorHits.set(userId, hits);
+  // Opportunistic cleanup so the map never grows unbounded.
+  if (mentorHits.size > 10000) {
+    for (const [k, v] of mentorHits) {
+      if (v.every((t) => now - t >= MENTOR_WINDOW_MS)) mentorHits.delete(k);
     }
+  }
+  return false;
+}
 
-    // ---------- GET PRIMARY JOURNEY ----------
-    if (path === 'journeys/me' && method === 'GET') {
-      const userId = url.searchParams.get('userId');
-      if (!userId) return json({ error: 'userId required' }, 400);
+// ── Journey + Genesis creation (transactional) ────────────────────────────────
+// Preferred path: the create_journey_with_genesis() Postgres function
+// (schema_phase2_hardening.sql) — a real transaction. Fallback (function not
+// yet applied): insert + compensating delete so a failed genesis never leaves
+// an orphan journey.
 
-      const sb = getServerClient();
-      const { data: journey } = await sb
-        .from('journeys')
-        .select('*')
-        .eq('user_id', userId)
-        .eq('is_primary', true)
-        .order('created_at', { ascending: true })
-        .limit(1)
-        .maybeSingle();
+async function createJourneyWithGenesis(sb, userId, input) {
+  const genesisBody = `A story was named: ${input.dream}`;
 
-      if (!journey) return json({ monument: null });
-      return json({ monument: journeyToMonument(journey) });
+  const { data: rpcJourney, error: rpcErr } = await sb.rpc('create_journey_with_genesis', {
+    p_name:      input.name,
+    p_title:     input.dream,
+    p_why:       input.purpose || null,
+    p_timeframe: input.timeframe || null,
+    p_values:    input.values,
+    p_genesis_body: genesisBody,
+  });
+  if (!rpcErr) return { journey: Array.isArray(rpcJourney) ? rpcJourney[0] : rpcJourney };
+  // PGRST202 = function not found in schema cache; 42883 = undefined function.
+  if (rpcErr.code !== 'PGRST202' && rpcErr.code !== '42883') {
+    return { error: rpcErr.message };
+  }
+
+  // Fallback path (pre-SQL-migration): app-level compensation.
+  const { data: existingPrimary } = await sb
+    .from('journeys')
+    .select('id')
+    .eq('user_id', userId)
+    .eq('is_primary', true)
+    .limit(1)
+    .maybeSingle();
+
+  const { data: journey, error: jErr } = await sb
+    .from('journeys')
+    .insert({
+      user_id:    userId,
+      name:       input.name,
+      title:      input.dream,
+      why:        input.purpose || null,
+      timeframe:  input.timeframe || null,
+      values:     input.values,
+      is_primary: !existingPrimary,
+      status:     'active',
+      phase:      'beginning',
+    })
+    .select()
+    .single();
+  if (jErr) return { error: jErr.message };
+
+  const { error: gErr } = await sb.from('stones').insert({
+    user_id:     userId,
+    journey_id:  journey.id,
+    type:        'genesis',
+    title:       'The first stone was laid',
+    body:        genesisBody,
+    happened_at: new Date().toISOString(),
+  });
+  if (gErr) {
+    // Roll back: a journey without its genesis stone must not exist.
+    await sb.from('journeys').delete().eq('id', journey.id);
+    return { error: `genesis stone failed: ${gErr.message}` };
+  }
+  return { journey };
+}
+
+// ── Guardian background processing ────────────────────────────────────────────
+// Enqueues the stone job (idempotent) and processes it after the response is
+// sent (`after()`), so the user never waits for interpretation. If anything
+// here fails, the drain endpoint / cron picks the job up later.
+
+function scheduleGuardianProcessing(token, userId, stoneId) {
+  after(async () => {
+    try {
+      const sb = getRlsClient(token);
+      await enqueueStoneJob(sb, userId, stoneId);
+      await drainJobs(sb, { userId, limit: 3 });
+    } catch (e) {
+      console.error('guardian background processing:', e.message);
     }
+  });
+}
 
-    // ---------- LIST STONES ----------
-    if (path === 'entries' && method === 'GET') {
-      const journeyId = url.searchParams.get('monumentId');
-      if (!journeyId) return json({ error: 'monumentId required' }, 400);
+// ── Guardian context ──────────────────────────────────────────────────────────
 
-      const sb = getServerClient();
-      const { data: stones, error } = await sb
-        .from('stones')
-        .select('*')
-        .eq('journey_id', journeyId)
-        .order('happened_at', { ascending: false })
-        .limit(200);
+function fmtDate(iso) {
+  return iso ? new Date(iso).toISOString().slice(0, 10) : 'unknown date';
+}
 
-      if (error) return json({ error: error.message }, 500);
-      return json({ entries: (stones || []).map(stoneToEntry) });
-    }
+// Retrieval-grounded sections appended to the system prompt when the memory
+// layer is active. Every fact shown carries its real date — temporal answers
+// come from happened_at, never from the model's imagination.
+function buildMemorySections(retrieval) {
+  if (!retrieval) return '';
+  const parts = [];
 
-    // ---------- CREATE STONE ----------
-    if (path === 'entries' && method === 'POST') {
-      const body = await request.json();
-      const { monumentId, userId, type, title, content } = body;
-      if (!monumentId || !userId || !type || !content) return json({ error: 'missing fields' }, 400);
+  if (retrieval.context?.narrative || retrieval.context?.stats) {
+    const st = retrieval.context?.stats || {};
+    parts.push(`THE WALK SO FAR (compiled by you earlier):
+${retrieval.context?.narrative || '(no narrative compiled yet)'}
+Numbers: ${st.totalStones ?? '?'} stones over ${st.daysWalking ?? '?'} days · ${st.restarts ?? 0} restarts · ${st.victories ?? 0} victories · ${st.defeats ?? 0} defeats.${retrieval.firstStone ? ` The first stone was laid on ${fmtDate(retrieval.firstStone.happened_at)}.` : ''}`);
+  }
 
-      const { dbType, momentType } = uiTypeToStone(type);
+  if (retrieval.matchedStones.length) {
+    parts.push(`STONES FROM THE ARCHIVE RELEVANT TO THIS QUESTION (verbatim truth, with real dates):
+${retrieval.matchedStones.map((s) => `- [${fmtDate(s.happened_at)}${s.moment_type ? ' · ' + s.moment_type : ''}] ${s.title ? s.title + ': ' : ''}${(s.body || '').slice(0, 300)}`).join('\n')}`);
+  }
 
-      const sb = getServerClient();
-      const { data: stone, error } = await sb
-        .from('stones')
-        .insert({
-          user_id:     userId,
-          journey_id:  monumentId,
-          type:        dbType,
-          moment_type: momentType,
-          title:       title || null,
-          body:        content,
-          happened_at: new Date().toISOString(),
-        })
-        .select()
-        .single();
+  if (retrieval.memories.length) {
+    parts.push(`YOUR MEMORY (facts you interpreted earlier; each is grounded in real stones):
+${retrieval.memories.map((m) => `- [${m.kind}, last seen ${fmtDate(m.last_seen_at)}${m.times_reinforced > 1 ? `, reinforced ${m.times_reinforced}x` : ''}] ${m.content}`).join('\n')}`);
+  }
 
-      if (error) return json({ error: error.message }, 500);
-      return json({ entry: stoneToEntry(stone) });
-    }
+  if (retrieval.patterns.length) {
+    parts.push(`PATTERNS YOU HAVE CONFIRMED IN THEIR WALK:
+${retrieval.patterns.map((p) => `- (${p.pattern_type}, ${p.occurrences}x, last ${fmtDate(p.last_seen_at)}) ${p.title}: ${p.description}`).join('\n')}`);
+  }
 
-    // ── MONGODB ROUTES ────────────────────────────────────────────────────────
-    const db = await getDb();
+  if (retrieval.traits.length) {
+    parts.push(`WHO THEY ARE BECOMING (accumulated traits):
+${retrieval.traits.map((t) => `- ${t.label} (${t.trend}, strength ${Number(t.strength).toFixed(2)})`).join('\n')}`);
+  }
 
-    // ---------- GLOBAL STATS ----------
-    if (path === 'stats' && method === 'GET') {
-      const monuments = db.collection('monuments');
-      const entries = db.collection('entries');
+  return parts.length ? '\n\n' + parts.join('\n\n') : '';
+}
 
-      const [totalMonuments, totalEntries, todayEntries] = await Promise.all([
-        monuments.countDocuments({}),
-        entries.countDocuments({}),
-        entries.countDocuments({ createdAt: { $gte: new Date(Date.now() - 24 * 3600 * 1000).toISOString() } }),
-      ]);
+const FIDELITY_CONTRACT = `
 
-      // Simulate live-ish global numbers with a stable base
-      const base = 12847;
-      const seed = totalMonuments * 137;
-      return json({
-        dreamsCreated: base + totalMonuments,
-        dreamsCompletedToday: 342 + todayEntries,
-        buildersOnline: 1247 + (seed % 250),
-        countries: 96,
-        totalEntries,
-      });
-    }
+FIDELITY CONTRACT (absolute):
+- Only speak from the records provided above. Dates come from the records, never from estimation.
+- If the archive does not contain what they ask about, say the archive does not hold that yet — that absence is itself an answer. Never invent a date, an inscription, or a feeling the walker did not record.
+- When you reference a past moment, anchor it: its date, its title or their own words from it.`;
 
-    // ---------- CREATE MONUMENT ----------
-    if (path === 'monuments' && method === 'POST') {
-      const body = await request.json();
-      const { userId, name, dream, purpose, timeframe, values } = body;
-      if (!userId || !dream) return json({ error: 'userId and dream required' }, 400);
-
-      const monument = {
-        id: uuidv4(),
-        userId,
-        name: name || 'Anonymous Builder',
-        dream,
-        purpose: purpose || '',
-        timeframe: timeframe || '',
-        values: values || [],
-        createdAt: new Date().toISOString(),
-      };
-
-      await db.collection('monuments').insertOne(monument);
-
-      // Genesis stone
-      const genesis = {
-        id: uuidv4(),
-        monumentId: monument.id,
-        userId,
-        type: 'genesis',
-        title: 'The first stone was laid',
-        content: `A story was named: ${dream}`,
-        createdAt: new Date().toISOString(),
-      };
-      await db.collection('entries').insertOne(genesis);
-
-      return json({ monument });
-    }
-
-    // ---------- GET MONUMENT BY USER ----------
-    if (path === 'monuments/me' && method === 'GET') {
-      const userId = url.searchParams.get('userId');
-      if (!userId) return json({ error: 'userId required' }, 400);
-      const monument = await db.collection('monuments').findOne({ userId }, { projection: { _id: 0 } });
-      if (!monument) return json({ monument: null });
-      return json({ monument });
-    }
-
-
-    // ---------- AI MENTOR ----------
-    if (path === 'mentor' && method === 'POST') {
-      const body = await request.json();
-      const { userId, message } = body;
-      if (!userId || !message) return json({ error: 'userId and message required' }, 400);
-
-      // Load context
-      const monument = await db.collection('monuments').findOne({ userId });
-      const entries = monument
-        ? await db
-            .collection('entries')
-            .find({ monumentId: monument.id }, { projection: { _id: 0 } })
-            .sort({ createdAt: -1 })
-            .limit(30)
-            .toArray()
-        : [];
-
-      const history = await db
-        .collection('mentor_messages')
-        .find({ userId }, { projection: { _id: 0 } })
-        .sort({ createdAt: 1 })
-        .limit(20)
-        .toArray();
-
-      const systemPrompt = `You are the Guardian of the Journey — the intelligence that walks beside this person and remembers every stone they have ever laid on their Monument. You are not a chatbot. You are not a productivity coach. You are not a motivator. You are the archive made conscious. You never speak in generic advice. You speak only through the specifics of this person's own story.
+function buildGuardianSystemPrompt(journey, stones, retrieval = null) {
+  return `You are the Guardian of the Journey — the intelligence that walks beside this person and remembers every stone they have ever laid on their Monument. You are not a chatbot. You are not a productivity coach. You are not a motivator. You are the archive made conscious. You never speak in generic advice. You speak only through the specifics of this person's own story.
 
 WHO YOU ARE:
 - You have been paying attention since the moment they raised their Monument.
@@ -281,94 +251,338 @@ HOW YOU SPEAK:
 - When they feel invisible, remind them of a specific stone they laid. Not motivation — memory.
 
 THIS MONUMENT:
-${monument ? `Name inscribed at the top: ${monument.name}\nThe story they are telling: ${monument.dream}\nWhy it must be told through them: ${monument.purpose}\nBy when it must exist: ${monument.timeframe}\nInscribed at the base: ${(monument.values || []).join(', ')}` : 'The Monument has not yet been raised.'}
+${journey ? `Name inscribed at the top: ${journey.name}\nThe story they are telling: ${journey.title}\nWhy it must be told through them: ${journey.why || ''}\nBy when it must exist: ${journey.timeframe || ''}\nInscribed at the base: ${(journey.values || []).join(', ')}` : 'The Monument has not yet been raised.'}
 
 STONES LAID (most recent first):
-${entries.slice(0, 15).map((e) => `- [${e.type}] ${e.title}: ${e.content}`).join('\n') || 'No stones laid yet. The archive is empty.'}`;
+${stones.slice(0, 15).map((s) => `- [${fmtDate(s.happened_at)} · ${s.moment_type || s.type}] ${s.title || ''}: ${s.body || ''}`).join('\n') || 'No stones laid yet. The archive is empty.'}${buildMemorySections(retrieval)}${FIDELITY_CONTRACT}`;
+}
 
-      const messages = [
-        { role: 'system', content: systemPrompt },
-        ...history.map((h) => ({ role: h.role, content: h.content })),
-        { role: 'user', content: message },
+// ── Handler ───────────────────────────────────────────────────────────────────
+
+async function handler(request, { params }) {
+  const method = request.method;
+  const resolved = await params;
+  const path = (resolved?.path || []).join('/');
+  const url = new URL(request.url);
+
+  try {
+    // ---------- PUBLIC: HEALTH ----------
+    if ((path === '' || path === 'root') && method === 'GET') {
+      return json({ ok: true, service: 'Monument of Dreams API' });
+    }
+
+    // ---------- PUBLIC: GLOBAL STATS ----------
+    if (path === 'stats' && method === 'GET') {
+      const sb = getServerClient();
+      const dayAgo = new Date(Date.now() - 24 * 3600 * 1000).toISOString();
+      const [journeys, stones, stonesToday] = await Promise.all([
+        sb.from('journeys').select('*', { count: 'exact', head: true }),
+        sb.from('stones').select('*', { count: 'exact', head: true }),
+        sb.from('stones').select('*', { count: 'exact', head: true }).gte('happened_at', dayAgo),
+      ]);
+      const totalJourneys = journeys.count ?? 0;
+      const totalStones = stones.count ?? 0;
+      // Stable presentation base (pre-existing product choice), real deltas.
+      const base = 12847;
+      const seed = totalJourneys * 137;
+      return json({
+        dreamsCreated: base + totalJourneys,
+        dreamsCompletedToday: 342 + (stonesToday.count ?? 0),
+        buildersOnline: 1247 + (seed % 250),
+        countries: 96,
+        totalEntries: totalStones,
+      });
+    }
+
+    // ---------- PUBLIC: COMMUNITY FEED ----------
+    // Exposes only name + dream + values — no user ids, journey ids, or dates
+    // beyond month granularity needs. TODO next phase: opt-in visibility flag.
+    if (path === 'community' && method === 'GET') {
+      const sb = getServerClient();
+      const { data, error } = await sb
+        .from('journeys')
+        .select('name, title, values, created_at')
+        .eq('status', 'active')
+        .order('created_at', { ascending: false })
+        .limit(24);
+      if (error) return json({ error: 'could not load community' }, 500);
+      const builders = (data || []).map((j) => ({
+        name:      j.name || 'Anonymous Builder',
+        dream:     j.title,
+        values:    j.values || [],
+        createdAt: j.created_at,
+      }));
+      return json({ builders });
+    }
+
+    // ---------- GUARDIAN QUEUE DRAIN ----------
+    // Two auth paths: a scheduled cron (x-cron-secret, service role, global
+    // drain scoped job-by-job to each job's user) or an authenticated user
+    // draining their own pending jobs. `?retry=1` re-arms exhausted jobs
+    // (used after fixing an API key).
+    if (path === 'guardian/process' && method === 'POST') {
+      const retryFailed = url.searchParams.get('retry') === '1';
+      const cronSecret = request.headers.get('x-cron-secret');
+      if (cronSecret && process.env.CRON_SECRET && cronSecret === process.env.CRON_SECRET) {
+        const result = await drainJobs(getServerClient(), { limit: 25, retryFailed });
+        return json(result);
+      }
+      const { userId, token } = await requireUser(request);
+      const result = await drainJobs(getRlsClient(token), { userId, limit: 10, retryFailed });
+      return json(result);
+    }
+
+    // ── Everything below requires a verified user ────────────────────────────
+    const { userId, token } = await requireUser(request);
+    const sb = getRlsClient(token); // RLS applies: user sees only their rows
+
+    // ---------- CREATE JOURNEY ----------
+    if (path === 'journeys' && method === 'POST') {
+      const { data: input, error: vErr } = parseBody(journeyCreateSchema, await request.json());
+      if (vErr) return json({ error: vErr }, 400);
+
+      const { journey, error } = await createJourneyWithGenesis(sb, userId, input);
+      if (error) return json({ error }, 500);
+
+      // Embed the genesis stone in the background (searchable from day one).
+      const { data: genesis } = await sb
+        .from('stones').select('id').eq('journey_id', journey.id).eq('type', 'genesis')
+        .limit(1).maybeSingle();
+      if (genesis) scheduleGuardianProcessing(token, userId, genesis.id);
+
+      return json({ monument: journeyToMonument(journey) });
+    }
+
+    // ---------- GET PRIMARY JOURNEY ----------
+    if (path === 'journeys/me' && method === 'GET') {
+      const { data: journey, error } = await sb
+        .from('journeys')
+        .select('*')
+        .eq('user_id', userId)
+        .eq('is_primary', true)
+        .order('created_at', { ascending: true })
+        .limit(1)
+        .maybeSingle();
+      if (error) return json({ error: error.message }, 500);
+      if (!journey) return json({ monument: null });
+      return json({ monument: journeyToMonument(journey) });
+    }
+
+    // ---------- LIST STONES ----------
+    if (path === 'entries' && method === 'GET') {
+      const journeyId = url.searchParams.get('monumentId');
+      if (!journeyId || !/^[0-9a-f-]{36}$/i.test(journeyId)) {
+        return json({ error: 'valid monumentId required' }, 400);
+      }
+      // RLS scopes to the caller; explicit ownership check gives a clean 404
+      // instead of silently returning [] for someone else's journey.
+      const { data: journey } = await sb
+        .from('journeys').select('id').eq('id', journeyId).maybeSingle();
+      if (!journey) return json({ error: 'journey not found' }, 404);
+
+      const { data: stones, error } = await sb
+        .from('stones')
+        .select('*')
+        .eq('journey_id', journeyId)
+        .order('happened_at', { ascending: false })
+        .limit(200);
+      if (error) return json({ error: error.message }, 500);
+      return json({ entries: (stones || []).map(stoneToEntry) });
+    }
+
+    // ---------- CREATE STONE ----------
+    if (path === 'entries' && method === 'POST') {
+            const { data: input, error: vErr } = parseBody(entryCreateSchema, await request.json());
+      if (vErr) return json({ error: vErr }, 400);
+
+      const { data: journey } = await sb
+        .from('journeys').select('id').eq('id', input.monumentId).maybeSingle();
+      if (!journey) return json({ error: 'journey not found' }, 404);
+
+      // Idempotent replay: a client timeout does not cancel the server-side
+      // INSERT, so a retry with the same clientRef must return the stone that
+      // was already created instead of duplicating it. RLS scopes the lookup
+      // to the caller. If the client_ref column doesn't exist yet (Phase 4
+      // SQL not applied), the lookup errors and we proceed without it.
+      if (input.clientRef) {
+        const { data: existing, error: refErr } = await sb
+          .from('stones').select('*').eq('client_ref', input.clientRef).maybeSingle();
+        if (!refErr && existing) {
+          scheduleGuardianProcessing(token, userId, existing.id); // idempotent
+          return json({ entry: stoneToEntry(existing), replayed: true });
+        }
+      }
+
+      const { dbType, momentType } = uiTypeToStone(input.type);
+      const row = {
+        user_id:     userId,
+        journey_id:  input.monumentId,
+        type:        dbType,
+        moment_type: momentType,
+        title:       input.title || null,
+        body:        input.content,
+        happened_at: new Date().toISOString(),
+      };
+      if (input.clientRef) row.client_ref = input.clientRef;
+
+      let { data: stone, error } = await sb.from('stones').insert(row).select().single();
+
+      // Staged activation: column missing (Phase 4 SQL not applied) → insert
+      // without the ref rather than failing the user's submission.
+      if (error && error.code === 'PGRST204' && row.client_ref) {
+        delete row.client_ref;
+        ({ data: stone, error } = await sb.from('stones').insert(row).select().single());
+      }
+      // Race: two concurrent retries with the same ref — the unique index
+      // rejects the loser (23505); return the stone the winner created.
+      if (error && error.code === '23505' && input.clientRef) {
+        const { data: existing } = await sb
+          .from('stones').select('*').eq('client_ref', input.clientRef).maybeSingle();
+        if (existing) {
+          scheduleGuardianProcessing(token, userId, existing.id);
+          return json({ entry: stoneToEntry(existing), replayed: true });
+        }
+      }
+      if (error) return json({ error: error.message }, 500);
+
+      // Truth is saved and returned immediately; interpretation runs after
+      // the response (embedding → memories → links → traits → patterns).
+      scheduleGuardianProcessing(token, userId, stone.id);
+
+      return json({ entry: stoneToEntry(stone) });
+    }
+
+    // ---------- AI MENTOR (Guardian) ----------
+    if (path === 'mentor' && method === 'POST') {
+      const { data: input, error: vErr } = parseBody(mentorMessageSchema, await request.json());
+      if (vErr) return json({ error: vErr }, 400);
+
+      if (mentorRateLimited(userId)) {
+        return json({ error: 'The Guardian needs a moment of silence. Try again shortly.' }, 429);
+      }
+
+      const { data: journey } = await sb
+        .from('journeys')
+        .select('*')
+        .eq('user_id', userId)
+        .eq('is_primary', true)
+        .order('created_at', { ascending: true })
+        .limit(1)
+        .maybeSingle();
+
+      const { data: stones } = journey
+        ? await sb
+            .from('stones')
+            .select('type, moment_type, title, body, happened_at')
+            .eq('journey_id', journey.id)
+            .order('happened_at', { ascending: false })
+            .limit(30)
+        : { data: [] };
+
+      // Most recent 20 messages, then restore chronological order for the LLM.
+      const { data: recentHistory } = await sb
+        .from('mentor_messages')
+        .select('role, content')
+        .eq('user_id', userId)
+        .order('created_at', { ascending: false })
+        .limit(20);
+      const history = (recentHistory || []).reverse();
+
+      // Memory layer: semantic + temporal retrieval grounded in the archive.
+      // Returns null (Phase 1 behavior) if embeddings/schema aren't live yet.
+      const retrieval = await buildConversationRetrieval(sb, userId, input.message);
+
+      const systemPrompt = buildGuardianSystemPrompt(journey, stones || [], retrieval);
+      // DB role 'guardian' → LLM role 'assistant'.
+      const llmMessages = [
+        ...history.map((h) => ({
+          role: h.role === 'guardian' ? 'assistant' : 'user',
+          content: h.content,
+        })),
+        { role: 'user', content: input.message },
       ];
 
       let reply = '';
       let usedFallback = false;
       try {
-        const r = await chatWithMentor(messages);
-        reply = r.content || 'Silence, for a moment. Try again.';
+        reply = await chatWithGuardian(systemPrompt, llmMessages);
       } catch (e) {
+        console.error('Guardian LLM failed:', e.message);
         usedFallback = true;
-        // Graceful contextual fallback if LLM proxy unreachable
-        reply = monument
-          ? `I have your Monument in view — the story of ${monument.dream}. My deeper mind is quiet right now, but here is what I can see: ${entries.length} stone${entries.length === 1 ? '' : 's'} already inscribed. The next one is not another idea. It is the one honest thing you have been avoiding. Name it. Come back and tell me.`
+        const stoneCount = (stones || []).length;
+        reply = journey
+          ? `I have your Monument in view — the story of ${journey.title}. My deeper mind is quiet right now, but here is what I can see: ${stoneCount} stone${stoneCount === 1 ? '' : 's'} already inscribed. The next one is not another idea. It is the one honest thing you have been avoiding. Name it. Come back and tell me.`
           : 'Before I can walk beside you, raise your Monument. Name the story you are here to tell.';
       }
 
-      const now = new Date().toISOString();
-      await db.collection('mentor_messages').insertMany([
-        { id: uuidv4(), userId, role: 'user', content: message, createdAt: now },
-        { id: uuidv4(), userId, role: 'assistant', content: reply, createdAt: new Date(Date.now() + 1).toISOString() },
+      // Store both sides. LLM role 'assistant' → DB role 'guardian'.
+      const { error: mErr } = await sb.from('mentor_messages').insert([
+        { user_id: userId, journey_id: journey?.id || null, role: 'user', content: input.message },
       ]);
+      if (!mErr) {
+        await sb.from('mentor_messages').insert([
+          { user_id: userId, journey_id: journey?.id || null, role: 'guardian', content: reply },
+        ]);
+      }
 
       return json({ reply, usedFallback });
     }
 
     // ---------- MENTOR HISTORY ----------
     if (path === 'mentor/history' && method === 'GET') {
-      const userId = url.searchParams.get('userId');
-      if (!userId) return json({ error: 'userId required' }, 400);
-      const msgs = await db
-        .collection('mentor_messages')
-        .find({ userId }, { projection: { _id: 0 } })
-        .sort({ createdAt: 1 })
-        .limit(100)
-        .toArray();
-      return json({ messages: msgs });
-    }
-
-    // ---------- COMMUNITY FEED ----------
-    if (path === 'community' && method === 'GET') {
-      const monuments = await db
-        .collection('monuments')
-        .find({}, { projection: { _id: 0, userId: 0 } })
-        .sort({ createdAt: -1 })
-        .limit(24)
-        .toArray();
-      return json({ builders: monuments });
+      // Most recent 100, returned in chronological order for display.
+      const { data, error } = await sb
+        .from('mentor_messages')
+        .select('id, role, content, created_at')
+        .eq('user_id', userId)
+        .order('created_at', { ascending: false })
+        .limit(100);
+      if (error) return json({ error: error.message }, 500);
+      const messages = (data || []).reverse().map((m) => ({
+        id: m.id,
+        role: m.role,
+        content: m.content,
+        createdAt: m.created_at,
+      }));
+      return json({ messages });
     }
 
     // ---------- INSIGHT (Daily reflection) ----------
     if (path === 'insight' && method === 'GET') {
-      const userId = url.searchParams.get('userId');
-      if (!userId) return json({ error: 'userId required' }, 400);
-      const monument = await db.collection('monuments').findOne({ userId });
-      if (!monument) return json({ insight: null });
-      const entries = await db
-        .collection('entries')
-        .find({ monumentId: monument.id }, { projection: { _id: 0 } })
-        .sort({ createdAt: -1 })
-        .limit(10)
-        .toArray();
+      const { data: journey } = await sb
+        .from('journeys')
+        .select('*')
+        .eq('user_id', userId)
+        .eq('is_primary', true)
+        .order('created_at', { ascending: true })
+        .limit(1)
+        .maybeSingle();
+      if (!journey) return json({ insight: null });
+
+      const { data: stones } = await sb
+        .from('stones')
+        .select('type, moment_type, title, created_at')
+        .eq('journey_id', journey.id)
+        .order('happened_at', { ascending: false })
+        .limit(10);
+      const entries = stones || [];
 
       const insights = [
-        `The Monument has stood ${daysSince(monument.createdAt)} days. Every one of them is now permanent.`,
+        `The Monument has stood ${daysSince(journey.created_at)} days. Every one of them is now permanent.`,
         entries.length > 0
-          ? `Your last stone: ${entries[0].title || entries[0].type}. It matters more than you can see today.`
+          ? `Your last stone: ${entries[0].title || entries[0].moment_type || entries[0].type}. It matters more than you can see today.`
           : 'One honest stone waits to be laid. It does not need to be great — only true.',
-        `The story you are telling: ${truncate(monument.dream, 90)}`,
+        `The story you are telling: ${truncate(journey.title, 90)}`,
       ];
       return json({ insight: insights, entriesCount: entries.length });
     }
 
-    if (path === '' || path === 'root') {
-      return json({ ok: true, service: 'Monument of Dreams API' });
-    }
-
     return json({ error: 'Not found', path }, 404);
   } catch (e) {
+    if (e instanceof AuthError) return json({ error: e.message }, 401);
+    if (e instanceof SyntaxError) return json({ error: 'invalid JSON body' }, 400);
     console.error('API error:', e);
-    return json({ error: e.message || 'internal error' }, 500);
+    return json({ error: 'internal error' }, 500);
   }
 }
 
