@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { motion, AnimatePresence, useScroll, useTransform, useReducedMotion } from 'framer-motion';
+import { motion, AnimatePresence, useScroll, useTransform, useReducedMotion, useSpring } from 'framer-motion';
 import { getBrowserClient } from '@/lib/supabase';
 import {
   ArrowRight, ArrowUpRight, Sparkles, Feather, Flame, Mountain,
@@ -17,6 +17,8 @@ import Magnetic from '@/components/fx/Magnetic';
 import TiltCard from '@/components/fx/TiltCard';
 import LineReveal from '@/components/fx/LineReveal';
 import CinematicImage from '@/components/fx/CinematicImage';
+import ChampagneBurst from '@/components/fx/ChampagneBurst';
+import { EASE, SPRING_SOFT } from '@/lib/motion';
 
 // Races a promise against a timeout so auth/network calls can never hang the UI silently.
 function withTimeout(promise, ms, message) {
@@ -120,19 +122,18 @@ function Globe({ size = 480 }) {
   );
 }
 
-function Counter({ value, duration = 1600 }) {
+// Spring-driven counter: numbers settle with physical weight instead of a
+// fixed-duration ease. Snaps instantly under reduced motion.
+function Counter({ value }) {
+  const reduce = useReducedMotion();
+  const spring = useSpring(0, { stiffness: 42, damping: 18, mass: 1 });
   const [n, setN] = useState(0);
   useEffect(() => {
-    const start = performance.now();
-    const step = (t) => {
-      const p = Math.min(1, (t - start) / duration);
-      const eased = 1 - Math.pow(1 - p, 3);
-      setN(Math.floor(value * eased));
-      if (p < 1) requestAnimationFrame(step);
-    };
-    const raf = requestAnimationFrame(step);
-    return () => cancelAnimationFrame(raf);
-  }, [value, duration]);
+    if (reduce) { setN(value); return; }
+    const unsub = spring.on('change', (v) => setN(Math.floor(v)));
+    spring.set(value);
+    return unsub;
+  }, [value, reduce, spring]);
   return <span>{n.toLocaleString()}</span>;
 }
 
@@ -754,6 +755,10 @@ function Landing({ onBegin, onExplore, onSignIn, stats }) {
   );
 }
 
+// Chapter choreography: label → question → hint → input → actions rise in sequence.
+const chapterParent = { hidden: {}, show: { transition: { staggerChildren: 0.07, delayChildren: 0.05 } } };
+const chapterChild = { hidden: { opacity: 0, y: 22 }, show: { opacity: 1, y: 0, transition: { duration: 0.7, ease: EASE } } };
+
 function Onboard({ onDone, onCancel, userId }) {
   const [step, setStep] = useState(0);
   const [name, setName] = useState('');
@@ -762,6 +767,8 @@ function Onboard({ onDone, onCancel, userId }) {
   const [timeframe, setTimeframe] = useState('');
   const [values, setValues] = useState([]);
   const [saving, setSaving] = useState(false);
+  const [celebrating, setCelebrating] = useState(false);
+  const raisedRef = useRef(null); // monument held back until the ceremony ends
   const VALUE_OPTIONS = ['Discipline', 'Freedom', 'Craft', 'Legacy', 'Love', 'Truth', 'Adventure', 'Mastery', 'Health', 'Impact'];
 
   const steps = [
@@ -796,7 +803,11 @@ function Onboard({ onDone, onCancel, userId }) {
     try {
       // The server derives the user from the JWT — no userId in the body.
       const data = await apiFetch('/api/journeys', { method: 'POST', body: { name, dream, purpose, timeframe, values } });
-      if (data.monument) { toast.success('Your Monument stands.'); onDone(data.monument); }
+      if (data.monument) {
+        toast.success('Your Monument stands.');
+        raisedRef.current = data.monument;
+        setCelebrating(true); // champagne burst, then onDone
+      }
       else toast.error(data.error || 'Failed');
     } catch (e) { toast.error(e.message || 'Network error'); } finally { setSaving(false); }
   }
@@ -810,30 +821,42 @@ function Onboard({ onDone, onCancel, userId }) {
       </div>
       <div className="absolute top-0 inset-x-0 px-6 md:px-8 py-5 md:py-6 flex justify-between items-center z-10">
         <button onClick={onCancel} className="text-[10px] md:text-xs tracking-[0.2em] uppercase text-platinum/40 hover:text-platinum transition-colors duration-500">← Back</button>
+        {/* progress hairline engraves itself, segment by segment */}
         <div className="flex gap-1.5 md:gap-2">
-          {steps.map((_, i) => (<div key={i} className={`h-px transition-all duration-500 ${i <= step ? 'bg-champagne w-8 md:w-10' : 'bg-platinum/15 w-6 md:w-8'}`} />))}
+          {steps.map((_, i) => (
+            <div key={i} className="relative h-px w-7 md:w-9 bg-platinum/15">
+              <motion.div
+                initial={false}
+                animate={{ scaleX: i <= step ? 1 : 0 }}
+                transition={{ duration: 0.9, ease: EASE }}
+                className="absolute inset-0 origin-left bg-champagne"
+                style={{ boxShadow: i === step ? '0 0 10px rgba(212,176,106,0.7)' : 'none' }}
+              />
+            </div>
+          ))}
         </div>
       </div>
       <div className="relative flex-1 flex items-center justify-center px-6 md:px-8 pt-20 pb-10">
         <div className="max-w-3xl w-full">
           <AnimatePresence mode="wait">
-            <motion.div key={step} initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -24 }} transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}>
-              <div className="text-[10px] md:text-xs tracking-[0.3em] uppercase text-champagne/70 mb-4 md:mb-6">Chapter {String(step + 1).padStart(2, '0')} of 05</div>
-              <h2 className="font-serif text-3xl sm:text-4xl md:text-6xl text-platinum tracking-tight leading-[1.05]">{s.q}</h2>
-              <p className="mt-3 md:mt-4 text-platinum/40 text-sm">{s.hint}</p>
-              <div className="mt-10 md:mt-16">{s.input}</div>
-              <div className="mt-12 md:mt-16 flex items-center justify-between gap-4">
+            <motion.div key={step} variants={chapterParent} initial="hidden" animate="show" exit={{ opacity: 0, y: -18, transition: { duration: 0.45, ease: EASE } }}>
+              <motion.div variants={chapterChild} className="text-[10px] md:text-xs tracking-[0.3em] uppercase text-champagne/70 mb-4 md:mb-6">Chapter {String(step + 1).padStart(2, '0')} of 05</motion.div>
+              <motion.h2 variants={chapterChild} className="font-serif text-3xl sm:text-4xl md:text-6xl text-platinum tracking-tight leading-[1.05]">{s.q}</motion.h2>
+              <motion.p variants={chapterChild} className="mt-3 md:mt-4 text-platinum/40 text-sm">{s.hint}</motion.p>
+              <motion.div variants={chapterChild} className="mt-10 md:mt-16">{s.input}</motion.div>
+              <motion.div variants={chapterChild} className="mt-12 md:mt-16 flex items-center justify-between gap-4">
                 <button disabled={step === 0} onClick={() => setStep(step - 1)} className="text-[10px] md:text-xs tracking-[0.2em] uppercase text-platinum/50 hover:text-platinum transition disabled:opacity-20">Previous</button>
                 {step < steps.length - 1 ? (
                   <button disabled={!s.canNext} onClick={() => setStep(step + 1)} className="btn-premium group px-6 md:px-8 py-3.5 md:py-4 rounded-full bg-platinum text-obsidian text-[10px] md:text-xs tracking-[0.2em] uppercase disabled:opacity-30 disabled:cursor-not-allowed hover:bg-white transition flex items-center gap-2">Continue <ArrowRight className="w-3 h-3 group-hover:translate-x-1 transition" /></button>
                 ) : (
-                  <button disabled={!s.canNext || saving} onClick={submit} className="btn-premium group px-6 md:px-8 py-3.5 md:py-4 rounded-full bg-champagne text-obsidian text-[10px] md:text-xs tracking-[0.2em] uppercase disabled:opacity-30 hover:bg-champagne-soft transition flex items-center gap-2 gold-glow">
+                  <button disabled={!s.canNext || saving || celebrating} onClick={submit} className="btn-premium group px-6 md:px-8 py-3.5 md:py-4 rounded-full bg-champagne text-obsidian text-[10px] md:text-xs tracking-[0.2em] uppercase disabled:opacity-30 hover:bg-champagne-soft transition flex items-center gap-2 gold-glow">
                     {saving ? <Loader2 className="w-3 h-3 animate-spin" /> : <Sparkles className="w-3 h-3" />} Raise the Monument
                   </button>
                 )}
-              </div>
+              </motion.div>
             </motion.div>
           </AnimatePresence>
+          {celebrating && <ChampagneBurst onComplete={() => onDone(raisedRef.current)} />}
         </div>
       </div>
     </div>
@@ -935,9 +958,11 @@ function Shell({ view, setView, children, monument, onLogout }) {
             {nav.map((n) => {
               const active = view === n.k; const Icon = n.icon;
               return (
-                <button key={n.k} onClick={() => setView(n.k)} className={`sidebar-item w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm ${active ? 'active bg-white/[0.04] text-platinum' : 'text-platinum/50 hover:text-platinum hover:bg-white/[0.02]'}`}>
-                  <Icon className="w-4 h-4" />{n.label}
-                  {active && <ChevronRight className="w-3 h-3 ml-auto text-champagne" />}
+                <button key={n.k} onClick={() => setView(n.k)} className={`sidebar-item w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm ${active ? 'active text-platinum' : 'text-platinum/50 hover:text-platinum hover:bg-white/[0.02]'}`}>
+                  {/* shared-element pill slides between nav items */}
+                  {active && <motion.span layoutId="nav-pill" transition={SPRING_SOFT} className="absolute inset-0 rounded-lg bg-white/[0.04]" />}
+                  <Icon className="w-4 h-4 relative" /><span className="relative">{n.label}</span>
+                  {active && <ChevronRight className="w-3 h-3 ml-auto text-champagne relative" />}
                 </button>
               );
             })}
@@ -955,7 +980,20 @@ function Shell({ view, setView, children, monument, onLogout }) {
           </button>
         </div>
       </aside>
-      <main className="flex-1 min-w-0 w-full">{children}</main>
+      <main className="flex-1 min-w-0 w-full">
+        {/* per-view choreography: content transitions while the shell persists */}
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={view}
+            initial={{ opacity: 0, y: 14 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            transition={{ duration: 0.5, ease: EASE }}
+          >
+            {children}
+          </motion.div>
+        </AnimatePresence>
+      </main>
     </div>
   );
 }
@@ -979,8 +1017,8 @@ function Home({ monument, setView, userId }) {
   const daysSince = Math.floor((Date.now() - new Date(monument.createdAt).getTime()) / 86400000) + 1;
   const entriesCount = entries?.length ?? 0;
   const cardVariants = {
-    hidden: { opacity: 0, y: 16 },
-    show: (i) => ({ opacity: 1, y: 0, transition: { duration: 0.7, delay: 0.08 * i, ease: [0.16, 1, 0.3, 1] } }),
+    hidden: { opacity: 0, y: 18 },
+    show: (i) => ({ opacity: 1, y: 0, transition: { ...SPRING_SOFT, delay: 0.08 * i } }),
   };
   return (
     <div className="px-6 md:px-16 py-10 md:py-16 max-w-6xl">
@@ -1038,6 +1076,10 @@ function Timeline({ monument, userId }) {
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
   const [saving, setSaving] = useState(false);
+  const reduce = useReducedMotion();
+  // The monument line draws itself as the archive scrolls into view.
+  const timelineRef = useRef(null);
+  const { scrollYProgress: lineProgress } = useScroll({ target: timelineRef, offset: ['start 0.85', 'end 0.45'] });
   // Idempotency key for the current submission intent. Stable across an
   // unedited retry (so a timeout-retry replays instead of duplicating);
   // rotated whenever the text changes (edited resubmission = new stone).
@@ -1106,15 +1148,19 @@ function Timeline({ monument, userId }) {
           </motion.div>
         )}
       </div>
-      <div className="mt-14 md:mt-16 relative pl-10 md:pl-12">
-        <div className="absolute left-4 top-2 bottom-2 w-px timeline-line" />
+      <div ref={timelineRef} className="mt-14 md:mt-16 relative pl-10 md:pl-12">
+        <motion.div style={{ scaleY: reduce ? 1 : lineProgress }} className="absolute left-4 top-2 bottom-2 w-px timeline-line origin-top" />
         <div className="space-y-8 md:space-y-10">
-          {entries.map((e, i) => {
+          {entries.map((e) => {
             const t = ENTRY_TYPES.find((x) => x.key === e.type) || { icon: Mountain, label: e.type };
             const Icon = t.icon;
             return (
-              <motion.div key={e.id} initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.7, delay: i * 0.05, ease: [0.16, 1, 0.3, 1] }} whileHover={{ x: 4 }} className="relative group">
-                <div className="absolute -left-10 md:-left-12 top-1 w-7 h-7 md:w-8 md:h-8 rounded-full glass flex items-center justify-center border border-champagne/20 group-hover:border-champagne/50 group-hover:shadow-[0_0_20px_-5px_rgba(212,180,131,0.35)] transition-all duration-500"><Icon className="w-3 h-3 md:w-3.5 md:h-3.5 text-champagne" /></div>
+              <motion.div key={e.id} initial={{ opacity: 0, y: 24 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, margin: '-60px' }} transition={{ duration: 0.8, ease: EASE }} whileHover={{ x: 4 }} className="relative group">
+                <div className="absolute -left-10 md:-left-12 top-1 w-7 h-7 md:w-8 md:h-8 rounded-full glass flex items-center justify-center border border-champagne/20 group-hover:border-champagne/50 group-hover:shadow-[0_0_20px_-5px_rgba(212,180,131,0.35)] transition-all duration-500">
+                  {/* light bloom behind the icon on hover */}
+                  <span aria-hidden className="absolute inset-[-6px] rounded-full bg-champagne/25 blur-md opacity-0 scale-75 group-hover:opacity-100 group-hover:scale-110 transition-all duration-500 pointer-events-none" />
+                  <Icon className="w-3 h-3 md:w-3.5 md:h-3.5 text-champagne relative" />
+                </div>
                 <div className="text-[10px] tracking-[0.3em] uppercase text-champagne/70 mb-2">{t.label} · {new Date(e.createdAt).toLocaleDateString('en', { month: 'long', day: 'numeric', year: 'numeric' })}</div>
                 {e.title && <div className="font-serif text-xl md:text-2xl text-platinum mb-2 leading-tight">{e.title}</div>}
                 <div className="text-platinum/70 leading-relaxed font-light whitespace-pre-wrap text-[15px] md:text-base">{e.content}</div>
@@ -1312,9 +1358,16 @@ function Profile({ monument }) {
 
       <div className="mt-14 md:mt-16 text-[10px] tracking-[0.3em] uppercase text-platinum/40 mb-6">The Monument in numbers</div>
       <div className="grid sm:grid-cols-3 gap-4 md:gap-6">
-        <div className="glass spotlight rounded-xl p-6"><div className="text-[10px] tracking-[0.3em] uppercase text-platinum/40 mb-3">Days preserved</div><div className="font-serif text-4xl md:text-5xl text-platinum tabular">{daysSince}</div></div>
-        <div className="glass spotlight rounded-xl p-6"><div className="text-[10px] tracking-[0.3em] uppercase text-platinum/40 mb-3">Stones inscribed</div><div className="font-serif text-4xl md:text-5xl text-platinum tabular">{entries.length}</div></div>
-        <div className="glass spotlight rounded-xl p-6"><div className="text-[10px] tracking-[0.3em] uppercase text-platinum/40 mb-3">The horizon</div><div className="font-serif text-xl md:text-2xl text-platinum">{monument.timeframe}</div></div>
+        {[
+          { label: 'Days preserved', body: <div className="font-serif text-4xl md:text-5xl text-platinum tabular"><Counter value={daysSince} /></div> },
+          { label: 'Stones inscribed', body: <div className="font-serif text-4xl md:text-5xl text-platinum tabular"><Counter value={entries.length} /></div> },
+          { label: 'The horizon', body: <div className="font-serif text-xl md:text-2xl text-platinum">{monument.timeframe}</div> },
+        ].map((card, i) => (
+          <motion.div key={card.label} initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} transition={{ ...SPRING_SOFT, delay: 0.08 * i }} className="glass spotlight rounded-xl p-6">
+            <div className="text-[10px] tracking-[0.3em] uppercase text-platinum/40 mb-3">{card.label}</div>
+            {card.body}
+          </motion.div>
+        ))}
       </div>
     </div>
   );
@@ -1592,7 +1645,7 @@ function App() {
           </motion.div>
         )}
         {['home', 'timeline', 'mentor', 'community', 'profile'].includes(view) && monument && (
-          <motion.div key={view} initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}>
+          <motion.div key="shell" initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}>
             <Shell view={view} setView={setView} monument={monument} onLogout={handleLogout}>
               {view === 'home' && <Home monument={monument} setView={setView} userId={user?.id} />}
               {view === 'timeline' && <Timeline monument={monument} userId={user?.id} />}

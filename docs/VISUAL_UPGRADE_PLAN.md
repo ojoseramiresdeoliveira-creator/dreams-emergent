@@ -48,7 +48,7 @@ Hero and landing sections become a continuous cinematic scene.
   optimized 4K stills (AVIF/WebP with blur-up placeholders replacing raw
   Unsplash hotlinks).
 
-## Fase 3 — Interior vivo: dashboard, timeline, onboarding
+## Fase 3 — Interior vivo: dashboard, timeline, onboarding ✅ (implemented)
 
 - Shared-element feel between views: choreographed enter/exit per view
   (Shell content stagger, sidebar indicator slide).
