@@ -18,6 +18,7 @@ import TiltCard from '@/components/fx/TiltCard';
 import LineReveal from '@/components/fx/LineReveal';
 import CinematicImage from '@/components/fx/CinematicImage';
 import ChampagneBurst from '@/components/fx/ChampagneBurst';
+import StreamedText from '@/components/fx/StreamedText';
 import { EASE, SPRING_SOFT } from '@/lib/motion';
 
 // Races a promise against a timeout so auth/network calls can never hang the UI silently.
@@ -1187,11 +1188,14 @@ function Mentor({ userId }) {
   const [input, setInput] = useState('');
   const [sending, setSending] = useState(false);
   const scrollRef = useRef(null);
+  // Messages loaded from history render still; only messages that arrive
+  // during this session get entrance physics + streaming reveal.
+  const preloadedRef = useRef(0);
   useEffect(() => {
     if (!userId) return;
     let cancelled = false;
     apiFetch('/api/mentor/history')
-      .then(d => { if (!cancelled) setMessages(d.messages || []); })
+      .then(d => { if (!cancelled) { preloadedRef.current = (d.messages || []).length; setMessages(d.messages || []); } })
       .catch(() => { if (!cancelled) toast.error('Could not load the Guardian’s memory.'); });
     return () => { cancelled = true; };
   }, [userId]);
@@ -1215,7 +1219,27 @@ function Mentor({ userId }) {
   }
   const starters = ['What have I preserved this week?', 'What pattern lives in my journey?', 'What is the next honest stone?', 'I feel invisible today. Remind me.'];
   return (
-    <div className="flex flex-col h-[calc(100vh-64px)] md:h-screen">
+    <div className="relative flex flex-col h-[calc(100vh-64px)] md:h-screen">
+      {/* ambient presence — a faint champagne halo breathes while the Guardian thinks */}
+      <AnimatePresence>
+        {sending && (
+          <motion.div
+            key="guardian-halo"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.9 }}
+            className="pointer-events-none absolute inset-0 flex items-center justify-center overflow-hidden"
+          >
+            <motion.div
+              animate={{ opacity: [0.12, 0.28, 0.12], scale: [1, 1.07, 1] }}
+              transition={{ duration: 3.6, repeat: Infinity, ease: 'easeInOut' }}
+              className="w-[520px] h-[520px] max-w-[85vw] rounded-full"
+              style={{ background: 'radial-gradient(circle, rgba(212,176,106,0.16), transparent 65%)' }}
+            />
+          </motion.div>
+        )}
+      </AnimatePresence>
       <div className="px-6 md:px-16 py-6 md:py-8 border-b hairline">
         <div className="text-[10px] md:text-xs tracking-[0.3em] uppercase text-champagne/80">Guardian of the Journey</div>
         <div className="font-serif text-2xl md:text-3xl text-platinum mt-1">Every word remembered.</div>
@@ -1248,17 +1272,40 @@ function Mentor({ userId }) {
               </div>
             </motion.div>
           )}
-          {messages.map((m, i) => (
-            <motion.div key={i} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className={`flex ${m.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-              <div className={`max-w-[85%] md:max-w-[80%] ${m.role === 'user' ? 'glass px-4 md:px-5 py-3 rounded-2xl rounded-br-md text-platinum' : ''}`}>
-                {m.role !== 'user' && (<div className="text-[10px] tracking-[0.3em] uppercase text-champagne/70 mb-2">Guardian</div>)}
-                <div className={`leading-relaxed ${m.role !== 'user' ? 'font-serif text-lg md:text-xl text-platinum/90' : 'text-sm'}`}>{m.content}</div>
-              </div>
-            </motion.div>
-          ))}
+          {messages.map((m, i) => {
+            const isNew = i >= preloadedRef.current;
+            const isGuardian = m.role !== 'user';
+            return (
+              <motion.div
+                key={i}
+                initial={isNew ? { opacity: 0, y: 14, scale: 0.99 } : false}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                transition={SPRING_SOFT}
+                className={`flex ${m.role === 'user' ? 'justify-end' : 'justify-start'}`}
+              >
+                <div className={`relative max-w-[85%] md:max-w-[80%] ${m.role === 'user' ? 'glass px-4 md:px-5 py-3 rounded-2xl rounded-br-md text-platinum' : ''}`}>
+                  {/* one-shot soft glow pulse greets a fresh Guardian reply */}
+                  {isNew && isGuardian && (
+                    <motion.span
+                      aria-hidden
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: [0, 1, 0] }}
+                      transition={{ duration: 2, ease: 'easeInOut' }}
+                      className="absolute -inset-4 rounded-2xl bg-champagne/10 blur-xl pointer-events-none"
+                    />
+                  )}
+                  {isGuardian && (<div className="relative text-[10px] tracking-[0.3em] uppercase text-champagne/70 mb-2">Guardian</div>)}
+                  <div className={`relative leading-relaxed ${isGuardian ? 'font-serif text-lg md:text-xl text-platinum/90' : 'text-sm'}`}>
+                    {isNew && isGuardian ? <StreamedText text={m.content} /> : m.content}
+                  </div>
+                </div>
+              </motion.div>
+            );
+          })}
           {sending && (
-            <motion.div initial={{ opacity: 0, y: 4 }} animate={{ opacity: 1, y: 0 }} className="flex items-center gap-3">
-              <div className="text-[10px] tracking-[0.3em] uppercase text-champagne/70">Guardian</div>
+            <motion.div initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} transition={SPRING_SOFT} className="inline-flex items-center gap-3 glass rounded-full px-4 py-2.5">
+              <Sparkles className="w-3 h-3 text-champagne" />
+              <div className="text-[10px] tracking-[0.3em] uppercase text-champagne/70">Guardian · reflecting</div>
               <div className="flex items-center gap-1.5">
                 <span className="typing-dot w-1.5 h-1.5 rounded-full bg-champagne/80" />
                 <span className="typing-dot w-1.5 h-1.5 rounded-full bg-champagne/80" />
@@ -1269,9 +1316,21 @@ function Mentor({ userId }) {
         </div>
       </div>
       <div className="border-t hairline px-4 md:px-16 py-4 md:py-6">
-        <div className="max-w-3xl mx-auto flex items-center gap-3 glass rounded-full px-5 md:px-6 py-3">
-          <input value={input} onChange={(e) => setInput(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send(); } }} placeholder="Speak to the Guardian…" className="flex-1 min-w-0 bg-transparent outline-none text-platinum placeholder:text-platinum/30 text-sm" />
-          <button onClick={send} disabled={sending || !input.trim()} className="btn-premium shrink-0 w-10 h-10 rounded-full bg-champagne text-obsidian flex items-center justify-center disabled:opacity-30 hover:bg-champagne-soft transition"><Send className="w-4 h-4" /></button>
+        <div className="chatbar max-w-3xl mx-auto flex items-center gap-3 glass rounded-full px-5 md:px-6 py-3">
+          <input value={input} onChange={(e) => setInput(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send(); } }} placeholder="Speak to the Guardian…" className="flex-1 min-w-0 bg-transparent outline-none focus-visible:outline-none text-platinum placeholder:text-platinum/30 text-sm" />
+          <button onClick={send} disabled={sending || !input.trim()} className="btn-premium shrink-0 w-10 h-10 rounded-full bg-champagne text-obsidian flex items-center justify-center disabled:opacity-30 hover:bg-champagne-soft transition">
+            <AnimatePresence mode="wait" initial={false}>
+              {sending ? (
+                <motion.span key="spin" initial={{ opacity: 0, scale: 0.5, rotate: -90 }} animate={{ opacity: 1, scale: 1, rotate: 0 }} exit={{ opacity: 0, scale: 0.5 }} transition={{ duration: 0.25, ease: EASE }} className="flex">
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                </motion.span>
+              ) : (
+                <motion.span key="send" initial={{ opacity: 0, scale: 0.5, rotate: 90 }} animate={{ opacity: 1, scale: 1, rotate: 0 }} exit={{ opacity: 0, scale: 0.5 }} transition={{ duration: 0.25, ease: EASE }} className="flex">
+                  <Send className="w-4 h-4" />
+                </motion.span>
+              )}
+            </AnimatePresence>
+          </button>
         </div>
       </div>
     </div>

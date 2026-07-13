@@ -59,7 +59,7 @@ Hero and landing sections become a continuous cinematic scene.
   is raised (particle burst in champagne, restrained).
 - Number counters and stat cards animate on mount with springs.
 
-## Fase 4 — Guardian vivo
+## Fase 4 — Guardian vivo ✅ (implemented)
 
 - Message entrance physics (spring rise, soft glow pulse on new Guardian
   reply), streaming-style text reveal for replies.
