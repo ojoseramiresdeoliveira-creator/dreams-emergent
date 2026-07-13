@@ -320,3 +320,69 @@ html {
 
 /* Hide horizontal overflow globally */
 html, body { overflow-x: hidden; }
+
+/* ============ Living foundation (Phase 1) ============ */
+
+/* Cursor-following champagne light on glass surfaces.
+   --mx/--my are driven by components/fx/SpotlightController.jsx */
+.spotlight { position: relative; }
+.spotlight::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: radial-gradient(
+    340px circle at var(--mx, 50%) var(--my, 50%),
+    rgba(212, 176, 106, 0.10),
+    rgba(245, 245, 243, 0.04) 40%,
+    transparent 65%
+  );
+  opacity: 0;
+  transition: opacity var(--dur) var(--ease-out);
+  pointer-events: none;
+}
+.spotlight:hover::after { opacity: 1; }
+@media (hover: none) { .spotlight::after { display: none; } }
+
+/* Champagne underline that grows on focus — for the bare border-b inputs */
+.input-lux {
+  background-image: linear-gradient(to right, var(--champagne), var(--champagne-soft));
+  background-repeat: no-repeat;
+  background-position: 0 100%;
+  background-size: 0% 1px;
+  transition: background-size var(--dur-slow) var(--ease-out);
+}
+.input-lux:focus { background-size: 100% 1px; }
+
+/* ============ Cinematic landing (Phase 2) ============ */
+
+/* Slow champagne light band that pans across cinematic stills.
+   Transform/opacity only, screen-blended, barely-there. */
+@keyframes lightsweep {
+  0%   { transform: translateX(-80%) skewX(-14deg); opacity: 0; }
+  12%  { opacity: 1; }
+  55%  { opacity: 1; }
+  100% { transform: translateX(320%) skewX(-14deg); opacity: 0; }
+}
+.light-sweep {
+  position: absolute; inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  mix-blend-mode: screen;
+}
+.light-sweep::before {
+  content: '';
+  position: absolute;
+  top: -20%; bottom: -20%;
+  left: 0; width: 45%;
+  background: linear-gradient(
+    100deg,
+    transparent 0%,
+    rgba(212,176,106,0.05) 35%,
+    rgba(238,236,229,0.09) 50%,
+    rgba(212,176,106,0.05) 65%,
+    transparent 100%
+  );
+  animation: lightsweep 16s var(--ease-in-out) infinite;
+  will-change: transform, opacity;
+}

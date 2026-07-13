@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { motion, AnimatePresence, useScroll, useTransform } from 'framer-motion';
+import { motion, AnimatePresence, useScroll, useTransform, useReducedMotion } from 'framer-motion';
 import { getBrowserClient } from '@/lib/supabase';
 import {
   ArrowRight, ArrowUpRight, Sparkles, Feather, Flame, Mountain,
@@ -12,6 +12,11 @@ import {
 import { toast } from 'sonner';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
+import SpotlightController from '@/components/fx/SpotlightController';
+import Magnetic from '@/components/fx/Magnetic';
+import TiltCard from '@/components/fx/TiltCard';
+import LineReveal from '@/components/fx/LineReveal';
+import CinematicImage from '@/components/fx/CinematicImage';
 
 // Races a promise against a timeout so auth/network calls can never hang the UI silently.
 function withTimeout(promise, ms, message) {
@@ -132,12 +137,18 @@ function Counter({ value, duration = 1600 }) {
 }
 
 function SectionCinematic({ id, image, overlay = 'bg-black/60', children }) {
+  const ref = useRef(null);
+  const reduce = useReducedMotion();
+  // Background moves slower than content while the section crosses the viewport.
+  const { scrollYProgress } = useScroll({ target: ref, offset: ['start end', 'end start'] });
+  const bgY = useTransform(scrollYProgress, [0, 1], ['-7%', '7%']);
   return (
-    <section id={id} className="relative overflow-hidden">
-      <div className="absolute inset-0">
-        <img src={image} alt="" className="w-full h-full object-cover animate-kenburns" loading="lazy" />
+    <section id={id} ref={ref} className="relative overflow-hidden">
+      <motion.div style={{ y: reduce ? 0 : bgY }} className="absolute -inset-y-[9%] inset-x-0">
+        <CinematicImage src={image} className="w-full h-full" imgClassName="animate-kenburns" />
         <div className={`absolute inset-0 ${overlay}`} />
-      </div>
+        <div className="light-sweep" />
+      </motion.div>
       <div className="relative">{children}</div>
     </section>
   );
@@ -154,8 +165,9 @@ function MethodRow({ step, reverse }) {
     >
       <div className={`md:col-span-7 ${reverse ? 'md:order-2' : ''}`}>
         <div className="relative aspect-[16/10] overflow-hidden">
-          <img src={step.img} alt="" className="w-full h-full object-cover animate-kenburns" loading="lazy" />
+          <CinematicImage src={step.img} className="w-full h-full" imgClassName="animate-kenburns" />
           <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
+          <div className="light-sweep" />
         </div>
       </div>
       <div className="md:col-span-5">
@@ -167,7 +179,10 @@ function MethodRow({ step, reverse }) {
   );
 }
 
-/* ============ Starfield — canvas, minimal cost, 30fps ============ */
+/* ============ Starfield — canvas, minimal cost, 30fps ============
+   Depth-parallaxed stars + occasional shooting star + champagne dust
+   motes drifting near the Earth (lower-left). Static frame when the
+   user prefers reduced motion. */
 function Starfield({ density = 0.00025, parallax = 0.35 }) {
   const canvasRef = useRef(null);
   const scrollYRef = useRef(0);
@@ -175,7 +190,11 @@ function Starfield({ density = 0.00025, parallax = 0.35 }) {
     const canvas = canvasRef.current;
     if (!canvas) return;
     const ctx = canvas.getContext('2d');
+    const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     let stars = [];
+    let motes = [];
+    let shooting = null;         // active shooting star, or null
+    let nextShootAt = 0;         // timestamp for the next spawn
     let raf;
     let last = 0;
     const dpr = Math.min(2, window.devicePixelRatio || 1);
@@ -194,9 +213,45 @@ function Starfield({ density = 0.00025, parallax = 0.35 }) {
         speed: 0.4 + Math.random() * 1.1, // twinkle rate
         drift: (Math.random() - 0.5) * 0.02,
       }));
+      // Champagne dust concentrated where the Earth sits (lower-left half).
+      motes = new Array(16).fill(0).map(() => ({
+        x: Math.random() * w * 0.55,
+        y: h * 0.35 + Math.random() * h * 0.65,
+        r: 1 + Math.random() * 1.4,
+        phase: Math.random() * Math.PI * 2,
+        sway: 8 + Math.random() * 14,     // horizontal sine sway (px)
+        rise: 0.04 + Math.random() * 0.07, // upward drift per frame
+      }));
+      if (reduce) drawStatic();
+    }
+
+    function drawStatic() {
+      const w = canvas.clientWidth, h = canvas.clientHeight;
+      ctx.clearRect(0, 0, w, h);
+      for (const s of stars) {
+        ctx.beginPath();
+        ctx.fillStyle = s.z > 0.85 ? `rgba(230,220,200,${0.5 * s.z})` : `rgba(200,215,240,${0.45 * s.z})`;
+        ctx.arc(s.x, s.y, s.r * s.z, 0, Math.PI * 2);
+        ctx.fill();
+      }
     }
 
     function onScroll() { scrollYRef.current = window.scrollY; }
+
+    function spawnShooting(t, w, h) {
+      const fromLeft = Math.random() > 0.5;
+      const angle = (22 + Math.random() * 14) * (Math.PI / 180);
+      const speed = 26 + Math.random() * 10; // px per 33ms frame
+      shooting = {
+        x: fromLeft ? Math.random() * w * 0.3 : w * 0.5 + Math.random() * w * 0.4,
+        y: Math.random() * h * 0.35,
+        vx: Math.cos(angle) * speed * (fromLeft ? 1 : -1),
+        vy: Math.sin(angle) * speed,
+        born: t,
+        life: 700 + Math.random() * 400, // ms
+      };
+      nextShootAt = t + 7000 + Math.random() * 9000;
+    }
 
     function frame(t) {
       // throttle to ~30fps
@@ -205,6 +260,7 @@ function Starfield({ density = 0.00025, parallax = 0.35 }) {
       const w = canvas.clientWidth, h = canvas.clientHeight;
       ctx.clearRect(0, 0, w, h);
       const sy = scrollYRef.current * parallax;
+
       for (const s of stars) {
         s.x += s.drift;
         if (s.x < -2) s.x = w + 2; if (s.x > w + 2) s.x = -2;
@@ -218,13 +274,59 @@ function Starfield({ density = 0.00025, parallax = 0.35 }) {
         ctx.arc(s.x, y, s.r * s.z, 0, Math.PI * 2);
         ctx.fill();
       }
+
+      // Champagne dust — slow rise with sine sway, soft double-disc glow.
+      for (const m of motes) {
+        m.y -= m.rise;
+        if (m.y < h * 0.25) { m.y = h + 4; m.x = Math.random() * w * 0.55; }
+        const x = m.x + Math.sin(t * 0.0004 + m.phase) * m.sway;
+        const a = 0.1 + (Math.sin(t * 0.0007 + m.phase) + 1) * 0.08; // 0.10–0.26
+        ctx.beginPath();
+        ctx.fillStyle = `rgba(212,176,106,${a * 0.35})`;
+        ctx.arc(x, m.y, m.r * 2.6, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.beginPath();
+        ctx.fillStyle = `rgba(224,196,138,${a})`;
+        ctx.arc(x, m.y, m.r, 0, Math.PI * 2);
+        ctx.fill();
+      }
+
+      // Occasional shooting star with a fading gradient trail.
+      if (!shooting && t >= nextShootAt) spawnShooting(t, w, h);
+      if (shooting) {
+        const p = (t - shooting.born) / shooting.life;
+        if (p >= 1 || shooting.x < -60 || shooting.x > w + 60 || shooting.y > h + 60) {
+          shooting = null;
+        } else {
+          shooting.x += shooting.vx;
+          shooting.y += shooting.vy;
+          const fade = Math.sin(Math.PI * p); // ease in/out of existence
+          const tailX = shooting.x - shooting.vx * 4.5;
+          const tailY = shooting.y - shooting.vy * 4.5;
+          const grad = ctx.createLinearGradient(shooting.x, shooting.y, tailX, tailY);
+          grad.addColorStop(0, `rgba(245,242,230,${0.85 * fade})`);
+          grad.addColorStop(0.4, `rgba(224,196,138,${0.3 * fade})`);
+          grad.addColorStop(1, 'rgba(224,196,138,0)');
+          ctx.strokeStyle = grad;
+          ctx.lineWidth = 1.4;
+          ctx.lineCap = 'round';
+          ctx.beginPath();
+          ctx.moveTo(shooting.x, shooting.y);
+          ctx.lineTo(tailX, tailY);
+          ctx.stroke();
+        }
+      }
+
       raf = requestAnimationFrame(frame);
     }
 
     resize();
     window.addEventListener('resize', resize);
-    window.addEventListener('scroll', onScroll, { passive: true });
-    raf = requestAnimationFrame(frame);
+    if (!reduce) {
+      window.addEventListener('scroll', onScroll, { passive: true });
+      nextShootAt = performance.now() + 4000 + Math.random() * 6000;
+      raf = requestAnimationFrame(frame);
+    }
     return () => {
       cancelAnimationFrame(raf);
       window.removeEventListener('resize', resize);
@@ -283,9 +385,18 @@ function EarthGlobe({ size = 'large' }) {
 }
 
 function Landing({ onBegin, onExplore, onSignIn, stats }) {
-  const { scrollYProgress } = useScroll();
-  const heroY = useTransform(scrollYProgress, [0, 0.35], [0, 120]);
-  const heroOpacity = useTransform(scrollYProgress, [0, 0.22], [1, 0]);
+  const heroRef = useRef(null);
+  const reduce = useReducedMotion();
+  // Progress of the hero leaving the viewport (0 = at rest, 1 = scrolled past).
+  const { scrollYProgress } = useScroll({ target: heroRef, offset: ['start start', 'end start'] });
+  // Layered depths: nebula drifts slowest, Earth recedes mid-depth,
+  // text rises faster in the opposite direction — parallax depth illusion.
+  const nebulaY = useTransform(scrollYProgress, [0, 1], [0, 70]);
+  const earthY = useTransform(scrollYProgress, [0, 1], [0, 170]);
+  const earthScale = useTransform(scrollYProgress, [0, 1], [1, 0.9]);
+  const textY = useTransform(scrollYProgress, [0, 1], [0, -110]);
+  const heroOpacity = useTransform(scrollYProgress, [0, 0.6], [1, 0]);
+  const cueOpacity = useTransform(scrollYProgress, [0, 0.12], [1, 0]);
 
   return (
     <div className="relative bg-black">
@@ -313,9 +424,13 @@ function Landing({ onBegin, onExplore, onSignIn, stats }) {
       </nav>
 
       {/* HERO — Earth rotating on left, text on right */}
-      <section className="relative min-h-[100svh] overflow-hidden flex items-center justify-center bg-black">
+      <section ref={heroRef} className="relative min-h-[100svh] overflow-hidden flex items-center justify-center bg-black">
         <div className="absolute inset-0 pointer-events-none">
-          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(20,35,75,0.28),transparent_65%)]" />
+          {/* deepest layer — nebula drifts slowest */}
+          <motion.div
+            style={{ y: reduce ? 0 : nebulaY }}
+            className="absolute -inset-y-[8%] inset-x-0 bg-[radial-gradient(ellipse_at_center,rgba(20,35,75,0.28),transparent_65%)]"
+          />
           <Starfield density={0.00028} parallax={0.4} />
           <div className="absolute inset-0 dot-field opacity-20" />
           <div className="absolute inset-0 vignette" />
@@ -323,9 +438,9 @@ function Landing({ onBegin, onExplore, onSignIn, stats }) {
         </div>
 
         <div className="relative w-full max-w-[1400px] mx-auto px-6 md:px-14 pt-28 md:pt-24 pb-20 md:pb-0 grid md:grid-cols-2 gap-14 md:gap-4 items-center">
-          {/* Earth */}
+          {/* Earth — mid depth: recedes and shrinks slightly on scroll */}
           <motion.div
-            style={{ y: heroY }}
+            style={reduce ? undefined : { y: earthY, scale: earthScale }}
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 2.4, ease: [0.16, 1, 0.3, 1] }}
@@ -334,9 +449,9 @@ function Landing({ onBegin, onExplore, onSignIn, stats }) {
             <EarthGlobe size="large" />
           </motion.div>
 
-          {/* Text */}
+          {/* Text — nearest depth: rises against the scroll and fades */}
           <motion.div
-            style={{ opacity: heroOpacity }}
+            style={reduce ? undefined : { y: textY, opacity: heroOpacity }}
             className="relative order-2 text-center md:text-left"
           >
             <motion.div
@@ -347,15 +462,16 @@ function Landing({ onBegin, onExplore, onSignIn, stats }) {
             >
               Monument of Dreams
             </motion.div>
-            <motion.h1
-              initial={{ opacity: 0, y: 24 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 2, delay: 0.7, ease: [0.16, 1, 0.3, 1] }}
-              className="font-serif text-[clamp(38px,9vw,88px)] leading-[0.98] tracking-[-0.025em] text-white"
-            >
-              Every dream deserves<br />
-              <span className="italic text-white/90">a monument.</span>
-            </motion.h1>
+            <h1 className="font-serif text-[clamp(38px,9vw,88px)] leading-[0.98] tracking-[-0.025em] text-white">
+              <LineReveal
+                mode="mount"
+                delay={0.7}
+                lines={[
+                  'Every dream deserves',
+                  <span key="l2" className="italic text-white/90">a monument.</span>,
+                ]}
+              />
+            </h1>
             <motion.p
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
@@ -370,13 +486,15 @@ function Landing({ onBegin, onExplore, onSignIn, stats }) {
               transition={{ duration: 1.6, delay: 1.8 }}
               className="mt-10 md:mt-14 flex flex-col lg:flex-row items-center md:items-start justify-center md:justify-start gap-3 sm:gap-4"
             >
-              <button
-                onClick={onBegin}
-                className="group w-full sm:w-auto whitespace-nowrap px-8 md:px-10 py-4 rounded-full bg-white text-black text-[11px] tracking-[0.24em] uppercase font-medium hover:bg-white/95 hover:-translate-y-0.5 hover:shadow-[0_20px_50px_-15px_rgba(255,255,255,0.35)] active:translate-y-0 active:scale-[0.98] transition-all duration-500 sheen flex items-center justify-center gap-3"
-              >
-                Create My Monument
-                <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform duration-500" />
-              </button>
+              <Magnetic className="w-full sm:w-auto">
+                <button
+                  onClick={onBegin}
+                  className="group w-full sm:w-auto whitespace-nowrap px-8 md:px-10 py-4 rounded-full bg-white text-black text-[11px] tracking-[0.24em] uppercase font-medium hover:bg-white/95 hover:shadow-[0_20px_50px_-15px_rgba(255,255,255,0.35)] active:scale-[0.98] transition-all duration-500 sheen flex items-center justify-center gap-3"
+                >
+                  Create My Monument
+                  <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform duration-500" />
+                </button>
+              </Magnetic>
               <button
                 onClick={onExplore}
                 className="w-full sm:w-auto whitespace-nowrap px-8 md:px-10 py-4 rounded-full border border-white/15 text-[11px] tracking-[0.24em] uppercase text-white/80 hover:text-white hover:border-white/40 hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.98] transition-all duration-500"
@@ -388,30 +506,39 @@ function Landing({ onBegin, onExplore, onSignIn, stats }) {
         </div>
 
         <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 2.8, duration: 1.5 }}
+          style={{ opacity: reduce ? 1 : cueOpacity }}
           className="hidden md:flex absolute bottom-8 left-1/2 -translate-x-1/2 text-white/40 text-[9px] tracking-[0.4em] uppercase flex-col items-center gap-4"
         >
-          <span>Scroll</span>
-          <div className="w-px h-14 bg-gradient-to-b from-white/40 to-transparent" />
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 2.8, duration: 1.5 }}
+            className="flex flex-col items-center gap-4"
+          >
+            <span>Scroll</span>
+            <div className="w-px h-14 bg-gradient-to-b from-white/40 to-transparent" />
+          </motion.div>
         </motion.div>
       </section>
 
       {/* ETHOS */}
       <SectionCinematic
         id="ethos"
-        image="https://images.unsplash.com/photo-1579722139701-f9222eded3b6?auto=format&fit=crop&w=2400&q=85"
+        image="https://images.unsplash.com/photo-1579722139701-f9222eded3b6?auto=format&fit=crop&w=3840&q=80"
         overlay="bg-gradient-to-b from-black via-black/45 to-black"
       >
         <div className="relative max-w-4xl mx-auto text-center px-8 py-56 md:py-72">
           <motion.div initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} viewport={{ once: true, margin: '-100px' }} transition={{ duration: 2 }} className="text-[10px] tracking-[0.4em] uppercase text-white/40 mb-12">
             Why we exist
           </motion.div>
-          <motion.h2 initial={{ opacity: 0, y: 24 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, margin: '-100px' }} transition={{ duration: 1.8, ease: [0.16, 1, 0.3, 1] }} className="font-serif text-[42px] md:text-[72px] leading-[1.08] tracking-[-0.02em] text-white">
-            The world remembers<br />
-            those who <span className="italic text-white/85">arrived.</span>
-          </motion.h2>
+          <h2 className="font-serif text-[42px] md:text-[72px] leading-[1.08] tracking-[-0.02em] text-white">
+            <LineReveal
+              lines={[
+                'The world remembers',
+                <span key="l2">those who <span className="italic text-white/85">arrived.</span></span>,
+              ]}
+            />
+          </h2>
           <motion.p initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} viewport={{ once: true, margin: '-100px' }} transition={{ duration: 2, delay: 0.5 }} className="mt-14 text-white/55 text-base md:text-lg font-light leading-[2] max-w-2xl mx-auto">
             We remember everyone still walking.
             <br /><br />
@@ -427,8 +554,12 @@ function Landing({ onBegin, onExplore, onSignIn, stats }) {
             <div>
               <div className="text-[10px] tracking-[0.4em] uppercase text-white/40 mb-10">The Rite</div>
               <h2 className="font-serif text-[44px] md:text-[64px] leading-[1.05] tracking-[-0.02em] text-white">
-                Three acts.<br />
-                <span className="italic text-white/60">One life.</span>
+                <LineReveal
+                  lines={[
+                    'Three acts.',
+                    <span key="l2" className="italic text-white/60">One life.</span>,
+                  ]}
+                />
               </h2>
             </div>
             <p className="text-white/50 text-[16px] leading-[1.85] font-light max-w-md md:justify-self-end">
@@ -451,13 +582,17 @@ function Landing({ onBegin, onExplore, onSignIn, stats }) {
       {/* WORLD LIVE */}
       <SectionCinematic
         id="world"
-        image="https://images.unsplash.com/photo-1577438569227-4b3445c673cf?auto=format&fit=crop&w=2400&q=90"
+        image="https://images.unsplash.com/photo-1577438569227-4b3445c673cf?auto=format&fit=crop&w=3840&q=80"
         overlay="bg-gradient-to-b from-black/85 via-black/55 to-black"
       >
         <div className="relative max-w-[1200px] mx-auto px-8 md:px-14 py-40 md:py-56">
           <div className="text-[10px] tracking-[0.4em] uppercase text-white/45 mb-10">Live · Global</div>
           <h2 className="font-serif text-[44px] md:text-[64px] leading-[1.05] tracking-[-0.02em] text-white max-w-2xl">
-            The world is <span className="italic text-white/80">walking.</span>
+            <LineReveal
+              lines={[
+                <span key="l1">The world is <span className="italic text-white/80">walking.</span></span>,
+              ]}
+            />
           </h2>
           <p className="mt-10 text-white/55 text-[16px] font-light max-w-xl leading-[1.85]">
             Real journeys. Real people. Preserved as they happen — not after they end.
@@ -494,7 +629,11 @@ function Landing({ onBegin, onExplore, onSignIn, stats }) {
           <div className="md:col-span-6">
             <div className="text-[10px] tracking-[0.4em] uppercase text-champagne/70 mb-10">Guardian of the Journey</div>
             <h2 className="font-serif text-[44px] md:text-[64px] leading-[1.05] tracking-[-0.02em] text-white">
-              An intelligence that <span className="italic text-white/70">walks with you.</span>
+              <LineReveal
+                lines={[
+                  <span key="l1">An intelligence that <span className="italic text-white/70">walks with you.</span></span>,
+                ]}
+              />
             </h2>
             <p className="mt-10 text-white/55 text-[16px] leading-[1.95] font-light max-w-lg">
               Not a coach. Not a chatbot. The Guardian remembers every stone you have laid. It never gives generic motivation. It only speaks to you using your own story — and reminds you, when you forget, how far you have already come.
@@ -529,7 +668,11 @@ function Landing({ onBegin, onExplore, onSignIn, stats }) {
           <div className="max-w-2xl mb-28">
             <div className="text-[10px] tracking-[0.4em] uppercase text-white/40 mb-10">Monument Eternal</div>
             <h2 className="font-serif text-[44px] md:text-[64px] leading-[1.05] tracking-[-0.02em] text-white">
-              For the ones who <span className="italic text-white/70">refuse to be forgotten.</span>
+              <LineReveal
+                lines={[
+                  <span key="l1">For the ones who <span className="italic text-white/70">refuse to be forgotten.</span></span>,
+                ]}
+              />
             </h2>
           </div>
           <div className="grid md:grid-cols-12 gap-16 md:gap-20 items-start">
@@ -565,28 +708,35 @@ function Landing({ onBegin, onExplore, onSignIn, stats }) {
 
       {/* FINAL CTA */}
       <SectionCinematic
-        image="https://images.unsplash.com/photo-1534996858221-380b92700493?auto=format&fit=crop&w=2400&q=90"
+        image="https://images.unsplash.com/photo-1534996858221-380b92700493?auto=format&fit=crop&w=3840&q=80"
         overlay="bg-gradient-to-b from-black/85 via-black/60 to-black"
       >
         <div className="relative max-w-4xl mx-auto text-center px-8 py-56 md:py-72">
-          <motion.h2 initial={{ opacity: 0, y: 24 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, margin: '-100px' }} transition={{ duration: 2, ease: [0.16, 1, 0.3, 1] }} className="font-serif text-[56px] md:text-[104px] leading-[0.98] tracking-[-0.025em] text-white">
-            Your story<br />
-            <span className="italic text-white/85">has already begun.</span>
-          </motion.h2>
+          <h2 className="font-serif text-[56px] md:text-[104px] leading-[0.98] tracking-[-0.025em] text-white">
+            <LineReveal
+              duration={1.4}
+              lines={[
+                'Your story',
+                <span key="l2" className="italic text-white/85">has already begun.</span>,
+              ]}
+            />
+          </h2>
           <motion.p initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} viewport={{ once: true }} transition={{ duration: 2, delay: 0.4 }} className="mt-12 text-white/55 text-[16px] font-light tracking-wide">
             Now it will be remembered.
           </motion.p>
-          <motion.button
-            initial={{ opacity: 0, y: 10 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 1.6, delay: 0.7 }}
-            onClick={onBegin}
-            className="mt-16 group px-12 py-5 rounded-full bg-white text-black text-[11px] tracking-[0.24em] uppercase font-medium hover:bg-white/95 hover:-translate-y-0.5 hover:shadow-[0_20px_50px_-15px_rgba(255,255,255,0.35)] active:translate-y-0 active:scale-[0.98] transition-all duration-500 sheen inline-flex items-center gap-3"
-          >
-            Raise My Monument
-            <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform duration-500" />
-          </motion.button>
+          <Magnetic className="mt-16">
+            <motion.button
+              initial={{ opacity: 0, y: 10 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 1.6, delay: 0.7 }}
+              onClick={onBegin}
+              className="group px-12 py-5 rounded-full bg-white text-black text-[11px] tracking-[0.24em] uppercase font-medium hover:bg-white/95 hover:shadow-[0_20px_50px_-15px_rgba(255,255,255,0.35)] active:scale-[0.98] transition-all duration-500 sheen inline-flex items-center gap-3"
+            >
+              Raise My Monument
+              <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform duration-500" />
+            </motion.button>
+          </Magnetic>
         </div>
       </SectionCinematic>
 
@@ -616,16 +766,16 @@ function Onboard({ onDone, onCancel, userId }) {
 
   const steps = [
     { q: 'What name shall we inscribe first?', hint: 'The one you were given, or the one you have chosen. It goes at the top of the Monument.', input: (
-      <Input autoFocus value={name} onChange={(e) => setName(e.target.value)} placeholder="Your name" className="bg-transparent border-0 border-b hairline-strong rounded-none text-4xl md:text-5xl font-serif h-20 focus-visible:ring-0 px-0 text-platinum placeholder:text-platinum/20" />
+      <Input autoFocus value={name} onChange={(e) => setName(e.target.value)} placeholder="Your name" className="bg-transparent input-lux border-0 border-b hairline-strong rounded-none text-4xl md:text-5xl font-serif h-20 focus-visible:ring-0 px-0 text-platinum placeholder:text-platinum/20" />
     ), canNext: name.trim().length > 0 },
     { q: 'What is the story you are here to tell?', hint: 'One sentence. The one you have been afraid to say out loud.', input: (
-      <Textarea autoFocus value={dream} onChange={(e) => setDream(e.target.value)} placeholder="I am here to…" className="bg-transparent border-0 border-b hairline-strong rounded-none text-3xl md:text-4xl font-serif focus-visible:ring-0 px-0 text-platinum placeholder:text-platinum/20 min-h-[120px] resize-none leading-tight" />
+      <Textarea autoFocus value={dream} onChange={(e) => setDream(e.target.value)} placeholder="I am here to…" className="bg-transparent input-lux border-0 border-b hairline-strong rounded-none text-3xl md:text-4xl font-serif focus-visible:ring-0 px-0 text-platinum placeholder:text-platinum/20 min-h-[120px] resize-none leading-tight" />
     ), canNext: dream.trim().length > 4 },
     { q: 'Why must it be told, and why through you?', hint: 'The reason that would survive a bad day, a bad year, a bad silence.', input: (
-      <Textarea autoFocus value={purpose} onChange={(e) => setPurpose(e.target.value)} placeholder="Because…" className="bg-transparent border-0 border-b hairline-strong rounded-none text-2xl md:text-3xl font-serif focus-visible:ring-0 px-0 text-platinum placeholder:text-platinum/20 min-h-[120px] resize-none" />
+      <Textarea autoFocus value={purpose} onChange={(e) => setPurpose(e.target.value)} placeholder="Because…" className="bg-transparent input-lux border-0 border-b hairline-strong rounded-none text-2xl md:text-3xl font-serif focus-visible:ring-0 px-0 text-platinum placeholder:text-platinum/20 min-h-[120px] resize-none" />
     ), canNext: purpose.trim().length > 3 },
     { q: 'By when must this exist in the world?', hint: 'A year, a season, a chapter of your life. Be honest, not perfect.', input: (
-      <Input autoFocus value={timeframe} onChange={(e) => setTimeframe(e.target.value)} placeholder="e.g. by 2028, before I turn 30, this decade" className="bg-transparent border-0 border-b hairline-strong rounded-none text-2xl md:text-3xl font-serif focus-visible:ring-0 px-0 text-platinum placeholder:text-platinum/20 h-16" />
+      <Input autoFocus value={timeframe} onChange={(e) => setTimeframe(e.target.value)} placeholder="e.g. by 2028, before I turn 30, this decade" className="bg-transparent input-lux border-0 border-b hairline-strong rounded-none text-2xl md:text-3xl font-serif focus-visible:ring-0 px-0 text-platinum placeholder:text-platinum/20 h-16" />
     ), canNext: timeframe.trim().length > 0 },
     { q: 'Which words must never leave your Monument?', hint: 'Choose three. They will be inscribed at the base — the ground your story stands on.', input: (
       <div className="flex flex-wrap gap-3">
@@ -675,9 +825,9 @@ function Onboard({ onDone, onCancel, userId }) {
               <div className="mt-12 md:mt-16 flex items-center justify-between gap-4">
                 <button disabled={step === 0} onClick={() => setStep(step - 1)} className="text-[10px] md:text-xs tracking-[0.2em] uppercase text-platinum/50 hover:text-platinum transition disabled:opacity-20">Previous</button>
                 {step < steps.length - 1 ? (
-                  <button disabled={!s.canNext} onClick={() => setStep(step + 1)} className="group px-6 md:px-8 py-3.5 md:py-4 rounded-full bg-platinum text-obsidian text-[10px] md:text-xs tracking-[0.2em] uppercase disabled:opacity-30 disabled:cursor-not-allowed hover:bg-white transition flex items-center gap-2">Continue <ArrowRight className="w-3 h-3 group-hover:translate-x-1 transition" /></button>
+                  <button disabled={!s.canNext} onClick={() => setStep(step + 1)} className="btn-premium group px-6 md:px-8 py-3.5 md:py-4 rounded-full bg-platinum text-obsidian text-[10px] md:text-xs tracking-[0.2em] uppercase disabled:opacity-30 disabled:cursor-not-allowed hover:bg-white transition flex items-center gap-2">Continue <ArrowRight className="w-3 h-3 group-hover:translate-x-1 transition" /></button>
                 ) : (
-                  <button disabled={!s.canNext || saving} onClick={submit} className="group px-6 md:px-8 py-3.5 md:py-4 rounded-full bg-champagne text-obsidian text-[10px] md:text-xs tracking-[0.2em] uppercase disabled:opacity-30 hover:bg-champagne-soft transition flex items-center gap-2 gold-glow">
+                  <button disabled={!s.canNext || saving} onClick={submit} className="btn-premium group px-6 md:px-8 py-3.5 md:py-4 rounded-full bg-champagne text-obsidian text-[10px] md:text-xs tracking-[0.2em] uppercase disabled:opacity-30 hover:bg-champagne-soft transition flex items-center gap-2 gold-glow">
                     {saving ? <Loader2 className="w-3 h-3 animate-spin" /> : <Sparkles className="w-3 h-3" />} Raise the Monument
                   </button>
                 )}
@@ -760,7 +910,7 @@ function Shell({ view, setView, children, monument, onLogout }) {
               </nav>
               <div className="mt-auto">
                 {monument && (
-                  <div className="glass rounded-lg p-5">
+                  <div className="glass spotlight rounded-lg p-5">
                     <div className="text-[9px] tracking-[0.3em] uppercase text-champagne/70 mb-2">The story</div>
                     <div className="text-sm text-white/80 leading-relaxed line-clamp-3">{monument.dream}</div>
                   </div>
@@ -785,7 +935,7 @@ function Shell({ view, setView, children, monument, onLogout }) {
             {nav.map((n) => {
               const active = view === n.k; const Icon = n.icon;
               return (
-                <button key={n.k} onClick={() => setView(n.k)} className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition ${active ? 'bg-white/[0.04] text-platinum' : 'text-platinum/50 hover:text-platinum hover:bg-white/[0.02]'}`}>
+                <button key={n.k} onClick={() => setView(n.k)} className={`sidebar-item w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm ${active ? 'active bg-white/[0.04] text-platinum' : 'text-platinum/50 hover:text-platinum hover:bg-white/[0.02]'}`}>
                   <Icon className="w-4 h-4" />{n.label}
                   {active && <ChevronRight className="w-3 h-3 ml-auto text-champagne" />}
                 </button>
@@ -795,7 +945,7 @@ function Shell({ view, setView, children, monument, onLogout }) {
         </div>
         <div>
           {monument && (
-            <div className="glass rounded-lg p-4">
+            <div className="glass spotlight rounded-lg p-4">
               <div className="text-[9px] tracking-[0.3em] uppercase text-champagne/70 mb-2">The story</div>
               <div className="text-xs text-platinum/80 leading-relaxed line-clamp-3">{monument.dream}</div>
             </div>
@@ -838,18 +988,18 @@ function Home({ monument, setView, userId }) {
       <h1 className="font-serif text-4xl sm:text-5xl md:text-6xl text-platinum tracking-tight leading-[1.05]">Your story continues, <em className="text-gold-shimmer not-italic">{monument.name}</em>.</h1>
       <p className="mt-4 text-platinum/50 text-base md:text-lg">Day {daysSince} preserved. The Monument is listening.</p>
       <motion.div initial="hidden" animate="show" className="mt-10 md:mt-16 grid sm:grid-cols-3 gap-4 md:gap-6">
-        <motion.div custom={0} variants={cardVariants} className="glass rounded-xl p-6">
+        <motion.div custom={0} variants={cardVariants} className="glass spotlight rounded-xl p-6">
           <div className="text-[10px] tracking-[0.3em] uppercase text-platinum/40 mb-3">Preserved today</div>
           <div className="font-serif text-4xl text-platinum tabular">{entries === null ? <span className="skeleton inline-block w-10 h-10" /> : entriesCount}</div>
           <div className="text-xs text-platinum/50 mt-1">{entriesCount === 1 ? 'stone inscribed' : 'stones inscribed'}</div>
         </motion.div>
-        <motion.div custom={1} variants={cardVariants} className="glass rounded-xl p-6 sm:col-span-2">
+        <motion.div custom={1} variants={cardVariants} className="glass spotlight rounded-xl p-6 sm:col-span-2">
           <div className="text-[10px] tracking-[0.3em] uppercase text-champagne/70 mb-3">The story you are telling</div>
           <div className="font-serif text-xl md:text-2xl text-platinum leading-tight">{monument.dream}</div>
           <div className="mt-3 text-xs text-platinum/40">Toward: {monument.timeframe}</div>
         </motion.div>
       </motion.div>
-      <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7, delay: 0.24, ease: [0.16, 1, 0.3, 1] }} className="mt-6 glass rounded-xl p-6 md:p-8">
+      <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7, delay: 0.24, ease: [0.16, 1, 0.3, 1] }} className="mt-6 glass spotlight rounded-xl p-6 md:p-8">
         <div className="flex items-center gap-2 mb-4">
           <Sparkles className="w-4 h-4 text-champagne" />
           <div className="text-[10px] tracking-[0.3em] uppercase text-champagne/70">Guardian · today&apos;s reflection</div>
@@ -873,9 +1023,9 @@ function Home({ monument, setView, userId }) {
         <h2 className="font-serif text-2xl md:text-3xl text-platinum">The next stone</h2>
         <button onClick={() => setView('timeline')} className="text-[10px] md:text-xs tracking-[0.2em] uppercase text-platinum/50 hover:text-platinum">Open the Monument →</button>
       </div>
-      <div className="mt-6 glass rounded-xl p-6 md:p-8 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6">
+      <div className="mt-6 glass spotlight rounded-xl p-6 md:p-8 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6">
         <div className="text-platinum/80 leading-relaxed text-[15px] md:text-base">Add a stone. A reflection, a victory, an honest failure, a restart. One more day of the story becomes permanent.</div>
-        <button onClick={() => setView('timeline')} className="shrink-0 px-6 py-3 rounded-full bg-platinum text-obsidian text-[10px] md:text-xs tracking-[0.2em] uppercase hover:bg-white transition flex items-center gap-2"><Plus className="w-3 h-3" /> Inscribe</button>
+        <button onClick={() => setView('timeline')} className="btn-premium shrink-0 px-6 py-3 rounded-full bg-platinum text-obsidian text-[10px] md:text-xs tracking-[0.2em] uppercase hover:bg-white transition flex items-center gap-2"><Plus className="w-3 h-3" /> Inscribe</button>
       </div>
     </div>
   );
@@ -934,22 +1084,22 @@ function Timeline({ monument, userId }) {
       </div>
       <div className="mt-12">
         {!adding ? (
-          <button onClick={() => { setAdding(true); setClientRef(newRef()); }} className="w-full glass rounded-xl p-6 text-left hover:border-champagne/30 transition group">
+          <button onClick={() => { setAdding(true); setClientRef(newRef()); }} className="w-full glass spotlight rounded-xl p-6 text-left hover:border-champagne/30 transition group">
             <div className="flex items-center gap-3 text-platinum/50 group-hover:text-platinum transition"><Plus className="w-4 h-4" /><span className="text-sm">Lay another stone</span></div>
           </button>
         ) : (
-          <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="glass rounded-xl p-8 space-y-6">
+          <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="glass spotlight rounded-xl p-8 space-y-6">
             <div className="flex flex-wrap gap-2">
               {ENTRY_TYPES.map((t) => {
                 const Icon = t.icon; const active = type === t.key;
                 return (<button key={t.key} onClick={() => setType(t.key)} className={`flex items-center gap-2 px-4 py-2 rounded-full text-xs tracking-wider transition border ${active ? 'bg-champagne/15 border-champagne/50 text-champagne' : 'hairline text-platinum/60 hover:text-platinum'}`}><Icon className="w-3 h-3" /> {t.label}</button>);
               })}
             </div>
-            <Input disabled={saving} value={title} onChange={(e) => { setTitle(e.target.value); setClientRef(newRef()); }} placeholder="Give this stone a name (optional)" className="bg-transparent border-0 border-b hairline rounded-none text-2xl font-serif h-14 px-0 focus-visible:ring-0 text-platinum placeholder:text-platinum/20" />
+            <Input disabled={saving} value={title} onChange={(e) => { setTitle(e.target.value); setClientRef(newRef()); }} placeholder="Give this stone a name (optional)" className="bg-transparent input-lux border-0 border-b hairline rounded-none text-2xl font-serif h-14 px-0 focus-visible:ring-0 text-platinum placeholder:text-platinum/20" />
             <Textarea disabled={saving} value={content} onChange={(e) => { setContent(e.target.value); setClientRef(newRef()); }} placeholder="What happened today. What it meant." className="bg-transparent border hairline rounded-lg text-base focus-visible:ring-1 focus-visible:ring-champagne/40 text-platinum placeholder:text-platinum/20 min-h-[140px]" />
             <div className="flex justify-end gap-3">
               <button disabled={saving} onClick={() => setAdding(false)} className="px-6 py-2.5 text-xs tracking-[0.2em] uppercase text-platinum/50 hover:text-platinum disabled:opacity-30">Cancel</button>
-              <button disabled={saving || !content.trim()} onClick={save} className="px-6 py-2.5 rounded-full bg-champagne text-obsidian text-xs tracking-[0.2em] uppercase disabled:opacity-30 hover:bg-champagne-soft transition flex items-center gap-2">
+              <button disabled={saving || !content.trim()} onClick={save} className="btn-premium px-6 py-2.5 rounded-full bg-champagne text-obsidian text-xs tracking-[0.2em] uppercase disabled:opacity-30 hover:bg-champagne-soft transition flex items-center gap-2">
                 {saving ? <Loader2 className="w-3 h-3 animate-spin" /> : <Check className="w-3 h-3" />} Inscribe
               </button>
             </div>
@@ -972,7 +1122,7 @@ function Timeline({ monument, userId }) {
             );
           })}
           {entries.length === 0 && (
-            <div className="glass rounded-xl p-10 md:p-14 max-w-xl">
+            <div className="glass spotlight rounded-xl p-10 md:p-14 max-w-xl">
               <div className="w-10 h-10 rounded-full glass flex items-center justify-center border border-champagne/25 mb-5">
                 <Feather className="w-3.5 h-3.5 text-champagne" />
               </div>
@@ -1075,7 +1225,7 @@ function Mentor({ userId }) {
       <div className="border-t hairline px-4 md:px-16 py-4 md:py-6">
         <div className="max-w-3xl mx-auto flex items-center gap-3 glass rounded-full px-5 md:px-6 py-3">
           <input value={input} onChange={(e) => setInput(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send(); } }} placeholder="Speak to the Guardian…" className="flex-1 min-w-0 bg-transparent outline-none text-platinum placeholder:text-platinum/30 text-sm" />
-          <button onClick={send} disabled={sending || !input.trim()} className="shrink-0 w-10 h-10 rounded-full bg-champagne text-obsidian flex items-center justify-center disabled:opacity-30 hover:bg-champagne-soft transition"><Send className="w-4 h-4" /></button>
+          <button onClick={send} disabled={sending || !input.trim()} className="btn-premium shrink-0 w-10 h-10 rounded-full bg-champagne text-obsidian flex items-center justify-center disabled:opacity-30 hover:bg-champagne-soft transition"><Send className="w-4 h-4" /></button>
         </div>
       </div>
     </div>
@@ -1098,7 +1248,8 @@ function Community() {
       <p className="mt-4 text-platinum/50 text-base md:text-lg max-w-2xl">Not followers. Not likes. Only journeys, witnessed by others walking their own. Every Monument here was raised by a real person.</p>
       <div className="mt-12 md:mt-16 grid sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
         {builders.map((b, i) => (
-          <motion.div key={i} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05, duration: 0.7, ease: [0.16, 1, 0.3, 1] }} whileHover={{ y: -4 }} className="glass rounded-xl p-6 cursor-default group">
+          <TiltCard key={i}>
+            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05, duration: 0.7, ease: [0.16, 1, 0.3, 1] }} className="glass spotlight rounded-xl p-6 cursor-default group h-full">
             <div className="flex items-center gap-3 mb-4"><div className="w-8 h-8 rounded-full bg-gradient-to-br from-champagne/40 to-platinum/10 group-hover:from-champagne/60 transition-colors duration-500" /><div className="text-sm text-platinum">{b.name}</div></div>
             <div className="font-serif text-lg text-platinum/90 leading-tight line-clamp-3">{b.dream}</div>
             {b.values?.length > 0 && (
@@ -1106,12 +1257,13 @@ function Community() {
                 {b.values.slice(0, 3).map((v) => (<span key={v} className="text-[9px] tracking-[0.2em] uppercase text-champagne/70 px-2 py-0.5 rounded-full border border-champagne/15">{v}</span>))}
               </div>
             )}
-            <div className="mt-4 text-[10px] tracking-widest uppercase text-platinum/30">Walking since {new Date(b.createdAt).toLocaleDateString('en', { month: 'short', year: 'numeric' })}</div>
-          </motion.div>
+              <div className="mt-4 text-[10px] tracking-widest uppercase text-platinum/30">Walking since {new Date(b.createdAt).toLocaleDateString('en', { month: 'short', year: 'numeric' })}</div>
+            </motion.div>
+          </TiltCard>
         ))}
         {builders.length === 0 && (
           <div className="col-span-full">
-            <div className="glass rounded-xl p-10 md:p-16 text-center max-w-2xl mx-auto">
+            <div className="glass spotlight rounded-xl p-10 md:p-16 text-center max-w-2xl mx-auto">
               <div className="mx-auto w-12 h-12 rounded-full glass flex items-center justify-center border border-champagne/25 mb-6">
                 <Users className="w-4 h-4 text-champagne" />
               </div>
@@ -1140,18 +1292,18 @@ function Profile({ monument }) {
       <div className="text-[10px] md:text-xs tracking-[0.3em] uppercase text-champagne/80 mb-4">A Personal Monument</div>
       <h1 className="font-serif text-5xl sm:text-6xl md:text-7xl text-platinum tracking-tight leading-[1.05] break-words">{monument.name}</h1>
 
-      <div className="mt-8 md:mt-10 glass rounded-xl p-6 md:p-8">
+      <div className="mt-8 md:mt-10 glass spotlight rounded-xl p-6 md:p-8">
         <div className="text-[10px] tracking-[0.3em] uppercase text-champagne/70 mb-3">The story I am telling</div>
         <div className="font-serif text-2xl md:text-3xl text-platinum leading-tight">{monument.dream}</div>
         <div className="mt-4 text-xs text-platinum/40">Toward: {monument.timeframe}</div>
       </div>
 
-      <div className="mt-6 glass rounded-xl p-6 md:p-8">
+      <div className="mt-6 glass spotlight rounded-xl p-6 md:p-8">
         <div className="text-[10px] tracking-[0.3em] uppercase text-champagne/70 mb-3">Why it must be told</div>
         <div className="text-platinum/80 leading-[1.85] text-[15px] md:text-base">{monument.purpose}</div>
       </div>
 
-      <div className="mt-6 glass rounded-xl p-6 md:p-8">
+      <div className="mt-6 glass spotlight rounded-xl p-6 md:p-8">
         <div className="text-[10px] tracking-[0.3em] uppercase text-champagne/70 mb-4">Inscribed at the base</div>
         <div className="flex gap-2 md:gap-3 flex-wrap">
           {(monument.values || []).map((v) => (<div key={v} className="font-serif text-xl md:text-2xl text-champagne px-4 md:px-5 py-1.5 md:py-2 rounded-full border border-champagne/30">{v}</div>))}
@@ -1160,9 +1312,9 @@ function Profile({ monument }) {
 
       <div className="mt-14 md:mt-16 text-[10px] tracking-[0.3em] uppercase text-platinum/40 mb-6">The Monument in numbers</div>
       <div className="grid sm:grid-cols-3 gap-4 md:gap-6">
-        <div className="glass rounded-xl p-6"><div className="text-[10px] tracking-[0.3em] uppercase text-platinum/40 mb-3">Days preserved</div><div className="font-serif text-4xl md:text-5xl text-platinum tabular">{daysSince}</div></div>
-        <div className="glass rounded-xl p-6"><div className="text-[10px] tracking-[0.3em] uppercase text-platinum/40 mb-3">Stones inscribed</div><div className="font-serif text-4xl md:text-5xl text-platinum tabular">{entries.length}</div></div>
-        <div className="glass rounded-xl p-6"><div className="text-[10px] tracking-[0.3em] uppercase text-platinum/40 mb-3">The horizon</div><div className="font-serif text-xl md:text-2xl text-platinum">{monument.timeframe}</div></div>
+        <div className="glass spotlight rounded-xl p-6"><div className="text-[10px] tracking-[0.3em] uppercase text-platinum/40 mb-3">Days preserved</div><div className="font-serif text-4xl md:text-5xl text-platinum tabular">{daysSince}</div></div>
+        <div className="glass spotlight rounded-xl p-6"><div className="text-[10px] tracking-[0.3em] uppercase text-platinum/40 mb-3">Stones inscribed</div><div className="font-serif text-4xl md:text-5xl text-platinum tabular">{entries.length}</div></div>
+        <div className="glass spotlight rounded-xl p-6"><div className="text-[10px] tracking-[0.3em] uppercase text-platinum/40 mb-3">The horizon</div><div className="font-serif text-xl md:text-2xl text-platinum">{monument.timeframe}</div></div>
       </div>
     </div>
   );
@@ -1250,7 +1402,7 @@ function AuthModal({ mode: initialMode = 'signup', onSuccess, onClose }) {
               onChange={e => setEmail(e.target.value)}
               required
               placeholder="your@email.com"
-              className="bg-transparent border-0 border-b hairline-strong rounded-none focus-visible:ring-0 text-platinum placeholder:text-platinum/20 h-12 px-0"
+              className="bg-transparent input-lux border-0 border-b hairline-strong rounded-none focus-visible:ring-0 text-platinum placeholder:text-platinum/20 h-12 px-0"
             />
           </div>
           <div>
@@ -1262,13 +1414,13 @@ function AuthModal({ mode: initialMode = 'signup', onSuccess, onClose }) {
               required
               minLength={6}
               placeholder="At least 6 characters"
-              className="bg-transparent border-0 border-b hairline-strong rounded-none focus-visible:ring-0 text-platinum placeholder:text-platinum/20 h-12 px-0"
+              className="bg-transparent input-lux border-0 border-b hairline-strong rounded-none focus-visible:ring-0 text-platinum placeholder:text-platinum/20 h-12 px-0"
             />
           </div>
           <button
             type="submit"
             disabled={loading}
-            className="w-full py-4 rounded-full bg-white text-black text-[11px] tracking-[0.24em] uppercase font-medium hover:bg-white/95 disabled:opacity-40 transition-all duration-500 flex items-center justify-center gap-2"
+            className="btn-premium w-full py-4 rounded-full bg-white text-black text-[11px] tracking-[0.24em] uppercase font-medium hover:bg-white/95 disabled:opacity-40 transition-all duration-500 flex items-center justify-center gap-2"
           >
             {loading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : mode === 'signup' ? 'Create Account' : 'Sign In'}
           </button>
@@ -1413,6 +1565,7 @@ function App() {
   return (
     <div className="min-h-screen grain">
       <Ambient />
+      <SpotlightController />
       <AnimatePresence>
         {showAuth && (
           <AuthModal key="auth" mode={authMode} onSuccess={handleAuthSuccess} onClose={() => setShowAuth(false)} />
