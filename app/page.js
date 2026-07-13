@@ -1,7 +1,7 @@
 'use client';
 
-import { useEffect, useMemo, useRef, useState } from 'react';
-import { motion, AnimatePresence, useScroll, useTransform, useReducedMotion, useSpring } from 'framer-motion';
+import { useEffect, useRef, useState } from 'react';
+import { motion, AnimatePresence, MotionConfig, useScroll, useTransform, useReducedMotion, useSpring } from 'framer-motion';
 import { getBrowserClient } from '@/lib/supabase';
 import {
   ArrowRight, ArrowUpRight, Sparkles, Feather, Flame, Mountain,
@@ -59,6 +59,42 @@ async function apiFetch(path, { method = 'GET', body, timeoutMs = 15000 } = {}) 
   }
 }
 
+// Self-hosted landing stills (public/landing) — WebP, responsive sizes,
+// served via CinematicImage's blur-up. Replaces the raw Unsplash/Pexels hotlinks.
+const LANDING_IMG = {
+  ethos: {
+    src: '/landing/ethos-2560.webp',
+    srcSet: '/landing/ethos-1280.webp 1280w, /landing/ethos-2560.webp 2560w, /landing/ethos-3840.webp 3840w',
+    sizes: '100vw',
+  },
+  world: {
+    src: '/landing/world-2560.webp',
+    srcSet: '/landing/world-1280.webp 1280w, /landing/world-2560.webp 2560w, /landing/world-3840.webp 3840w',
+    sizes: '100vw',
+  },
+  // Star-dense frame compresses poorly at 4K — capped at 2560, invisible under the dark overlay.
+  finale: {
+    src: '/landing/finale-2560.webp',
+    srcSet: '/landing/finale-1280.webp 1280w, /landing/finale-2560.webp 2560w',
+    sizes: '100vw',
+  },
+  method1: {
+    src: '/landing/method-1-2000.webp',
+    srcSet: '/landing/method-1-1200.webp 1200w, /landing/method-1-2000.webp 2000w',
+    sizes: '(min-width: 768px) 58vw, 100vw',
+  },
+  method2: {
+    src: '/landing/method-2-2000.webp',
+    srcSet: '/landing/method-2-1200.webp 1200w, /landing/method-2-2000.webp 2000w',
+    sizes: '(min-width: 768px) 58vw, 100vw',
+  },
+  method3: {
+    src: '/landing/method-3-2000.webp',
+    srcSet: '/landing/method-3-1200.webp 1200w, /landing/method-3-2000.webp 2000w',
+    sizes: '(min-width: 768px) 58vw, 100vw',
+  },
+};
+
 const ENTRY_TYPES = [
   { key: 'milestone', label: 'Milestone', icon: Trophy },
   { key: 'reflection', label: 'Reflection', icon: Feather },
@@ -73,52 +109,6 @@ function Ambient() {
       <div className="absolute inset-0 bg-[radial-gradient(1200px_600px_at_20%_-10%,rgba(212,180,131,0.08),transparent),radial-gradient(900px_500px_at_90%_20%,rgba(238,236,229,0.04),transparent)]" />
       <div className="absolute inset-0 dot-field opacity-40" />
       <div className="absolute inset-0 vignette" />
-    </div>
-  );
-}
-
-function Globe({ size = 480 }) {
-  const points = useMemo(() => {
-    const N = 900;
-    const arr = [];
-    for (let i = 0; i < N; i++) {
-      const y = 1 - (i / (N - 1)) * 2;
-      const r = Math.sqrt(1 - y * y);
-      const theta = i * Math.PI * (3 - Math.sqrt(5));
-      arr.push({ x: Math.cos(theta) * r, y, z: Math.sin(theta) * r });
-    }
-    return arr;
-  }, []);
-  const [rot, setRot] = useState(0);
-  useEffect(() => {
-    let raf;
-    const tick = () => { setRot((r) => (r + 0.0025) % (Math.PI * 2)); raf = requestAnimationFrame(tick); };
-    raf = requestAnimationFrame(tick);
-    return () => cancelAnimationFrame(raf);
-  }, []);
-  const R = size / 2 - 12; const cx = size / 2, cy = size / 2;
-  return (
-    <div className="relative" style={{ width: size, height: size }}>
-      <div className="absolute inset-0 rounded-full gold-glow" />
-      <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} className="relative">
-        <defs>
-          <radialGradient id="gShade" cx="50%" cy="45%" r="55%">
-            <stop offset="0%" stopColor="rgba(212,180,131,0.06)" />
-            <stop offset="70%" stopColor="rgba(9,9,9,0)" />
-          </radialGradient>
-        </defs>
-        <circle cx={cx} cy={cy} r={R} fill="url(#gShade)" />
-        {points.map((p, i) => {
-          const cR = Math.cos(rot), sR = Math.sin(rot);
-          const x = p.x * cR - p.z * sR;
-          const z = p.x * sR + p.z * cR;
-          const front = z > -0.2;
-          const opacity = front ? 0.35 + z * 0.55 : 0.05;
-          const s2 = front ? 1.2 + z * 0.9 : 0.8;
-          return <circle key={i} cx={cx + x * R} cy={cy + p.y * R} r={s2} fill={i % 37 === 0 ? '#d4b483' : '#eeece5'} opacity={opacity} />;
-        })}
-      </svg>
-      <div className="absolute inset-2 rounded-full border animate-slowspin" style={{ borderColor: 'rgba(212,180,131,0.08)' }} />
     </div>
   );
 }
@@ -147,7 +137,7 @@ function SectionCinematic({ id, image, overlay = 'bg-black/60', children }) {
   return (
     <section id={id} ref={ref} className="relative overflow-hidden">
       <motion.div style={{ y: reduce ? 0 : bgY }} className="absolute -inset-y-[9%] inset-x-0">
-        <CinematicImage src={image} className="w-full h-full" imgClassName="animate-kenburns" />
+        <CinematicImage src={image.src} srcSet={image.srcSet} sizes={image.sizes} className="w-full h-full" imgClassName="animate-kenburns" />
         <div className={`absolute inset-0 ${overlay}`} />
         <div className="light-sweep" />
       </motion.div>
@@ -162,12 +152,12 @@ function MethodRow({ step, reverse }) {
       initial={{ opacity: 0, y: 40 }}
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true, margin: '-120px' }}
-      transition={{ duration: 1.6, ease: [0.16, 1, 0.3, 1] }}
+      transition={{ duration: 1.6, ease: EASE }}
       className={`grid md:grid-cols-12 gap-10 md:gap-20 items-center`}
     >
       <div className={`md:col-span-7 ${reverse ? 'md:order-2' : ''}`}>
         <div className="relative aspect-[16/10] overflow-hidden">
-          <CinematicImage src={step.img} className="w-full h-full" imgClassName="animate-kenburns" />
+          <CinematicImage src={step.img.src} srcSet={step.img.srcSet} sizes={step.img.sizes} className="w-full h-full" imgClassName="animate-kenburns" />
           <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
           <div className="light-sweep" />
         </div>
@@ -445,7 +435,7 @@ function Landing({ onBegin, onExplore, onSignIn, stats }) {
             style={reduce ? undefined : { y: earthY, scale: earthScale }}
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 2.4, ease: [0.16, 1, 0.3, 1] }}
+            transition={{ duration: 2.4, ease: EASE }}
             className="relative flex justify-center md:justify-start order-1 animate-hero-drift"
           >
             <EarthGlobe size="large" />
@@ -526,7 +516,7 @@ function Landing({ onBegin, onExplore, onSignIn, stats }) {
       {/* ETHOS */}
       <SectionCinematic
         id="ethos"
-        image="https://images.unsplash.com/photo-1579722139701-f9222eded3b6?auto=format&fit=crop&w=3840&q=80"
+        image={LANDING_IMG.ethos}
         overlay="bg-gradient-to-b from-black via-black/45 to-black"
       >
         <div className="relative max-w-4xl mx-auto text-center px-8 py-56 md:py-72">
@@ -571,9 +561,9 @@ function Landing({ onBegin, onExplore, onSignIn, stats }) {
 
           <div className="space-y-40">
             {[
-              { n: '01', t: 'Name the story', d: 'Not a task list. A north star. The story only you can tell, spoken out loud for the first time.', img: 'https://images.pexels.com/photos/2102546/pexels-photo-2102546.jpeg?auto=compress&cs=tinysrgb&w=1800' },
-              { n: '02', t: 'Lay each stone', d: 'Every failure. Every restart. Every quiet victory no one saw. One inscription at a time. Nothing disappears.', img: 'https://images.unsplash.com/photo-1468322638156-074863f9362e?auto=format&fit=crop&w=1800&q=85' },
-              { n: '03', t: 'Become the archive', d: 'A living record of your becoming, guarded by an intelligence that has been walking beside you from the first stone.', img: 'https://images.pexels.com/photos/16827297/pexels-photo-16827297.jpeg?auto=compress&cs=tinysrgb&w=1800' },
+              { n: '01', t: 'Name the story', d: 'Not a task list. A north star. The story only you can tell, spoken out loud for the first time.', img: LANDING_IMG.method1 },
+              { n: '02', t: 'Lay each stone', d: 'Every failure. Every restart. Every quiet victory no one saw. One inscription at a time. Nothing disappears.', img: LANDING_IMG.method2 },
+              { n: '03', t: 'Become the archive', d: 'A living record of your becoming, guarded by an intelligence that has been walking beside you from the first stone.', img: LANDING_IMG.method3 },
             ].map((s, i) => (
               <MethodRow key={s.n} step={s} reverse={i % 2 === 1} />
             ))}
@@ -584,7 +574,7 @@ function Landing({ onBegin, onExplore, onSignIn, stats }) {
       {/* WORLD LIVE */}
       <SectionCinematic
         id="world"
-        image="https://images.unsplash.com/photo-1577438569227-4b3445c673cf?auto=format&fit=crop&w=3840&q=80"
+        image={LANDING_IMG.world}
         overlay="bg-gradient-to-b from-black/85 via-black/55 to-black"
       >
         <div className="relative max-w-[1200px] mx-auto px-8 md:px-14 py-40 md:py-56">
@@ -612,7 +602,7 @@ function Landing({ onBegin, onExplore, onSignIn, stats }) {
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true, margin: '-80px' }}
-                transition={{ duration: 1.4, delay: i * 0.15, ease: [0.16, 1, 0.3, 1] }}
+                transition={{ duration: 1.4, delay: i * 0.15, ease: EASE }}
               >
                 <div className="font-serif text-[56px] md:text-[76px] text-white leading-none tracking-[-0.03em] tabular">
                   <Counter value={s.value} duration={2400} />
@@ -649,7 +639,7 @@ function Landing({ onBegin, onExplore, onSignIn, stats }) {
               ))}
             </div>
           </div>
-          <motion.div initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, margin: '-100px' }} transition={{ duration: 1.8, ease: [0.16, 1, 0.3, 1] }} className="md:col-span-6">
+          <motion.div initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, margin: '-100px' }} transition={{ duration: 1.8, ease: EASE }} className="md:col-span-6">
             <div className="relative bg-gradient-to-br from-white/[0.04] via-white/[0.015] to-transparent p-10 md:p-14 rounded-sm" style={{ boxShadow: '0 40px 100px -40px rgba(212,176,106,0.15), inset 0 1px 0 rgba(255,255,255,0.05)' }}>
               <div className="text-[10px] tracking-[0.35em] uppercase text-white/40 mb-8">A Sunday, quietly</div>
               <div className="font-serif text-[22px] md:text-[28px] leading-[1.4] text-white/90">
@@ -710,7 +700,7 @@ function Landing({ onBegin, onExplore, onSignIn, stats }) {
 
       {/* FINAL CTA */}
       <SectionCinematic
-        image="https://images.unsplash.com/photo-1534996858221-380b92700493?auto=format&fit=crop&w=3840&q=80"
+        image={LANDING_IMG.finale}
         overlay="bg-gradient-to-b from-black/85 via-black/60 to-black"
       >
         <div className="relative max-w-4xl mx-auto text-center px-8 py-56 md:py-72">
@@ -901,7 +891,7 @@ function Shell({ view, setView, children, monument, onLogout }) {
               initial={{ x: '100%' }}
               animate={{ x: 0 }}
               exit={{ x: '100%' }}
-              transition={{ ease: [0.16, 1, 0.3, 1], duration: 0.55 }}
+              transition={{ ease: EASE, duration: 0.55 }}
               className="h-full w-full flex flex-col p-8 pt-6"
             >
               <div className="flex justify-between items-center mb-16">
@@ -1038,7 +1028,7 @@ function Home({ monument, setView, userId }) {
           <div className="mt-3 text-xs text-platinum/40">Toward: {monument.timeframe}</div>
         </motion.div>
       </motion.div>
-      <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7, delay: 0.24, ease: [0.16, 1, 0.3, 1] }} className="mt-6 glass spotlight rounded-xl p-6 md:p-8">
+      <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7, delay: 0.24, ease: EASE }} className="mt-6 glass spotlight rounded-xl p-6 md:p-8">
         <div className="flex items-center gap-2 mb-4">
           <Sparkles className="w-4 h-4 text-champagne" />
           <div className="text-[10px] tracking-[0.3em] uppercase text-champagne/70">Guardian · today&apos;s reflection</div>
@@ -1249,7 +1239,7 @@ function Mentor({ userId }) {
         <div className="pointer-events-none sticky top-0 -mt-8 md:-mt-10 h-8 md:h-10 bg-gradient-to-b from-obsidian to-transparent z-10" />
         <div className="max-w-3xl mx-auto space-y-6 md:space-y-8">
           {messages.length === 0 && (
-            <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 1, ease: [0.16, 1, 0.3, 1] }} className="space-y-8">
+            <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 1, ease: EASE }} className="space-y-8">
               <div className="flex items-center gap-3">
                 <div className="w-8 h-8 rounded-full glass flex items-center justify-center border border-champagne/25">
                   <Sparkles className="w-3.5 h-3.5 text-champagne" />
@@ -1354,7 +1344,7 @@ function Community() {
       <div className="mt-12 md:mt-16 grid sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
         {builders.map((b, i) => (
           <TiltCard key={i}>
-            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05, duration: 0.7, ease: [0.16, 1, 0.3, 1] }} className="glass spotlight rounded-xl p-6 cursor-default group h-full">
+            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05, duration: 0.7, ease: EASE }} className="glass spotlight rounded-xl p-6 cursor-default group h-full">
             <div className="flex items-center gap-3 mb-4"><div className="w-8 h-8 rounded-full bg-gradient-to-br from-champagne/40 to-platinum/10 group-hover:from-champagne/60 transition-colors duration-500" /><div className="text-sm text-platinum">{b.name}</div></div>
             <div className="font-serif text-lg text-platinum/90 leading-tight line-clamp-3">{b.dream}</div>
             {b.values?.length > 0 && (
@@ -1482,7 +1472,7 @@ function AuthModal({ mode: initialMode = 'signup', onSuccess, onClose }) {
         initial={{ opacity: 0, scale: 0.96, y: 16 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
         exit={{ opacity: 0, scale: 0.96, y: 16 }}
-        transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+        transition={{ duration: 0.5, ease: EASE }}
         className="relative w-full max-w-md mx-4 bg-[#0a0a0a] border hairline rounded-sm p-10 md:p-14"
         onClick={e => e.stopPropagation()}
       >
@@ -1558,7 +1548,7 @@ function LoadingScreen() {
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
-        transition={{ duration: 1.2, ease: [0.16, 1, 0.3, 1] }}
+        transition={{ duration: 1.2, ease: EASE }}
         className="flex flex-col items-center gap-8"
       >
         <div className="relative w-20 h-20">
@@ -1675,6 +1665,7 @@ function App() {
   if (!authChecked || !ready) return <LoadingScreen />;
 
   return (
+    <MotionConfig reducedMotion="user">
     <div className="min-h-screen grain">
       <Ambient />
       <SpotlightController />
@@ -1685,12 +1676,12 @@ function App() {
       </AnimatePresence>
       <AnimatePresence mode="wait">
         {view === 'landing' && (
-          <motion.div key="landing" initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -12 }} transition={{ duration: 0.9, ease: [0.16, 1, 0.3, 1] }}>
+          <motion.div key="landing" initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -12 }} transition={{ duration: 0.9, ease: EASE }}>
             <Landing stats={stats} onBegin={handleBegin} onExplore={() => setView('community-preview')} onSignIn={() => { setAuthMode('login'); setShowAuth(true); }} />
           </motion.div>
         )}
         {view === 'community-preview' && (
-          <motion.div key="cp" initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -12 }} transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}>
+          <motion.div key="cp" initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -12 }} transition={{ duration: 0.8, ease: EASE }}>
             <div className="min-h-screen">
               <div className="px-6 md:px-8 py-6"><button onClick={() => setView('landing')} className="text-[10px] md:text-xs tracking-[0.2em] uppercase text-platinum/50 hover:text-platinum transition">← Back</button></div>
               <Community />
@@ -1699,12 +1690,12 @@ function App() {
           </motion.div>
         )}
         {view === 'onboard' && (
-          <motion.div key="ob" initial={{ opacity: 0, scale: 0.985, y: 8 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 1.01, y: -8 }} transition={{ duration: 0.85, ease: [0.16, 1, 0.3, 1] }}>
+          <motion.div key="ob" initial={{ opacity: 0, scale: 0.985, y: 8 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 1.01, y: -8 }} transition={{ duration: 0.85, ease: EASE }}>
             <Onboard userId={user?.id} onDone={(m) => { setMonument(m); setView('home'); }} onCancel={() => setView('landing')} />
           </motion.div>
         )}
         {['home', 'timeline', 'mentor', 'community', 'profile'].includes(view) && monument && (
-          <motion.div key="shell" initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}>
+          <motion.div key="shell" initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} transition={{ duration: 0.7, ease: EASE }}>
             <Shell view={view} setView={setView} monument={monument} onLogout={handleLogout}>
               {view === 'home' && <Home monument={monument} setView={setView} userId={user?.id} />}
               {view === 'timeline' && <Timeline monument={monument} userId={user?.id} />}
@@ -1716,6 +1707,7 @@ function App() {
         )}
       </AnimatePresence>
     </div>
+    </MotionConfig>
   );
 }
 

@@ -7,6 +7,8 @@ import { useState } from 'react';
 // from remote hotlinks. Opacity-only, so it stays compositor-friendly.
 export default function CinematicImage({
   src,
+  srcSet,
+  sizes,
   alt = '',
   className = '',
   imgClassName = '',
@@ -25,6 +27,8 @@ export default function CinematicImage({
       />
       <img
         src={src}
+        srcSet={srcSet}
+        sizes={sizes}
         alt={alt}
         loading={eager ? 'eager' : 'lazy'}
         decoding="async"

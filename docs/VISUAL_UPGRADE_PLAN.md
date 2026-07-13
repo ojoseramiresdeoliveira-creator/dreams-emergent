@@ -67,7 +67,7 @@ Hero and landing sections become a continuous cinematic scene.
   "thinks", upgraded typing indicator.
 - Input bar: focus glow, send button morphs to spinner and back.
 
-## Fase 5 — Performance, assets e polish 60fps
+## Fase 5 — Performance, assets e polish 60fps ✅ (implemented)
 
 - Asset pass: self-hosted optimized images (AVIF/WebP, responsive sizes,
   blur placeholders), optional ambient hero video (muted, poster fallback).

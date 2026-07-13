@@ -39,7 +39,7 @@ export default function LineReveal({
       {lines.map((line, i) => (
         // pb/-mb keep serif descenders (g, y, italic swashes) inside the mask
         <span key={i} className="block overflow-hidden pb-[0.12em] -mb-[0.12em]">
-          <motion.span className="block will-change-transform" {...anim(i)}>
+          <motion.span className="block" {...anim(i)}>
             {line}
           </motion.span>
         </span>
