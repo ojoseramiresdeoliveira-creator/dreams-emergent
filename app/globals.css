@@ -57,10 +57,13 @@ html, body { background: var(--obsidian); }
 .bg-obsidian { background: var(--obsidian); }
 .bg-obsidian-2 { background: var(--obsidian-2); }
 
-/* Champagne gradient text */
+/* Champagne gradient text — the light pans across it, slowly, forever */
+@keyframes goldpan { 0% { background-position: 0% 50%; } 100% { background-position: 200% 50%; } }
 .text-gold-shimmer {
-  background: linear-gradient(120deg, #b8955a 0%, #E8C88A 45%, #D4B06A 70%, #F0DBAA 100%);
+  background: linear-gradient(120deg, #b8955a 0%, #E8C88A 30%, #D4B06A 50%, #F0DBAA 70%, #b8955a 100%);
+  background-size: 200% 100%;
   -webkit-background-clip: text; background-clip: text; color: transparent;
+  animation: goldpan 14s linear infinite;
 }
 
 /* Glow */
@@ -397,3 +400,28 @@ html, body { overflow-x: hidden; }
   border-color: rgba(212, 176, 106, 0.35);
   box-shadow: 0 0 44px -14px rgba(212, 176, 106, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.06);
 }
+
+/* ============ WOW Factor (Phase 6) ============ */
+
+/* Champagne grazing light breathing on the Earth's rim */
+@keyframes rimgraze { 0%, 100% { opacity: 0.35; } 50% { opacity: 0.75; } }
+.animate-rim-graze { animation: rimgraze 11s ease-in-out infinite; }
+
+/* Rim light frame for cinematic stills — thin top catchlight + hairline edge */
+.img-rim::after {
+  content: '';
+  position: absolute; inset: 0;
+  pointer-events: none;
+  box-shadow: inset 0 1px 0 rgba(245, 245, 243, 0.14), inset 0 0 0 1px rgba(245, 245, 243, 0.05);
+}
+
+/* Slow organic drift for ambient dashboard light */
+@keyframes ambientdrift {
+  0%, 100% { transform: translate3d(0, 0, 0) scale(1); }
+  50% { transform: translate3d(-1.5%, 1%, 0) scale(1.04); }
+}
+.animate-ambient-drift { animation: ambientdrift 26s ease-in-out infinite; will-change: transform; }
+
+/* Sidebar icons lean into the hover */
+.sidebar-item svg { transition: transform var(--dur) var(--ease-out); }
+.sidebar-item:hover svg { transform: translateX(2px); }

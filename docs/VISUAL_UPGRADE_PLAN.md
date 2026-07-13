@@ -76,6 +76,25 @@ Hero and landing sections become a continuous cinematic scene.
 - Reduced-motion + mobile pass, final consistency sweep of easing/duration
   across all views.
 
+## Fase 6 — WOW Factor & Living Product ✅ (implemented)
+
+No new features, no backend changes. Elevate the whole product to the level of
+the best products in the world (Apple, Linear, Rivian, Stripe, Raycast) — the
+product should feel alive in every detail.
+
+- Hero cinema+: pointer-driven layer parallax (Earth/text lean toward the
+  cursor, desktop only), champagne grazing light breathing on the Earth rim.
+- Scroll narrative: champagne reading-progress hairline on the landing.
+- Premium light: rim light on method stills, themed toasts (obsidian glass +
+  champagne accents instead of default sonner), living shimmer on the
+  gold-name greeting.
+- Living interior: ambient background drift on the dashboard, memorable empty
+  states (floating icon, breathing halo, masked text reveal).
+- Invisible transitions: faster exit/settle tune on view changes.
+- Microinteractions everywhere: press scale on chips/pills, icon nudges,
+  polish pass on remaining interactive elements.
+- Emotional, not just beautiful: every touch reinforces the monument ritual.
+
 ---
 
 Rule for every phase: complete → validate (build + visual check) → only then

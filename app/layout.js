@@ -16,7 +16,22 @@ export default function RootLayout({ children }) {
       </head>
       <body className="bg-obsidian text-platinum antialiased min-h-screen font-sans">
         {children}
-        <Toaster theme="dark" position="bottom-center" />
+        <Toaster
+          theme="dark"
+          position="bottom-center"
+          toastOptions={{
+            style: {
+              background: 'rgba(16, 16, 18, 0.92)',
+              backdropFilter: 'blur(16px) saturate(1.2)',
+              border: '1px solid rgba(212, 176, 106, 0.22)',
+              color: '#F5F5F3',
+              boxShadow: '0 20px 60px -20px rgba(0,0,0,0.7), inset 0 1px 0 rgba(255,255,255,0.05)',
+              borderRadius: '999px',
+              padding: '14px 22px',
+              fontSize: '13px',
+            },
+          }}
+        />
       </body>
     </html>
   );
