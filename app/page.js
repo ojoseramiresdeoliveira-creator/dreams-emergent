@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
-import { motion, AnimatePresence, MotionConfig, useScroll, useTransform, useReducedMotion, useSpring } from 'framer-motion';
+import { motion, AnimatePresence, MotionConfig, useScroll, useTransform, useReducedMotion, useSpring, useInView } from 'framer-motion';
 import { getBrowserClient } from '@/lib/supabase';
 import {
   ArrowRight, ArrowUpRight, Sparkles, Feather, Flame, Mountain,
@@ -117,23 +117,43 @@ function Ambient() {
 }
 
 // Spring-driven counter: numbers settle with physical weight instead of a
-// fixed-duration ease. Snaps instantly under reduced motion.
+// fixed-duration ease. Waits until it scrolls into view so the count-up
+// happens in front of the reader. Snaps instantly under reduced motion.
 function Counter({ value }) {
   const reduce = useReducedMotion();
+  const ref = useRef(null);
+  const inView = useInView(ref, { once: true, margin: '-40px' });
   const spring = useSpring(0, { stiffness: 42, damping: 18, mass: 1 });
   const [n, setN] = useState(0);
   useEffect(() => {
     if (reduce) { setN(value); return; }
+    if (!inView) return;
     const unsub = spring.on('change', (v) => setN(Math.floor(v)));
     spring.set(value);
     return unsub;
-  }, [value, reduce, spring]);
-  return <span>{n.toLocaleString()}</span>;
+  }, [value, reduce, spring, inView]);
+  return <span ref={ref}>{n.toLocaleString()}</span>;
+}
+
+// Pauses descendant CSS animations (ken burns, light sweep) while the
+// section is outside the viewport — no compositor work for nobody.
+function useAnimationGate(ref) {
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const io = new IntersectionObserver(
+      ([entry]) => { el.toggleAttribute('data-offscreen', !entry.isIntersecting); },
+      { rootMargin: '120px' }
+    );
+    io.observe(el);
+    return () => io.disconnect();
+  }, [ref]);
 }
 
 function SectionCinematic({ id, image, overlay = 'bg-black/60', children }) {
   const ref = useRef(null);
   const reduce = useReducedMotion();
+  useAnimationGate(ref);
   // Background moves slower than content while the section crosses the viewport.
   const { scrollYProgress } = useScroll({ target: ref, offset: ['start end', 'end start'] });
   const bgY = useTransform(scrollYProgress, [0, 1], ['-7%', '7%']);
@@ -149,26 +169,40 @@ function SectionCinematic({ id, image, overlay = 'bg-black/60', children }) {
   );
 }
 
+// The row assembles: image settles first with weight, then number, title
+// and body follow in reading order — not one flat slab.
+const methodChild = {
+  hidden: { opacity: 0, y: 24 },
+  show: { opacity: 1, y: 0, transition: { duration: 0.9, ease: EASE } },
+};
+const methodImage = {
+  hidden: { opacity: 0, y: 48, scale: 0.985 },
+  show: { opacity: 1, y: 0, scale: 1, transition: { duration: 1.4, ease: EASE } },
+};
+
 function MethodRow({ step, reverse }) {
+  const ref = useRef(null);
+  useAnimationGate(ref);
   return (
     <motion.div
-      initial={{ opacity: 0, y: 40 }}
-      whileInView={{ opacity: 1, y: 0 }}
+      ref={ref}
+      initial="hidden"
+      whileInView="show"
       viewport={{ once: true, margin: '-120px' }}
-      transition={{ duration: 1.6, ease: EASE }}
+      variants={{ hidden: {}, show: { transition: { staggerChildren: 0.14 } } }}
       className={`grid md:grid-cols-12 gap-10 md:gap-20 items-center`}
     >
-      <div className={`md:col-span-7 ${reverse ? 'md:order-2' : ''}`}>
+      <motion.div variants={methodImage} className={`md:col-span-7 ${reverse ? 'md:order-2' : ''}`}>
         <div className="img-rim relative aspect-[16/10] overflow-hidden">
           <CinematicImage src={step.img.src} srcSet={step.img.srcSet} sizes={step.img.sizes} className="w-full h-full" imgClassName="animate-kenburns" />
           <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
           <div className="light-sweep" />
         </div>
-      </div>
+      </motion.div>
       <div className="md:col-span-5">
-        <div className="text-[10px] tracking-[0.38em] uppercase text-champagne/70 mb-8">{step.n}</div>
-        <div className="font-serif text-[36px] md:text-[48px] text-white leading-[1.05] tracking-[-0.01em] mb-8">{step.t}</div>
-        <div className="text-white/55 text-[16px] leading-[1.85] font-light max-w-md">{step.d}</div>
+        <motion.div variants={methodChild} className="text-[10px] tracking-[0.38em] uppercase text-champagne/70 mb-8">{step.n}</motion.div>
+        <motion.div variants={methodChild} className="font-serif text-[36px] md:text-[48px] text-white leading-[1.05] tracking-[-0.01em] mb-8">{step.t}</motion.div>
+        <motion.div variants={methodChild} className="text-white/55 text-[16px] leading-[1.85] font-light max-w-md">{step.d}</motion.div>
       </div>
     </motion.div>
   );
@@ -317,13 +351,31 @@ function Starfield({ density = 0.00025, parallax = 0.35 }) {
 
     resize();
     window.addEventListener('resize', resize);
+    // The draw loop only runs while the canvas is (near) the viewport —
+    // scrolled past the hero, it costs nothing.
+    let running = false;
+    function start() {
+      if (running) return;
+      running = true;
+      raf = requestAnimationFrame(frame);
+    }
+    function stop() {
+      running = false;
+      cancelAnimationFrame(raf);
+    }
+    let io;
     if (!reduce) {
       window.addEventListener('scroll', onScroll, { passive: true });
       nextShootAt = performance.now() + 4000 + Math.random() * 6000;
-      raf = requestAnimationFrame(frame);
+      io = new IntersectionObserver(
+        ([entry]) => { entry.isIntersecting ? start() : stop(); },
+        { rootMargin: '100px' }
+      );
+      io.observe(canvas);
     }
     return () => {
-      cancelAnimationFrame(raf);
+      stop();
+      io?.disconnect();
       window.removeEventListener('resize', resize);
       window.removeEventListener('scroll', onScroll);
     };

@@ -425,3 +425,10 @@ html, body { overflow-x: hidden; }
 /* Sidebar icons lean into the hover */
 .sidebar-item svg { transition: transform var(--dur) var(--ease-out); }
 .sidebar-item:hover svg { transform: translateX(2px); }
+
+/* Offscreen sections stop paying for their ambient loops
+   (attribute toggled by useAnimationGate in app/page.js) */
+[data-offscreen] .animate-kenburns,
+[data-offscreen] .light-sweep::before {
+  animation-play-state: paused;
+}
