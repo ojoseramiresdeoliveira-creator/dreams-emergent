@@ -19,7 +19,8 @@ import LineReveal from '@/components/fx/LineReveal';
 import CinematicImage from '@/components/fx/CinematicImage';
 import ChampagneBurst from '@/components/fx/ChampagneBurst';
 import StreamedText from '@/components/fx/StreamedText';
-import { EASE, SPRING_SOFT } from '@/lib/motion';
+import SettleDust from '@/components/fx/SettleDust';
+import { EASE, SPRING_SOFT, SPRING_SNAPPY, SPRING_STONE, SPRING_STONE_HEAVY } from '@/lib/motion';
 
 // Races a promise against a timeout so auth/network calls can never hang the UI silently.
 function withTimeout(promise, ms, message) {
@@ -462,11 +463,15 @@ function Landing({ onBegin, onExplore, onSignIn, stats }) {
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 2.4, ease: EASE }}
-            className="relative flex justify-center md:justify-start order-1 animate-hero-drift"
+            className="relative flex justify-center md:justify-start order-1"
           >
-            <motion.div style={reduce ? undefined : { x: earthLeanX, y: earthLeanY }}>
-              <EarthGlobe size="large" />
-            </motion.div>
+            {/* drift lives on its own layer — a CSS transform animation on the
+                framer-driven element above would override earthY/earthScale */}
+            <div className="animate-hero-drift">
+              <motion.div style={reduce ? undefined : { x: earthLeanX, y: earthLeanY }}>
+                <EarthGlobe size="large" />
+              </motion.div>
+            </div>
           </motion.div>
 
           {/* Text — nearest depth: rises against the scroll, leans opposite the cursor */}
@@ -1094,6 +1099,65 @@ function Home({ monument, setView, userId }) {
   );
 }
 
+// Stones fall into place from just above and settle with mass; the node
+// ignites a beat after its stone lands.
+const stoneVariants = {
+  hidden: { opacity: 0, y: -26 },
+  show: { opacity: 1, y: 0, transition: SPRING_STONE },
+};
+const nodeVariants = {
+  hidden: { opacity: 0, scale: 0.55 },
+  show: { opacity: 1, scale: 1, transition: { ...SPRING_SNAPPY, delay: 0.22 } },
+};
+
+function StoneEntry({ e, isCeremony, landed, onLanded }) {
+  const t = ENTRY_TYPES.find((x) => x.key === e.type) || { icon: Mountain, label: e.type };
+  const Icon = t.icon;
+  // A freshly inscribed stone lands heavier than one scrolling into view,
+  // and announces its landing so the dust and node flash can fire.
+  const stoneProps = isCeremony
+    ? {
+        initial: { opacity: 0, y: -46, scale: 1.02 },
+        animate: { opacity: 1, y: 0, scale: 1 },
+        transition: { ...SPRING_STONE_HEAVY, delay: 0.25 },
+        onAnimationComplete: (def) => { if (def?.y === 0) onLanded(); },
+      }
+    : {
+        variants: stoneVariants,
+        initial: 'hidden',
+        whileInView: 'show',
+        viewport: { once: true, margin: '-60px' },
+      };
+  const nodeProps = isCeremony
+    ? { initial: { opacity: 0, scale: 0.55 }, animate: { opacity: 1, scale: 1 }, transition: { ...SPRING_SNAPPY, delay: 0.55 } }
+    : { variants: nodeVariants };
+  return (
+    <motion.div {...stoneProps} whileHover={{ x: 4 }} className="relative group">
+      <motion.div {...nodeProps} className="absolute -left-10 md:-left-12 top-1 w-7 h-7 md:w-8 md:h-8 rounded-full glass flex items-center justify-center border border-champagne/20 group-hover:border-champagne/50 group-hover:shadow-[0_0_20px_-5px_rgba(212,180,131,0.35)] transition-[border-color,box-shadow] duration-500">
+        {/* light bloom behind the icon on hover */}
+        <span aria-hidden className="absolute inset-[-6px] rounded-full bg-champagne/25 blur-md opacity-0 scale-75 group-hover:opacity-100 group-hover:scale-110 transition-all duration-500 pointer-events-none" />
+        {isCeremony && landed && (
+          <>
+            {/* one-shot ignition flash as the stone settles */}
+            <motion.span
+              aria-hidden
+              initial={{ opacity: 0, scale: 0.7 }}
+              animate={{ opacity: [0, 1, 0], scale: [0.7, 1.35, 1.1] }}
+              transition={{ duration: 1.4, ease: 'easeInOut' }}
+              className="absolute inset-[-8px] rounded-full bg-champagne/30 blur-md pointer-events-none"
+            />
+            <SettleDust />
+          </>
+        )}
+        <Icon className="w-3 h-3 md:w-3.5 md:h-3.5 text-champagne relative" />
+      </motion.div>
+      <div className="text-[10px] tracking-[0.3em] uppercase text-champagne/70 mb-2">{t.label} · {new Date(e.createdAt).toLocaleDateString('en', { month: 'long', day: 'numeric', year: 'numeric' })}</div>
+      {e.title && <div className="font-serif text-xl md:text-2xl text-platinum mb-2 leading-tight">{e.title}</div>}
+      <div className="text-platinum/70 leading-relaxed font-light whitespace-pre-wrap text-[15px] md:text-base">{e.content}</div>
+    </motion.div>
+  );
+}
+
 function Timeline({ monument, userId }) {
   const [entries, setEntries] = useState([]);
   const [adding, setAdding] = useState(false);
@@ -1105,6 +1169,18 @@ function Timeline({ monument, userId }) {
   // The monument line draws itself as the archive scrolls into view.
   const timelineRef = useRef(null);
   const { scrollYProgress: lineProgress } = useScroll({ target: timelineRef, offset: ['start 0.85', 'end 0.45'] });
+  // Inscription ceremony: id of the stone currently being laid, whether it
+  // has landed (gates the dust + node flash), and the measured line height
+  // the ignition light travels along.
+  const [ceremonyId, setCeremonyId] = useState(null);
+  const [landed, setLanded] = useState(false);
+  const landedRef = useRef(false);
+  const [igniteHeight, setIgniteHeight] = useState(0);
+  function handleLanded() {
+    if (landedRef.current) return;
+    landedRef.current = true;
+    setLanded(true);
+  }
   // Idempotency key for the current submission intent. Stable across an
   // unedited retry (so a timeout-retry replays instead of duplicating);
   // rotated whenever the text changes (edited resubmission = new stone).
@@ -1132,7 +1208,24 @@ function Timeline({ monument, userId }) {
     setSaving(true);
     try {
       const d = await apiFetch('/api/entries', { method: 'POST', body: { monumentId: monument.id, type, title, content, ...(clientRef ? { clientRef } : {}) } });
-      if (d.entry) { toast.success('Stone inscribed. Permanent.'); setContent(''); setTitle(''); setAdding(false); await load(); }
+      if (d.entry) {
+        setContent(''); setTitle(''); setAdding(false);
+        if (reduce) {
+          // No ceremony under reduced motion — the toast is the confirmation.
+          toast.success('Stone inscribed. Permanent.');
+          await load();
+        } else {
+          // The ceremony IS the confirmation: light runs up the line from the
+          // oldest stones, the new stone settles with weight, dust lifts on
+          // landing. Server state is reconciled quietly once it ends.
+          landedRef.current = false;
+          setLanded(false);
+          setIgniteHeight(timelineRef.current?.offsetHeight ?? 0);
+          setEntries((prev) => [d.entry, ...prev]);
+          setCeremonyId(d.entry.id);
+          setTimeout(() => { setCeremonyId(null); setLanded(false); load(); }, 2800);
+        }
+      }
       else toast.error(d.error || 'Could not inscribe the stone.');
     } catch (e) {
       toast.error(e.message || 'Could not inscribe the stone.');
@@ -1150,12 +1243,13 @@ function Timeline({ monument, userId }) {
         {(monument.values || []).map((v) => (<span key={v} className="text-[10px] tracking-[0.2em] uppercase text-champagne/80 px-3 py-1 rounded-full border border-champagne/20">{v}</span>))}
       </div>
       <div className="mt-12">
+        <AnimatePresence mode="wait" initial={false}>
         {!adding ? (
-          <button onClick={() => { setAdding(true); setClientRef(newRef()); }} className="w-full glass spotlight rounded-xl p-6 text-left hover:border-champagne/30 transition group">
+          <motion.button key="lay" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -6 }} transition={{ duration: 0.35, ease: EASE }} onClick={() => { setAdding(true); setClientRef(newRef()); }} className="w-full glass spotlight rounded-xl p-6 text-left hover:border-champagne/30 transition group">
             <div className="flex items-center gap-3 text-platinum/50 group-hover:text-platinum transition"><Plus className="w-4 h-4 transition-transform duration-500 group-hover:rotate-90" /><span className="text-sm">Lay another stone</span></div>
-          </button>
+          </motion.button>
         ) : (
-          <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="glass spotlight rounded-xl p-8 space-y-6">
+          <motion.div key="form" initial={{ opacity: 0, y: 14, scale: 0.995 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: -10, scale: 0.99, transition: { duration: 0.3, ease: EASE } }} transition={{ duration: 0.5, ease: EASE }} className="glass spotlight rounded-xl p-8 space-y-6">
             <div className="flex flex-wrap gap-2">
               {ENTRY_TYPES.map((t) => {
                 const Icon = t.icon; const active = type === t.key;
@@ -1172,26 +1266,36 @@ function Timeline({ monument, userId }) {
             </div>
           </motion.div>
         )}
+        </AnimatePresence>
       </div>
       <div ref={timelineRef} className="mt-14 md:mt-16 relative pl-10 md:pl-12">
         <motion.div style={{ scaleY: reduce ? 1 : lineProgress }} className="absolute left-4 top-2 bottom-2 w-px timeline-line origin-top" />
+        {/* ignition: a champagne light travels up the line from the oldest
+            stones and arrives as the new stone settles */}
+        {ceremonyId && !reduce && (
+          <div aria-hidden className="absolute left-4 top-2 bottom-2 w-px overflow-hidden pointer-events-none">
+            <motion.div
+              initial={{ y: igniteHeight }}
+              animate={{ y: -180 }}
+              transition={{ duration: 1.15, ease: EASE, delay: 0.15 }}
+              className="w-px h-44"
+              style={{
+                background: 'linear-gradient(180deg, transparent, rgba(232,200,138,0.95) 50%, transparent)',
+                boxShadow: '0 0 14px rgba(212,176,106,0.55)',
+              }}
+            />
+          </div>
+        )}
         <div className="space-y-8 md:space-y-10">
-          {entries.map((e) => {
-            const t = ENTRY_TYPES.find((x) => x.key === e.type) || { icon: Mountain, label: e.type };
-            const Icon = t.icon;
-            return (
-              <motion.div key={e.id} initial={{ opacity: 0, y: 24 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, margin: '-60px' }} transition={{ duration: 0.8, ease: EASE }} whileHover={{ x: 4 }} className="relative group">
-                <div className="absolute -left-10 md:-left-12 top-1 w-7 h-7 md:w-8 md:h-8 rounded-full glass flex items-center justify-center border border-champagne/20 group-hover:border-champagne/50 group-hover:shadow-[0_0_20px_-5px_rgba(212,180,131,0.35)] transition-all duration-500">
-                  {/* light bloom behind the icon on hover */}
-                  <span aria-hidden className="absolute inset-[-6px] rounded-full bg-champagne/25 blur-md opacity-0 scale-75 group-hover:opacity-100 group-hover:scale-110 transition-all duration-500 pointer-events-none" />
-                  <Icon className="w-3 h-3 md:w-3.5 md:h-3.5 text-champagne relative" />
-                </div>
-                <div className="text-[10px] tracking-[0.3em] uppercase text-champagne/70 mb-2">{t.label} · {new Date(e.createdAt).toLocaleDateString('en', { month: 'long', day: 'numeric', year: 'numeric' })}</div>
-                {e.title && <div className="font-serif text-xl md:text-2xl text-platinum mb-2 leading-tight">{e.title}</div>}
-                <div className="text-platinum/70 leading-relaxed font-light whitespace-pre-wrap text-[15px] md:text-base">{e.content}</div>
-              </motion.div>
-            );
-          })}
+          {entries.map((e) => (
+            <StoneEntry
+              key={e.id}
+              e={e}
+              isCeremony={e.id === ceremonyId}
+              landed={landed}
+              onLanded={handleLanded}
+            />
+          ))}
           {entries.length === 0 && (
             <div className="glass spotlight rounded-xl p-10 md:p-14 max-w-xl">
               <div className="relative w-10 h-10 mb-5 animate-floaty">
