@@ -18,8 +18,9 @@ import TiltCard from '@/components/fx/TiltCard';
 import LineReveal from '@/components/fx/LineReveal';
 import CinematicImage from '@/components/fx/CinematicImage';
 import ChampagneBurst from '@/components/fx/ChampagneBurst';
-import StreamedText from '@/components/fx/StreamedText';
+import StreamedText, { streamDuration } from '@/components/fx/StreamedText';
 import SettleDust from '@/components/fx/SettleDust';
+import GuardianPresence from '@/components/fx/GuardianPresence';
 import { EASE, SPRING_SOFT, SPRING_SNAPPY, SPRING_STONE, SPRING_STONE_HEAVY } from '@/lib/motion';
 
 // Races a promise against a timeout so auth/network calls can never hang the UI silently.
@@ -1147,7 +1148,7 @@ function Home({ monument, setView, userId }) {
       <motion.div initial="hidden" animate="show" className="mt-10 md:mt-16 grid sm:grid-cols-3 gap-4 md:gap-6">
         <motion.div custom={0} variants={cardVariants} className="glass spotlight rounded-xl p-6">
           <div className="text-[10px] tracking-[0.3em] uppercase text-platinum/40 mb-3">Preserved today</div>
-          <div className="font-serif text-4xl text-platinum tabular">{entries === null ? <span className="skeleton inline-block w-10 h-10" /> : entriesCount}</div>
+          <div className="font-serif text-4xl text-platinum tabular">{entries === null ? <span className="skeleton inline-block w-10 h-10" /> : <Counter value={entriesCount} />}</div>
           <div className="text-xs text-platinum/50 mt-1">{entriesCount === 1 ? 'stone inscribed' : 'stones inscribed'}</div>
         </motion.div>
         <motion.div custom={1} variants={cardVariants} className="glass spotlight rounded-xl p-6 sm:col-span-2">
@@ -1157,13 +1158,23 @@ function Home({ monument, setView, userId }) {
         </motion.div>
       </motion.div>
       <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7, delay: 0.24, ease: EASE }} className="mt-6 glass spotlight rounded-xl p-6 md:p-8">
-        <div className="flex items-center gap-2 mb-4">
-          <Sparkles className="w-4 h-4 text-champagne" />
+        <div className="flex items-center gap-3 mb-4">
+          {/* the Guardian is in the room — its halo breathes even at rest */}
+          <GuardianPresence size="xs" />
           <div className="text-[10px] tracking-[0.3em] uppercase text-champagne/70">Guardian · today&apos;s reflection</div>
         </div>
         {insight?.insight ? (
           <div className="space-y-3">
-            {insight.insight.map((s, i) => (<div key={i} className="text-platinum/80 leading-relaxed font-light text-[15px] md:text-base">{s}</div>))}
+            {/* sentences surface in reading order, each starting as the
+                previous one finishes — the Mentor's streaming vocabulary */}
+            {insight.insight.map((s, i) => {
+              const delay = insight.insight.slice(0, i).reduce((acc, prev) => acc + streamDuration(prev) + 0.2, 0);
+              return (
+                <div key={i} className="text-platinum/80 leading-relaxed font-light text-[15px] md:text-base">
+                  <StreamedText text={s} delay={delay} />
+                </div>
+              );
+            })}
           </div>
         ) : insightFailed ? (
           <div className="text-platinum/50 leading-relaxed font-light text-[15px] md:text-base">The Guardian is quiet for a moment. The Monument still stands.</div>
@@ -1442,7 +1453,9 @@ function Mentor({ userId }) {
   const starters = ['What have I preserved this week?', 'What pattern lives in my journey?', 'What is the next honest stone?', 'I feel invisible today. Remind me.'];
   return (
     <div className="relative flex flex-col h-[calc(100vh-64px)] md:h-screen">
-      {/* ambient presence — a faint champagne halo breathes while the Guardian thinks */}
+      {/* thinking light — anchored where the reply will be born: it rises from
+          the bottom of the conversation, above the chatbar, on the Guardian's
+          side. Light with a source, not decoration. */}
       <AnimatePresence>
         {sending && (
           <motion.div
@@ -1451,20 +1464,24 @@ function Mentor({ userId }) {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.9 }}
-            className="pointer-events-none absolute inset-0 flex items-center justify-center overflow-hidden"
+            className="pointer-events-none absolute inset-0 flex items-end overflow-hidden"
           >
             <motion.div
-              animate={{ opacity: [0.12, 0.28, 0.12], scale: [1, 1.07, 1] }}
+              animate={{ opacity: [0.14, 0.3, 0.14], scale: [1, 1.06, 1] }}
               transition={{ duration: 3.6, repeat: Infinity, ease: 'easeInOut' }}
-              className="w-[520px] h-[520px] max-w-[85vw] rounded-full"
-              style={{ background: 'radial-gradient(circle, rgba(212,176,106,0.16), transparent 65%)' }}
+              className="w-[480px] h-[480px] max-w-[85vw] rounded-full -mb-64 ml-[4%] md:ml-[16%]"
+              style={{ background: 'radial-gradient(circle, rgba(212,176,106,0.18), transparent 65%)' }}
             />
           </motion.div>
         )}
       </AnimatePresence>
-      <div className="px-6 md:px-16 py-6 md:py-8 border-b hairline">
-        <div className="text-[10px] md:text-xs tracking-[0.3em] uppercase text-champagne/80">Guardian of the Journey</div>
-        <div className="font-serif text-2xl md:text-3xl text-platinum mt-1">Every word remembered.</div>
+      <div className="px-6 md:px-16 py-6 md:py-8 border-b hairline flex items-center gap-4">
+        {/* the Guardian breathes here even mid-conversation, at rest */}
+        <GuardianPresence size="md" />
+        <div>
+          <div className="text-[10px] md:text-xs tracking-[0.3em] uppercase text-champagne/80">Guardian of the Journey</div>
+          <div className="font-serif text-2xl md:text-3xl text-platinum mt-1">Every word remembered.</div>
+        </div>
       </div>
       <div ref={scrollRef} className="relative flex-1 overflow-y-auto px-6 md:px-16 py-8 md:py-10">
         {/* subtle top/bottom fades for premium feel */}
@@ -1473,26 +1490,24 @@ function Mentor({ userId }) {
           {messages.length === 0 && (
             <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 1, ease: EASE }} className="space-y-8">
               <div className="flex items-center gap-3">
-                <div className="relative w-8 h-8">
-                  <span aria-hidden className="absolute inset-[-8px] rounded-full bg-champagne/10 blur-lg animate-atmosphere-breath" />
-                  <div className="relative w-full h-full rounded-full glass flex items-center justify-center border border-champagne/25">
-                    <Sparkles className="w-3.5 h-3.5 text-champagne" />
-                  </div>
-                </div>
+                <GuardianPresence size="sm" />
                 <div className="text-[10px] tracking-[0.3em] uppercase text-champagne/70">Guardian · listening</div>
               </div>
               <div className="font-serif text-2xl md:text-3xl text-platinum/85 leading-[1.35] max-w-xl">
                 I have been walking beside you. I remember every stone you have laid. Ask me anything about the journey.
               </div>
               <div className="flex flex-wrap gap-2">
-                {starters.map((s) => (
-                  <button
+                {starters.map((s, i) => (
+                  <motion.button
                     key={s}
+                    initial={{ opacity: 0, y: 8 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.6, delay: 0.5 + i * 0.07, ease: EASE }}
                     onClick={() => setInput(s)}
                     className="text-xs px-4 py-2.5 rounded-full glass hover:border-champagne/40 hover:-translate-y-0.5 active:scale-[0.98] transition-all duration-500 text-platinum/70"
                   >
                     {s}
-                  </button>
+                  </motion.button>
                 ))}
               </div>
             </motion.div>
