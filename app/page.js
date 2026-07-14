@@ -454,6 +454,10 @@ function Landing({ onBegin, onExplore, onSignIn, stats }) {
           <div className="absolute inset-0 dot-field opacity-20" />
           <div className="absolute inset-0 vignette" />
           <div className="film-grain" />
+          {/* the cosmos thins into obsidian long before the section edge —
+              stars dissolve gradually, so the eye never finds the line where
+              the starfield ends */}
+          <div className="absolute bottom-0 inset-x-0 h-[38vh] bg-gradient-to-b from-transparent via-black/70 to-black" />
         </div>
 
         <div className="relative w-full max-w-[1400px] mx-auto px-6 md:px-14 pt-28 md:pt-24 pb-20 md:pb-0 grid md:grid-cols-2 gap-14 md:gap-4 items-center">
@@ -530,6 +534,10 @@ function Landing({ onBegin, onExplore, onSignIn, stats }) {
           </motion.div>
         </div>
 
+        {/* sits above the Earth layer: as the globe parallaxes toward the
+            section edge it melts into black instead of clipping on a line */}
+        <div aria-hidden className="absolute bottom-0 inset-x-0 h-24 md:h-36 pointer-events-none bg-gradient-to-b from-transparent to-black" />
+
         <motion.div
           style={{ opacity: reduce ? 1 : cueOpacity }}
           className="hidden md:flex absolute bottom-8 left-1/2 -translate-x-1/2 text-white/40 text-[9px] tracking-[0.4em] uppercase flex-col items-center gap-4"
@@ -550,7 +558,7 @@ function Landing({ onBegin, onExplore, onSignIn, stats }) {
       <SectionCinematic
         id="ethos"
         image={LANDING_IMG.ethos}
-        overlay="bg-gradient-to-b from-black via-black/45 to-black"
+        overlay="bg-gradient-to-b from-black from-[14%] via-black/45 to-black"
       >
         <div className="relative max-w-4xl mx-auto text-center px-8 py-56 md:py-72">
           <motion.div initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} viewport={{ once: true, margin: '-100px' }} transition={{ duration: 2 }} className="text-[10px] tracking-[0.4em] uppercase text-white/40 mb-12">
