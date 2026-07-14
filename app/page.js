@@ -1188,13 +1188,27 @@ function Home({ monument, setView, userId }) {
         <button onClick={() => setView('mentor')} className="mt-6 text-xs tracking-[0.2em] uppercase text-champagne hover:text-champagne-soft transition-colors duration-500 flex items-center gap-2 group">Speak to the Guardian <ArrowRight className="w-3 h-3 group-hover:translate-x-1 transition-transform duration-500" /></button>
       </motion.div>
       <div className="mt-14 md:mt-16 flex items-end justify-between">
-        <h2 className="font-serif text-2xl md:text-3xl text-platinum">The next stone</h2>
+        <h2 className="font-serif text-2xl md:text-3xl text-platinum">{entries !== null && entriesCount === 0 ? 'The first stone' : 'The next stone'}</h2>
         <button onClick={() => setView('timeline')} className="text-[10px] md:text-xs tracking-[0.2em] uppercase text-platinum/50 hover:text-platinum">Open the Monument →</button>
       </div>
-      <div className="mt-6 glass spotlight rounded-xl p-6 md:p-8 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6">
-        <div className="text-platinum/80 leading-relaxed text-[15px] md:text-base">Add a stone. A reflection, a victory, an honest failure, a restart. One more day of the story becomes permanent.</div>
-        <button onClick={() => setView('timeline')} className="btn-premium shrink-0 px-6 py-3 rounded-full bg-platinum text-obsidian text-[10px] md:text-xs tracking-[0.2em] uppercase hover:bg-white transition flex items-center gap-2"><Plus className="w-3 h-3" /> Inscribe</button>
-      </div>
+      {entries !== null && entriesCount === 0 ? (
+        /* day one — the most intentional state of the page, not a bare zero */
+        <div className="mt-6 glass spotlight rounded-xl p-8 md:p-12">
+          <div className="text-[10px] tracking-[0.3em] uppercase text-champagne/70 mb-5">Day one</div>
+          <div className="font-serif text-2xl md:text-3xl text-platinum leading-tight max-w-lg">
+            <LineReveal lines={['Every monument begins', 'with a single stone.']} />
+          </div>
+          <div className="mt-4 text-platinum/50 text-sm max-w-md">Today only asks for one honest sentence. Lay it, and it becomes permanent.</div>
+          <button onClick={() => setView('timeline')} className="btn-premium mt-8 px-6 py-3 rounded-full bg-champagne text-obsidian text-[10px] md:text-xs tracking-[0.2em] uppercase hover:bg-champagne-soft transition flex items-center gap-2 gold-glow">
+            <Plus className="w-3 h-3" /> Lay the first stone
+          </button>
+        </div>
+      ) : (
+        <div className="mt-6 glass spotlight rounded-xl p-6 md:p-8 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6">
+          <div className="text-platinum/80 leading-relaxed text-[15px] md:text-base">Add a stone. A reflection, a victory, an honest failure, a restart. One more day of the story becomes permanent.</div>
+          <button onClick={() => setView('timeline')} className="btn-premium shrink-0 px-6 py-3 rounded-full bg-platinum text-obsidian text-[10px] md:text-xs tracking-[0.2em] uppercase hover:bg-white transition flex items-center gap-2"><Plus className="w-3 h-3" /> Inscribe</button>
+        </div>
+      )}
     </div>
   );
 }
@@ -1397,17 +1411,30 @@ function Timeline({ monument, userId }) {
             />
           ))}
           {entries.length === 0 && (
-            <div className="glass spotlight rounded-xl p-10 md:p-14 max-w-xl">
-              <div className="relative w-10 h-10 mb-5 animate-floaty">
-                <span aria-hidden className="absolute inset-[-10px] rounded-full bg-champagne/10 blur-lg animate-atmosphere-breath" />
-                <div className="relative w-full h-full rounded-full glass flex items-center justify-center border border-champagne/25">
-                  <Feather className="w-3.5 h-3.5 text-champagne" />
+            <div className="relative">
+              {/* ghost node — the line waiting for its first stone */}
+              <motion.div
+                aria-hidden
+                animate={reduce ? undefined : { opacity: [0.35, 0.8, 0.35] }}
+                transition={{ duration: 4.5, repeat: Infinity, ease: 'easeInOut' }}
+                className="absolute -left-10 md:-left-12 top-1 w-7 h-7 md:w-8 md:h-8 rounded-full border border-dashed border-champagne/40 flex items-center justify-center"
+              >
+                <Plus className="w-3 h-3 text-champagne/50" />
+              </motion.div>
+              <div className="glass spotlight rounded-xl p-10 md:p-14 max-w-xl">
+                <div className="font-serif text-xl md:text-2xl text-platinum/85 leading-tight">
+                  <LineReveal lines={['The line is drawn.', 'The first stone is yours.']} />
                 </div>
+                <div className="mt-3 text-platinum/50 text-sm">One honest thought, one small victory, one restart. It becomes permanent the moment you inscribe it.</div>
+                {!adding && (
+                  <button
+                    onClick={() => { setAdding(true); setClientRef(newRef()); }}
+                    className="btn-premium mt-8 px-6 py-3 rounded-full bg-champagne text-obsidian text-[10px] md:text-xs tracking-[0.2em] uppercase hover:bg-champagne-soft transition flex items-center gap-2"
+                  >
+                    <Plus className="w-3 h-3" /> Lay the first stone
+                  </button>
+                )}
               </div>
-              <div className="font-serif text-xl md:text-2xl text-platinum/85 leading-tight">
-                <LineReveal lines={['Your archive is waiting.']} />
-              </div>
-              <div className="mt-3 text-platinum/50 text-sm">Lay the first stone. One honest thought, one small victory, one restart. It becomes permanent the moment you inscribe it.</div>
             </div>
           )}
         </div>
@@ -1579,6 +1606,7 @@ function Mentor({ userId }) {
 
 function Community() {
   const [builders, setBuilders] = useState([]);
+  const reduce = useReducedMotion();
   useEffect(() => {
     let cancelled = false;
     apiFetch('/api/community')
@@ -1609,11 +1637,17 @@ function Community() {
         {builders.length === 0 && (
           <div className="col-span-full">
             <div className="glass spotlight rounded-xl p-10 md:p-16 text-center max-w-2xl mx-auto">
-              <div className="relative mx-auto w-12 h-12 mb-6 animate-floaty">
-                <span aria-hidden className="absolute inset-[-12px] rounded-full bg-champagne/10 blur-lg animate-atmosphere-breath" />
-                <div className="relative w-full h-full rounded-full glass flex items-center justify-center border border-champagne/25">
-                  <Users className="w-4 h-4 text-champagne" />
-                </div>
+              {/* ghost witnesses — empty places at the fire, breathing out of phase */}
+              <div className="flex justify-center gap-3 mb-8">
+                {[0, 1, 2].map((i) => (
+                  <motion.div
+                    key={i}
+                    aria-hidden
+                    animate={reduce ? undefined : { opacity: [0.25, 0.6, 0.25] }}
+                    transition={{ duration: 5, repeat: Infinity, ease: 'easeInOut', delay: i * 0.9 }}
+                    className="w-10 h-10 rounded-full border border-dashed border-champagne/30 bg-gradient-to-br from-champagne/10 to-transparent"
+                  />
+                ))}
               </div>
               <div className="font-serif text-2xl md:text-3xl text-platinum/85 leading-tight">
                 <LineReveal lines={['Yours will be the first Monument raised here.']} />
