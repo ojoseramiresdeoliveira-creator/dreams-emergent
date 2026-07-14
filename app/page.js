@@ -791,6 +791,65 @@ function Landing({ onBegin, onExplore, onSignIn, stats }) {
 const chapterParent = { hidden: {}, show: { transition: { staggerChildren: 0.07, delayChildren: 0.05 } } };
 const chapterChild = { hidden: { opacity: 0, y: 22 }, show: { opacity: 1, y: 0, transition: { duration: 0.7, ease: EASE } } };
 
+// The moment the Monument is raised: a beat of darkness, the name engraved
+// in light, champagne dust, then arrival. The ceremony IS the confirmation —
+// under reduced motion it steps aside for a toast and a quick transition.
+function RaiseCeremony({ name, onDone }) {
+  const reduce = useReducedMotion();
+  const [burst, setBurst] = useState(false);
+  useEffect(() => {
+    if (reduce) {
+      toast.success('Your Monument stands.');
+      const t = setTimeout(onDone, 350);
+      return () => clearTimeout(t);
+    }
+    const b = setTimeout(() => setBurst(true), 2000);
+    const t = setTimeout(onDone, 4800);
+    return () => { clearTimeout(b); clearTimeout(t); };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+  if (reduce) return null;
+  return (
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      transition={{ duration: 0.7, ease: EASE }}
+      className="fixed inset-0 z-[80] bg-black flex items-center justify-center overflow-hidden"
+    >
+      {/* light blooms slowly behind the inscription */}
+      <motion.div
+        aria-hidden
+        initial={{ opacity: 0, scale: 0.85 }}
+        animate={{ opacity: [0, 0.5, 0.35], scale: 1 }}
+        transition={{ duration: 3.2, delay: 1.6, ease: EASE }}
+        className="absolute w-[640px] h-[640px] max-w-[90vw] rounded-full"
+        style={{ background: 'radial-gradient(circle, rgba(212,176,106,0.14), transparent 65%)' }}
+      />
+      <div className="relative text-center px-6">
+        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 1, delay: 0.9 }} className="text-[10px] tracking-[0.44em] uppercase text-champagne/70 mb-8">
+          The Monument of
+        </motion.div>
+        <h2 className="font-serif text-[clamp(44px,9vw,96px)] leading-[1.02] tracking-[-0.02em] text-platinum">
+          <LineReveal mode="mount" delay={1.3} lines={[name]} />
+        </h2>
+        {/* engraved hairline draws beneath the name */}
+        <motion.div
+          aria-hidden
+          initial={{ scaleX: 0 }}
+          animate={{ scaleX: 1 }}
+          transition={{ duration: 1.4, delay: 1.9, ease: EASE }}
+          className="mx-auto mt-10 h-px w-40 origin-center bg-gradient-to-r from-transparent via-champagne/80 to-transparent"
+        />
+        <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 1.2, delay: 2.5, ease: EASE }} className="mt-8 text-platinum/55 text-sm md:text-base font-light tracking-wide">
+          Your Monument stands. Nothing will be forgotten.
+        </motion.div>
+      </div>
+      {burst && <ChampagneBurst duration={2.2} onComplete={() => {}} />}
+    </motion.div>
+  );
+}
+
 function Onboard({ onDone, onCancel, userId }) {
   const [step, setStep] = useState(0);
   const [name, setName] = useState('');
@@ -817,13 +876,35 @@ function Onboard({ onDone, onCancel, userId }) {
       <Input autoFocus value={timeframe} onChange={(e) => setTimeframe(e.target.value)} placeholder="e.g. by 2028, before I turn 30, this decade" className="bg-transparent input-lux border-0 border-b hairline-strong rounded-none text-2xl md:text-3xl font-serif focus-visible:ring-0 px-0 text-platinum placeholder:text-platinum/20 h-16" />
     ), canNext: timeframe.trim().length > 0 },
     { q: 'Which words must never leave your Monument?', hint: 'Choose three. They will be inscribed at the base — the ground your story stands on.', input: (
-      <div className="flex flex-wrap gap-3">
-        {VALUE_OPTIONS.map((v) => {
-          const active = values.includes(v);
-          return (
-            <button key={v} onClick={() => { if (active) setValues(values.filter((x) => x !== v)); else if (values.length < 3) setValues([...values, v]); }} className={`px-5 py-2.5 rounded-full text-sm tracking-wider transition active:scale-[0.96] border ${active ? 'bg-champagne/15 border-champagne/50 text-champagne' : 'glass text-platinum/70 hover:border-platinum/30'}`}>{v}</button>
-          );
-        })}
+      <div>
+        <div className="flex flex-wrap gap-3">
+          {VALUE_OPTIONS.map((v, i) => {
+            const active = values.includes(v);
+            return (
+              <motion.button
+                key={v}
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5, delay: 0.2 + i * 0.04, ease: EASE }}
+                onClick={() => { if (active) setValues(values.filter((x) => x !== v)); else if (values.length < 3) setValues([...values, v]); }}
+                className={`px-5 py-2.5 rounded-full text-sm tracking-wider transition active:scale-[0.96] border ${active ? 'bg-champagne/15 border-champagne/50 text-champagne' : 'glass text-platinum/70 hover:border-platinum/30'}`}
+              >{v}</motion.button>
+            );
+          })}
+        </div>
+        <AnimatePresence>
+          {values.length === 3 && (
+            <motion.div
+              initial={{ opacity: 0, y: 6 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, transition: { duration: 0.3 } }}
+              transition={{ duration: 0.7, ease: EASE }}
+              className="mt-6 text-[10px] tracking-[0.34em] uppercase text-champagne/70"
+            >
+              Three words. The base is set.
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
     ), canNext: values.length === 3 },
   ];
@@ -836,9 +917,8 @@ function Onboard({ onDone, onCancel, userId }) {
       // The server derives the user from the JWT — no userId in the body.
       const data = await apiFetch('/api/journeys', { method: 'POST', body: { name, dream, purpose, timeframe, values } });
       if (data.monument) {
-        toast.success('Your Monument stands.');
         raisedRef.current = data.monument;
-        setCelebrating(true); // champagne burst, then onDone
+        setCelebrating(true); // RaiseCeremony takes over; it calls onDone
       }
       else toast.error(data.error || 'Failed');
     } catch (e) { toast.error(e.message || 'Network error'); } finally { setSaving(false); }
@@ -848,7 +928,8 @@ function Onboard({ onDone, onCancel, userId }) {
     <div className="min-h-screen flex flex-col relative bg-black overflow-hidden">
       <div className="absolute inset-0 pointer-events-none">
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_50%_20%,rgba(20,35,75,0.2),transparent_60%)]" />
-        <div className="absolute inset-0 dot-field opacity-15" />
+        {/* the ritual happens under the same sky the landing promised */}
+        <Starfield density={0.00016} parallax={0.2} />
         <div className="absolute inset-0 vignette" />
       </div>
       <div className="absolute top-0 inset-x-0 px-6 md:px-8 py-5 md:py-6 flex justify-between items-center z-10">
@@ -888,7 +969,7 @@ function Onboard({ onDone, onCancel, userId }) {
               </motion.div>
             </motion.div>
           </AnimatePresence>
-          {celebrating && <ChampagneBurst onComplete={() => onDone(raisedRef.current)} />}
+          {celebrating && <RaiseCeremony name={name} onDone={() => onDone(raisedRef.current)} />}
         </div>
       </div>
     </div>
