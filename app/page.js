@@ -20,6 +20,7 @@ import CinematicImage from '@/components/fx/CinematicImage';
 import ChampagneBurst from '@/components/fx/ChampagneBurst';
 import StreamedText, { streamDuration } from '@/components/fx/StreamedText';
 import SettleDust from '@/components/fx/SettleDust';
+import Monument from '@/components/fx/Monument';
 import GuardianPresence from '@/components/fx/GuardianPresence';
 import { EASE, SPRING_SOFT, SPRING_SNAPPY, SPRING_STONE, SPRING_STONE_HEAVY } from '@/lib/motion';
 
@@ -459,6 +460,8 @@ function Landing({ onBegin, onExplore, onSignIn, stats }) {
   // Layered depths: nebula drifts slowest, Earth recedes mid-depth,
   // text rises faster in the opposite direction — parallax depth illusion.
   const nebulaY = useTransform(scrollYProgress, [0, 1], [0, 70]);
+  // Distant Monument: recedes least of all the layers — depth by contrast.
+  const monumentY = useTransform(scrollYProgress, [0, 1], [0, 46]);
   const earthY = useTransform(scrollYProgress, [0, 1], [0, 170]);
   const earthScale = useTransform(scrollYProgress, [0, 1], [1, 0.9]);
   const textY = useTransform(scrollYProgress, [0, 1], [0, -110]);
@@ -504,6 +507,15 @@ function Landing({ onBegin, onExplore, onSignIn, stats }) {
             className="absolute -inset-y-[8%] inset-x-0 bg-[radial-gradient(ellipse_at_center,rgba(20,35,75,0.28),transparent_65%)]"
           />
           <Starfield density={0.00028} parallax={0.4} />
+          {/* The distant Monument rises from the base fog — it lives behind
+              the Earth (the world it stands on) and recedes slowest on scroll. */}
+          <motion.div
+            aria-hidden
+            style={reduce ? undefined : { y: monumentY, opacity: heroOpacity }}
+            className="absolute inset-x-0 bottom-0 flex justify-center"
+          >
+            <Monument className="w-[240px] sm:w-[300px] md:w-[340px]" />
+          </motion.div>
           <div className="absolute inset-0 dot-field opacity-20" />
           <div className="absolute inset-0 vignette" />
           <div className="film-grain" />
@@ -544,7 +556,7 @@ function Landing({ onBegin, onExplore, onSignIn, stats }) {
             >
               Monument of Dreams
             </motion.div>
-            <h1 className="font-serif text-[clamp(38px,9vw,88px)] leading-[0.98] tracking-[-0.025em] text-white">
+            <h1 className="relative font-serif text-[clamp(38px,9vw,88px)] leading-[0.98] tracking-[-0.025em] text-white">
               <LineReveal
                 mode="mount"
                 delay={0.7}
@@ -553,6 +565,21 @@ function Landing({ onBegin, onExplore, onSignIn, stats }) {
                   <span key="l2" className="italic text-white/90">a monument.</span>,
                 ]}
               />
+              {/* golden light travels across the title as the Monument's peak
+                  lights up — the two moments of light answer each other */}
+              {!reduce && (
+                <motion.span
+                  aria-hidden
+                  className="pointer-events-none absolute inset-0"
+                  style={{
+                    background: 'linear-gradient(100deg, transparent 34%, rgba(232,200,138,0.38) 50%, transparent 66%)',
+                    mixBlendMode: 'screen',
+                  }}
+                  initial={{ opacity: 0, x: '-30%' }}
+                  animate={{ opacity: [0, 1, 0], x: ['-30%', '50%', '130%'] }}
+                  transition={{ duration: 1.7, delay: 2.3, ease: EASE, times: [0, 0.5, 1] }}
+                />
+              )}
             </h1>
             <motion.p
               initial={{ opacity: 0 }}
