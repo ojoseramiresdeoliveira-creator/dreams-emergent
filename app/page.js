@@ -570,6 +570,74 @@ function EarthGlobe({ size = 'large' }) {
   );
 }
 
+/* ── The Monument rises ──────────────────────────────────────────
+   The distant Monument from the hero is re-encountered here and, as the
+   reader scrolls, assembles stone by stone while the camera draws it from
+   small-and-distant to massive-and-present. Reuses the Monument component
+   (progress-driven assembly) and SettleDust for the capstone landing.
+   Static, readable under reduced motion. */
+function MonumentRises() {
+  const reduce = useReducedMotion();
+  const trackRef = useRef(null);
+  const [capped, setCapped] = useState(false);
+  const { scrollYProgress: p } = useScroll({ target: trackRef, offset: ['start start', 'end end'] });
+  // Camera: small and distant (an echo of the hero) → massive and present →
+  // a slight pull back, so it reads as monumental rather than merely grown.
+  const camScale = useTransform(p, [0, 0.72, 1], [0.55, 1.06, 0.98]);
+  const camY = useTransform(p, [0, 1], ['9%', '-5%']);
+  const worldOpen = useTransform(p, [0, 0.8], [0.7, 0.28]); // vignette lifts as it grows
+  const line1 = useTransform(p, [0.03, 0.12, 0.26, 0.34], [0, 1, 1, 0]);
+  const line2 = useTransform(p, [0.44, 0.54, 0.74, 0.82], [0, 1, 1, 0]);
+  const line3 = useTransform(p, [0.86, 0.95], [0, 1]);
+
+  useEffect(() => {
+    const unsub = p.on('change', (v) => { if (v > 0.9) setCapped(true); });
+    return unsub;
+  }, [p]);
+
+  if (reduce) {
+    return (
+      <section className="relative bg-black">
+        <div className="max-w-[1100px] mx-auto px-8 py-40 flex flex-col items-center text-center">
+          <div className="w-[220px] aspect-[240/380]"><Monument reveal={false} className="w-full h-full" /></div>
+          <h2 className="mt-14 font-serif text-[40px] md:text-[56px] leading-[1.05] tracking-[-0.02em] text-white">
+            One stone becomes <span className="italic text-white/70">a monument.</span>
+          </h2>
+          <p className="mt-8 text-white/55 text-[16px] font-light max-w-md">This is what you are building — one inscription at a time.</p>
+        </div>
+      </section>
+    );
+  }
+
+  return (
+    <section className="relative bg-black">
+      <div ref={trackRef} className="relative h-[300vh]">
+        <div className="sticky top-0 h-screen overflow-hidden flex items-center justify-center">
+          <motion.div aria-hidden className="absolute inset-0 pointer-events-none vignette" style={{ opacity: worldOpen }} />
+          <div className="absolute inset-0 dot-field opacity-10 pointer-events-none" />
+
+          {/* the assembling monument, moved by the camera */}
+          <motion.div style={{ scale: camScale, y: camY }} className="relative w-[240px] sm:w-[300px] md:w-[360px] aspect-[240/380]">
+            <Monument progress={p} className="w-full h-full" />
+            {capped && (
+              <div className="absolute inset-x-0 top-[18%] h-24">
+                <SettleDust count={18} />
+              </div>
+            )}
+          </motion.div>
+
+          {/* marginal narration — each line speaks, then passes */}
+          <div className="absolute left-6 md:left-14 bottom-[16%] max-w-xs pointer-events-none">
+            <motion.div style={{ opacity: line1 }} className="absolute bottom-0 font-serif text-[26px] md:text-[34px] text-white/90 leading-tight">One stone.</motion.div>
+            <motion.div style={{ opacity: line2 }} className="absolute bottom-0 font-serif text-[26px] md:text-[34px] text-white/90 leading-tight">Then another. Then a life.</motion.div>
+            <motion.div style={{ opacity: line3 }} className="absolute bottom-0 font-serif text-[26px] md:text-[34px] text-champagne/90 leading-tight">Your monument.</motion.div>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
 function Landing({ onBegin, onExplore, onSignIn, stats }) {
   const heroRef = useRef(null);
   const reduce = useReducedMotion();
@@ -795,6 +863,9 @@ function Landing({ onBegin, onExplore, onSignIn, stats }) {
 
       {/* METHOD — The First Stone */}
       <FirstStoneScene />
+
+      {/* THE MONUMENT RISES */}
+      <MonumentRises />
 
       {/* WORLD LIVE */}
       <SectionCinematic
