@@ -70,11 +70,6 @@ const LANDING_IMG = {
     srcSet: '/landing/ethos-1280.webp 1280w, /landing/ethos-2560.webp 2560w, /landing/ethos-3840.webp 3840w',
     sizes: '100vw',
   },
-  world: {
-    src: '/landing/world-2560.webp',
-    srcSet: '/landing/world-1280.webp 1280w, /landing/world-2560.webp 2560w, /landing/world-3840.webp 3840w',
-    sizes: '100vw',
-  },
   // Star-dense frame compresses poorly at 4K — capped at 2560, invisible under the dark overlay.
   finale: {
     src: '/landing/finale-2560.webp',
@@ -638,6 +633,68 @@ function MonumentRises() {
   );
 }
 
+/* ── The Community field ─────────────────────────────────────────
+   Dozens of distant Monuments in depth, each with a champagne peak glow
+   breathing out of phase — the world made of the journeys the counters
+   describe. Layout is seeded (deterministic) so server and client render
+   identically. Reuses the Monument `distant` variant (SVG = free copies)
+   and pauses its glows when scrolled offscreen. */
+function mulberry32(a) {
+  return function () {
+    a |= 0; a = (a + 0x6d2b79f5) | 0;
+    let t = Math.imul(a ^ (a >>> 15), 1 | a);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+const MONUMENT_FIELD = (() => {
+  const rnd = mulberry32(20260715);
+  const arr = [];
+  for (let i = 0; i < 34; i++) {
+    const depth = rnd(); // 0 = far horizon, 1 = near foreground
+    arr.push({
+      left: rnd() * 100,
+      depth,
+      w: 44 + depth * 122,               // far small, near large
+      bottom: 10 + (1 - depth) * 34,     // far ones sit near the horizon
+      opacity: 0.4 + depth * 0.5,
+      stones: 3 + Math.floor(rnd() * 5), // 3–7 stones: journeys at different climbs
+      glowDelay: -rnd() * 7,             // negative so phases are spread from t=0
+    });
+  }
+  return arr.sort((a, b) => a.depth - b.depth); // painter's order: far first
+})();
+
+function MonumentField() {
+  const ref = useRef(null);
+  useAnimationGate(ref);
+  return (
+    <div ref={ref} className="absolute inset-0 overflow-hidden pointer-events-none">
+      {/* faint atmosphere behind the horizon */}
+      <div className="absolute inset-0" style={{ background: 'radial-gradient(120% 80% at 50% 24%, rgba(22,32,62,0.35), transparent 60%)' }} />
+      {MONUMENT_FIELD.map((m, i) => (
+        <div
+          key={i}
+          className="absolute -translate-x-1/2"
+          style={{
+            left: `${m.left}%`,
+            bottom: `${m.bottom}%`,
+            width: `${m.w}px`,
+            opacity: m.opacity,
+            zIndex: Math.floor(m.depth * 100),
+            filter: m.depth < 0.4 ? 'blur(1px)' : undefined,
+          }}
+        >
+          <Monument variant="distant" stones={m.stones} glowDelay={m.glowDelay} className="w-full h-auto" />
+        </div>
+      ))}
+      {/* horizon haze + a floor of fog so the field never shows a ground line */}
+      <div className="absolute inset-x-0 bottom-0 h-[32%] bg-gradient-to-b from-transparent to-black" />
+      <div className="absolute inset-0 vignette" />
+    </div>
+  );
+}
+
 function Landing({ onBegin, onExplore, onSignIn, stats }) {
   const heroRef = useRef(null);
   const reduce = useReducedMotion();
@@ -867,12 +924,10 @@ function Landing({ onBegin, onExplore, onSignIn, stats }) {
       {/* THE MONUMENT RISES */}
       <MonumentRises />
 
-      {/* WORLD LIVE */}
-      <SectionCinematic
-        id="world"
-        image={LANDING_IMG.world}
-        overlay="bg-gradient-to-b from-black/85 via-black/55 to-black"
-      >
+      {/* WORLD LIVE — the community of monuments */}
+      <section id="world" className="relative overflow-hidden bg-black">
+        <MonumentField />
+        <div className="absolute inset-0 bg-gradient-to-b from-black/80 via-black/40 to-black pointer-events-none" />
         <div className="relative max-w-[1200px] mx-auto px-8 md:px-14 py-40 md:py-56">
           <div className="text-[10px] tracking-[0.4em] uppercase text-white/45 mb-10">Live · Global</div>
           <h2 className="font-serif text-[44px] md:text-[64px] leading-[1.05] tracking-[-0.02em] text-white max-w-2xl">
@@ -909,7 +964,7 @@ function Landing({ onBegin, onExplore, onSignIn, stats }) {
             ))}
           </div>
         </div>
-      </SectionCinematic>
+      </section>
 
       {/* MENTOR */}
       <section id="mentor" className="relative bg-black">

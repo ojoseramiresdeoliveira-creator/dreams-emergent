@@ -43,7 +43,7 @@ function AssemblingStone({ p, i, total, s, fill }) {
   );
 }
 
-export default function Monument({ className = '', style, reveal = true, progress }) {
+export default function Monument({ className = '', style, reveal = true, progress, variant, stones = 7, glowDelay = 0 }) {
   const reduce = useReducedMotion();
   const uid = useId().replace(/:/g, '');
   const id = (k) => `${uid}-${k}`;
@@ -55,6 +55,49 @@ export default function Monument({ className = '', style, reveal = true, progres
   const fallback = useMotionValue(0);
   const prog = progress ?? fallback;
   const assembledGlow = useTransform(prog, [0.72, 1], [0, 0.5]);
+
+  // Distant variant — a lightweight silhouette for the Community field: just
+  // stones + a CSS-breathing glow (staggered via glowDelay) + base fog. No
+  // clip-paths, no light band, so it multiplies cheaply dozens of times. A
+  // shorter `stones` count reads as a journey earlier in its climb.
+  if (variant === 'distant') {
+    const n = Math.max(2, Math.min(STONES.length, stones));
+    const shown = STONES.slice(0, n);
+    const topStone = shown[n - 1];
+    return (
+      <svg viewBox="0 0 240 380" className={className} style={style} aria-hidden fill="none">
+        <defs>
+          <linearGradient id={id('stone')} x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stopColor="#26241f" />
+            <stop offset="1" stopColor="#101010" />
+          </linearGradient>
+          <radialGradient id={id('glow')} cx="0.5" cy="0.5" r="0.5">
+            <stop offset="0" stopColor="rgba(224,196,138,0.55)" />
+            <stop offset="0.5" stopColor="rgba(212,176,106,0.16)" />
+            <stop offset="1" stopColor="rgba(212,176,106,0)" />
+          </radialGradient>
+          <linearGradient id={id('fog')} x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stopColor="rgba(10,10,11,0)" />
+            <stop offset="0.6" stopColor="rgba(10,10,11,0.7)" />
+            <stop offset="1" stopColor="rgba(10,10,11,1)" />
+          </linearGradient>
+        </defs>
+        <g className={reduce ? undefined : 'monument-glow'} style={{ animationDelay: `${glowDelay}s`, mixBlendMode: 'screen' }}>
+          <circle cx="120" cy={topStone.y + 6} r="74" fill={`url(#${id('glow')})`} />
+        </g>
+        {shown.map((s, i) => {
+          const x = CX + s.dx - s.w / 2;
+          return (
+            <g key={i}>
+              <rect x={x} y={s.y} width={s.w} height={s.h} rx="3" fill={`url(#${id('stone')})`} />
+              <rect x={x} y={s.y} width={s.w} height="1.4" rx="0.7" fill="rgba(212,176,106,0.3)" />
+            </g>
+          );
+        })}
+        <rect x="0" y="286" width="240" height="94" fill={`url(#${id('fog')})`} />
+      </svg>
+    );
+  }
 
   return (
     <svg viewBox="0 0 240 380" className={className} style={style} aria-hidden fill="none">

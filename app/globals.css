@@ -426,9 +426,17 @@ html, body { overflow-x: hidden; }
 .sidebar-item svg { transition: transform var(--dur) var(--ease-out); }
 .sidebar-item:hover svg { transform: translateX(2px); }
 
+/* ============ Community field (Phase J) ============ */
+
+/* A distant Monument's peak glow, breathing. Staggered per instance via an
+   inline animation-delay so the field shimmers out of phase. */
+@keyframes monument-breath { 0%, 100% { opacity: 0.28; } 50% { opacity: 0.6; } }
+.monument-glow { animation: monument-breath 7s ease-in-out infinite; will-change: opacity; }
+
 /* Offscreen sections stop paying for their ambient loops
    (attribute toggled by useAnimationGate in app/page.js) */
 [data-offscreen] .animate-kenburns,
+[data-offscreen] .monument-glow,
 [data-offscreen] .light-sweep::before {
   animation-play-state: paused;
 }
