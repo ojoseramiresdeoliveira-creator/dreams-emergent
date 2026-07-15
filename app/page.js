@@ -70,12 +70,6 @@ const LANDING_IMG = {
     srcSet: '/landing/ethos-1280.webp 1280w, /landing/ethos-2560.webp 2560w, /landing/ethos-3840.webp 3840w',
     sizes: '100vw',
   },
-  // Star-dense frame compresses poorly at 4K — capped at 2560, invisible under the dark overlay.
-  finale: {
-    src: '/landing/finale-2560.webp',
-    srcSet: '/landing/finale-1280.webp 1280w, /landing/finale-2560.webp 2560w',
-    sizes: '100vw',
-  },
 };
 
 const ENTRY_TYPES = [
@@ -1049,13 +1043,42 @@ function Landing({ onBegin, onExplore, onSignIn, stats }) {
         </div>
       </section>
 
-      {/* FINAL CTA */}
-      <SectionCinematic
-        image={LANDING_IMG.finale}
-        overlay="bg-gradient-to-b from-black/85 via-black/60 to-black"
-      >
-        <div className="relative max-w-4xl mx-auto text-center px-8 py-56 md:py-72">
-          <h2 className="font-serif text-[56px] md:text-[104px] leading-[0.98] tracking-[-0.025em] text-white">
+      {/* FINALE — the complete Monument, warm */}
+      <section className="relative overflow-hidden bg-black">
+        {/* warm champagne bloom — the light warms up as the finale enters view */}
+        <motion.div
+          aria-hidden
+          className="absolute inset-0 pointer-events-none"
+          initial={{ opacity: 0 }}
+          whileInView={{ opacity: 1 }}
+          viewport={{ once: true, margin: '-120px' }}
+          transition={{ duration: 2.6, ease: EASE }}
+        >
+          <div
+            className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[1200px] max-w-[160vw] aspect-square"
+            style={{ background: 'radial-gradient(circle, rgba(232,200,138,0.22), rgba(212,176,106,0.08) 40%, transparent 68%)' }}
+          />
+        </motion.div>
+
+        <div className="relative max-w-[1100px] mx-auto px-8 md:px-14 pt-40 md:pt-52 pb-40 md:pb-56 flex flex-col items-center text-center">
+          {/* the complete Monument, re-encountered one last time in full light */}
+          <motion.div
+            initial={{ opacity: 0, y: 40 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: '-120px' }}
+            transition={{ duration: 1.8, ease: EASE }}
+            className="relative w-[220px] md:w-[300px] aspect-[240/380]"
+          >
+            <Monument reveal={false} className="w-full h-full" />
+            {/* warm bloom settling on the capstone */}
+            <div
+              aria-hidden
+              className="absolute inset-x-0 top-[15%] h-24"
+              style={{ background: 'radial-gradient(ellipse at center, rgba(232,200,138,0.4), transparent 70%)', mixBlendMode: 'screen' }}
+            />
+          </motion.div>
+
+          <h2 className="mt-14 md:mt-16 font-serif text-[48px] md:text-[92px] leading-[0.98] tracking-[-0.025em] text-white">
             <LineReveal
               duration={1.4}
               lines={[
@@ -1081,7 +1104,10 @@ function Landing({ onBegin, onExplore, onSignIn, stats }) {
             </motion.button>
           </Magnetic>
         </div>
-      </SectionCinematic>
+
+        {/* the final frame closes in — warm centre, obsidian edges */}
+        <div aria-hidden className="absolute inset-0 pointer-events-none vignette" />
+      </section>
 
       {/* FOOTER */}
       <footer className="bg-black">
