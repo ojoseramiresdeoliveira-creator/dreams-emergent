@@ -2,8 +2,18 @@ import './globals.css';
 import { Toaster } from '@/components/ui/sonner';
 
 export const metadata = {
+  metadataBase: new URL('https://monumentofdreams.com'),
   title: 'Monument of Dreams — Every dream deserves a monument',
   description: 'Preserve your journey. Build your future. Become who you dream of becoming.',
+  alternates: {
+    canonical: '/',
+  },
+  openGraph: {
+    title: 'Monument of Dreams — Every dream deserves a monument',
+    description: 'Preserve your journey. Build your future. Become who you dream of becoming.',
+    url: '/',
+    type: 'website',
+  },
 };
 
 export default function RootLayout({ children }) {
