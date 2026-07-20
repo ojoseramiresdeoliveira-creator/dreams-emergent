@@ -2286,7 +2286,12 @@ function App() {
     setView('landing');
   }
 
-  if (!authChecked || !ready) return <LoadingScreen />;
+  // A Landing é o estado por defeito e renderizado no servidor, para que a sua
+  // copy vá no HTML inicial (SEO/SSR). Só seguramos no ecrã de loading depois de
+  // o cliente encontrar uma sessão autenticada e estar a resolver os dados da
+  // app — visitantes anónimos e o primeiro render do servidor caem diretamente
+  // na Landing abaixo.
+  if (user && !ready) return <LoadingScreen />;
 
   return (
     <MotionConfig reducedMotion="user">
