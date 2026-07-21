@@ -25,6 +25,7 @@ import SmoothScroll from '@/components/fx/SmoothScroll';
 import ScrubScene from '@/components/fx/ScrubScene';
 import { EASE, SPRING_SOFT, SPRING_SNAPPY, SPRING_STONE, SPRING_STONE_HEAVY } from '@/lib/motion';
 import { useVideoScrub } from '@/lib/useVideoScrub';
+import { useAutoplayInView } from '@/lib/useAutoplayInView';
 import { useIsMobile } from '@/hooks/use-mobile';
 
 // Races a promise against a timeout so auth/network calls can never hang the UI silently.
@@ -631,14 +632,17 @@ function Landing({ onBegin, onExplore, onSignIn, stats }) {
   const heroTrackRef = useRef(null); // 200vh track the sticky hero pins inside
   const heroVideoRef = useRef(null); // Act 1 clip — decorative, hand-seeked by scroll
   const reduce = useReducedMotion();
+  const isMobile = useIsMobile();
   // Reading progress across the whole landing — the champagne hairline up top.
   const { scrollYProgress: pageProgress } = useScroll();
   // Hero parallax + Act 1 video scrub both read the 200vh track
   // (0 = entering, 1 = released to the Ethos below).
   const { scrollYProgress } = useScroll({ target: heroTrackRef, offset: ['start start', 'end end'] });
-  // Map that same scroll onto Act 1's currentTime. Disabled on mobile /
-  // reduced motion, where the clip simply holds on its poster.
-  useVideoScrub({ videoRef: heroVideoRef, trackRef: heroTrackRef });
+  // Desktop: scrub Act 1's currentTime from the 320vh track. Mobile: no scrub —
+  // the clip plays a gentle muted loop while it's on screen instead (no dead
+  // scroll, no frozen poster). Only one of the two is ever enabled.
+  useVideoScrub({ videoRef: heroVideoRef, trackRef: heroTrackRef, enabled: !isMobile });
+  useAutoplayInView({ videoRef: heroVideoRef, enabled: isMobile });
   // Pointer lean: the hero copy tilts gently toward the cursor (desktop only).
   const pointerX = useSpring(0, { stiffness: 55, damping: 20, mass: 0.9 });
   const pointerY = useSpring(0, { stiffness: 55, damping: 20, mass: 0.9 });
@@ -689,13 +693,14 @@ function Landing({ onBegin, onExplore, onSignIn, stats }) {
 
       {/* HERO — Act 1 (anonymous life). The sticky hero pins inside a 320vh
           track (≈220vh of scrub) so Act 1's clip plays out slowly beneath the
-          copy. Under reduced motion the track collapses to a normal section. */}
-      <div ref={heroTrackRef} className={reduce ? 'relative' : 'relative h-[320vh]'}>
+          copy. Under reduced motion — or on mobile, where the clip autoplays a
+          loop instead of scrubbing — the track collapses to a normal section. */}
+      <div ref={heroTrackRef} className={(reduce || isMobile) ? 'relative' : 'relative h-[320vh]'}>
       <section
         ref={heroRef}
         onPointerMove={onHeroPointer}
         onPointerLeave={onHeroLeave}
-        className={`overflow-hidden flex items-center justify-center bg-black ${reduce ? 'relative min-h-[100svh]' : 'sticky top-0 h-screen'}`}
+        className={`overflow-hidden flex items-center justify-center bg-black ${(reduce || isMobile) ? 'relative min-h-[100svh]' : 'sticky top-0 h-screen'}`}
       >
         {/* Act 1 clip — decoration beneath the cosmos. The hero copy above is
             untouched and server-rendered; the video never carries content. On
@@ -720,7 +725,7 @@ function Landing({ onBegin, onExplore, onSignIn, stats }) {
         <div className="relative w-full max-w-[1100px] mx-auto px-6 md:px-14 pt-28 md:pt-24 pb-20 md:pb-0 flex justify-center">
           {/* Text + actions — the only thing above Act 1's clip */}
           <motion.div
-            style={reduce ? undefined : { y: textY, opacity: heroOpacity, x: textLeanX }}
+            style={(reduce || isMobile) ? undefined : { y: textY, opacity: heroOpacity, x: textLeanX }}
             className="relative text-center"
           >
             <motion.div
