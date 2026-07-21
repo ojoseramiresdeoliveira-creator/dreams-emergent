@@ -22,7 +22,9 @@ import StreamedText, { streamDuration } from '@/components/fx/StreamedText';
 import SettleDust from '@/components/fx/SettleDust';
 import Monument from '@/components/fx/Monument';
 import GuardianPresence from '@/components/fx/GuardianPresence';
+import SmoothScroll from '@/components/fx/SmoothScroll';
 import { EASE, SPRING_SOFT, SPRING_SNAPPY, SPRING_STONE, SPRING_STONE_HEAVY } from '@/lib/motion';
+import { useVideoScrub } from '@/lib/useVideoScrub';
 
 // Races a promise against a timeout so auth/network calls can never hang the UI silently.
 function withTimeout(promise, ms, message) {
@@ -506,59 +508,6 @@ function Starfield({ density = 0.00025, parallax = 0.35 }) {
   return <canvas ref={canvasRef} className="absolute inset-0 w-full h-full pointer-events-none" style={{ display: 'block' }} />;
 }
 
-function EarthGlobe({ size = 'large' }) {
-  const sizeClass = size === 'large'
-    ? 'w-[min(82vw,520px)] md:w-[min(42vw,560px)]'
-    : 'w-[280px] md:w-[320px]';
-  return (
-    <div className={`relative ${sizeClass} aspect-square`}>
-      {/* outer soft atmospheric halo — breathes */}
-      <div
-        className="absolute inset-[-22%] rounded-full pointer-events-none animate-atmosphere-breath"
-        style={{ background: 'radial-gradient(circle, rgba(90,145,225,0.22) 40%, rgba(90,145,225,0.06) 62%, transparent 74%)' }}
-      />
-      {/* inner tight atmosphere */}
-      <div
-        className="absolute inset-[-6%] rounded-full pointer-events-none blur-2xl"
-        style={{ background: 'radial-gradient(circle, rgba(70,130,220,0.28) 30%, transparent 65%)' }}
-      />
-      {/* rotating earth disc */}
-      <div
-        className="relative w-full h-full rounded-full overflow-hidden animate-earthspin"
-        style={{
-          boxShadow:
-            '0 0 100px -10px rgba(88,140,220,0.4), inset 0 -12px 60px rgba(0,0,0,0.55), inset 0 0 30px rgba(0,0,0,0.3)',
-        }}
-      >
-        <img
-          src="/earth.jpg"
-          alt="Earth from orbit"
-          className="absolute inset-0 w-full h-full object-cover select-none"
-          style={{ transform: 'scale(1.55)', objectPosition: 'center' }}
-          draggable="false"
-          loading="eager"
-          fetchpriority="high"
-        />
-      </div>
-      {/* darken far side rim for sphere illusion */}
-      <div
-        className="absolute inset-0 rounded-full pointer-events-none"
-        style={{ background: 'radial-gradient(circle at 38% 38%, transparent 55%, rgba(0,0,0,0.55) 100%)' }}
-      />
-      {/* subtle top-left highlight (spec) */}
-      <div
-        className="absolute inset-0 rounded-full pointer-events-none mix-blend-screen opacity-40"
-        style={{ background: 'radial-gradient(circle at 30% 25%, rgba(180,210,255,0.12), transparent 45%)' }}
-      />
-      {/* champagne grazing light breathing on the rim */}
-      <div
-        className="absolute inset-0 rounded-full pointer-events-none animate-rim-graze"
-        style={{ boxShadow: 'inset -22px 18px 48px -20px rgba(232,200,138,0.42)' }}
-      />
-    </div>
-  );
-}
-
 /* ── The Monument rises ──────────────────────────────────────────
    The distant Monument from the hero is re-encountered here and, as the
    reader scrolls, assembles stone by stone while the camera draws it from
@@ -691,16 +640,20 @@ function MonumentField() {
 
 function Landing({ onBegin, onExplore, onSignIn, stats }) {
   const heroRef = useRef(null);
+  const heroTrackRef = useRef(null); // 200vh track the sticky hero pins inside
+  const heroVideoRef = useRef(null); // Act 1 clip — decorative, hand-seeked by scroll
   const reduce = useReducedMotion();
   // Reading progress across the whole landing — the champagne hairline up top.
   const { scrollYProgress: pageProgress } = useScroll();
-  // Progress of the hero leaving the viewport (0 = at rest, 1 = scrolled past).
-  const { scrollYProgress } = useScroll({ target: heroRef, offset: ['start start', 'end start'] });
-  // Pointer lean: hero layers tilt gently toward the cursor (desktop only).
+  // Hero parallax + Act 1 video scrub both read the 200vh track
+  // (0 = entering, 1 = released to the Ethos below).
+  const { scrollYProgress } = useScroll({ target: heroTrackRef, offset: ['start start', 'end end'] });
+  // Map that same scroll onto Act 1's currentTime. Disabled on mobile /
+  // reduced motion, where the clip simply holds on its poster.
+  useVideoScrub({ videoRef: heroVideoRef, trackRef: heroTrackRef });
+  // Pointer lean: the hero copy tilts gently toward the cursor (desktop only).
   const pointerX = useSpring(0, { stiffness: 55, damping: 20, mass: 0.9 });
   const pointerY = useSpring(0, { stiffness: 55, damping: 20, mass: 0.9 });
-  const earthLeanX = useTransform(pointerX, (v) => v * 10);
-  const earthLeanY = useTransform(pointerY, (v) => v * 8);
   const textLeanX = useTransform(pointerX, (v) => v * -6);
   function onHeroPointer(e) {
     if (reduce || e.pointerType === 'touch' || !heroRef.current) return;
@@ -709,16 +662,12 @@ function Landing({ onBegin, onExplore, onSignIn, stats }) {
     pointerY.set(((e.clientY - r.top) / r.height - 0.5) * 2);
   }
   function onHeroLeave() { pointerX.set(0); pointerY.set(0); }
-  // Layered depths: nebula drifts slowest, Earth recedes mid-depth,
-  // text rises faster in the opposite direction — parallax depth illusion.
-  const nebulaY = useTransform(scrollYProgress, [0, 1], [0, 70]);
-  // Distant Monument: recedes least of all the layers — depth by contrast.
-  const monumentY = useTransform(scrollYProgress, [0, 1], [0, 46]);
-  const earthY = useTransform(scrollYProgress, [0, 1], [0, 170]);
-  const earthScale = useTransform(scrollYProgress, [0, 1], [1, 0.9]);
-  const textY = useTransform(scrollYProgress, [0, 1], [0, -110]);
-  const heroOpacity = useTransform(scrollYProgress, [0, 0.6], [1, 0]);
-  const cueOpacity = useTransform(scrollYProgress, [0, 0.12], [1, 0]);
+  // The track is 200vh: the hero copy stays pinned and readable while Act 1
+  // scrubs full-screen beneath it, then rises and fades over the final third
+  // as it releases to the Ethos below.
+  const textY = useTransform(scrollYProgress, [0, 1], [0, -90]);
+  const heroOpacity = useTransform(scrollYProgress, [0, 0.82, 1], [1, 1, 0]);
+  const cueOpacity = useTransform(scrollYProgress, [0, 0.08], [1, 0]);
 
   return (
     <div className="relative bg-black">
@@ -750,55 +699,41 @@ function Landing({ onBegin, onExplore, onSignIn, stats }) {
         </div>
       </nav>
 
-      {/* HERO — Earth rotating on left, text on right */}
-      <section ref={heroRef} onPointerMove={onHeroPointer} onPointerLeave={onHeroLeave} className="relative min-h-[100svh] overflow-hidden flex items-center justify-center bg-black">
-        <div className="absolute inset-0 pointer-events-none">
-          {/* deepest layer — nebula drifts slowest */}
-          <motion.div
-            style={{ y: reduce ? 0 : nebulaY }}
-            className="absolute -inset-y-[8%] inset-x-0 bg-[radial-gradient(ellipse_at_center,rgba(20,35,75,0.28),transparent_65%)]"
-          />
-          <Starfield density={0.00028} parallax={0.4} />
-          {/* The distant Monument rises from the base fog — it lives behind
-              the Earth (the world it stands on) and recedes slowest on scroll. */}
-          <motion.div
-            aria-hidden
-            style={reduce ? undefined : { y: monumentY, opacity: heroOpacity }}
-            className="absolute inset-x-0 bottom-0 flex justify-center"
-          >
-            <Monument className="w-[240px] sm:w-[300px] md:w-[340px]" />
-          </motion.div>
-          <div className="absolute inset-0 dot-field opacity-20" />
-          <div className="absolute inset-0 vignette" />
-          <div className="film-grain" />
-          {/* the cosmos thins into obsidian long before the section edge —
-              stars dissolve gradually, so the eye never finds the line where
-              the starfield ends */}
-          <div className="absolute bottom-0 inset-x-0 h-[38vh] bg-gradient-to-b from-transparent via-black/70 to-black" />
-        </div>
+      {/* HERO — Act 1 (anonymous life). The sticky hero pins inside a 200vh
+          track so Act 1's clip can scrub beneath the Earth/text as they recede.
+          Under reduced motion the track collapses to a normal 100svh section. */}
+      <div ref={heroTrackRef} className={reduce ? 'relative' : 'relative h-[200vh]'}>
+      <section
+        ref={heroRef}
+        onPointerMove={onHeroPointer}
+        onPointerLeave={onHeroLeave}
+        className={`overflow-hidden flex items-center justify-center bg-black ${reduce ? 'relative min-h-[100svh]' : 'sticky top-0 h-screen'}`}
+      >
+        {/* Act 1 clip — decoration beneath the cosmos. The hero copy above is
+            untouched and server-rendered; the video never carries content. On
+            desktop it is hand-seeked by scroll, otherwise it holds on its poster. */}
+        <video
+          ref={heroVideoRef}
+          aria-hidden
+          muted
+          playsInline
+          preload="metadata"
+          poster="/videos/act01-poster.jpg"
+          className="absolute inset-0 w-full h-full object-cover pointer-events-none"
+        >
+          <source src="/videos/act01-mobile.mp4" media="(max-width: 768px)" type="video/mp4" />
+          <source src="/videos/act01.mp4" type="video/mp4" />
+        </video>
+        {/* legibility scrim over the clip — darker top and bottom so the copy
+            and the melt into the Ethos below both stay clean. Act 1's video is
+            the hero's only background now. */}
+        <div aria-hidden className="absolute inset-0 pointer-events-none bg-gradient-to-b from-black/55 via-black/30 to-black/75" />
 
-        <div className="relative w-full max-w-[1400px] mx-auto px-6 md:px-14 pt-28 md:pt-24 pb-20 md:pb-0 grid md:grid-cols-2 gap-14 md:gap-4 items-center">
-          {/* Earth — mid depth: recedes on scroll, leans toward the cursor */}
-          <motion.div
-            style={reduce ? undefined : { y: earthY, scale: earthScale }}
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 2.4, ease: EASE }}
-            className="relative flex justify-center md:justify-start order-1"
-          >
-            {/* drift lives on its own layer — a CSS transform animation on the
-                framer-driven element above would override earthY/earthScale */}
-            <div className="animate-hero-drift">
-              <motion.div style={reduce ? undefined : { x: earthLeanX, y: earthLeanY }}>
-                <EarthGlobe size="large" />
-              </motion.div>
-            </div>
-          </motion.div>
-
-          {/* Text — nearest depth: rises against the scroll, leans opposite the cursor */}
+        <div className="relative w-full max-w-[1100px] mx-auto px-6 md:px-14 pt-28 md:pt-24 pb-20 md:pb-0 flex justify-center">
+          {/* Text + actions — the only thing above Act 1's clip */}
           <motion.div
             style={reduce ? undefined : { y: textY, opacity: heroOpacity, x: textLeanX }}
-            className="relative order-2 text-center md:text-left"
+            className="relative text-center"
           >
             <motion.div
               initial={{ opacity: 0 }}
@@ -837,7 +772,7 @@ function Landing({ onBegin, onExplore, onSignIn, stats }) {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ duration: 2, delay: 1.3 }}
-              className="mt-6 md:mt-10 text-[14px] md:text-[17px] text-white/60 max-w-md mx-auto md:mx-0 leading-[1.8] md:leading-[1.85] font-light tracking-wide"
+              className="mt-6 md:mt-10 text-[14px] md:text-[17px] text-white/60 max-w-md mx-auto leading-[1.8] md:leading-[1.85] font-light tracking-wide"
             >
               Preserve your journey. Build your future.<br className="hidden sm:block" /> Become who you dream of becoming.
             </motion.p>
@@ -845,7 +780,7 @@ function Landing({ onBegin, onExplore, onSignIn, stats }) {
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 1.6, delay: 1.8 }}
-              className="mt-10 md:mt-14 flex flex-col lg:flex-row items-center md:items-start justify-center md:justify-start gap-3 sm:gap-4"
+              className="mt-10 md:mt-14 flex flex-col lg:flex-row items-center justify-center gap-3 sm:gap-4"
             >
               <Magnetic className="w-full sm:w-auto">
                 <button
@@ -866,8 +801,8 @@ function Landing({ onBegin, onExplore, onSignIn, stats }) {
           </motion.div>
         </div>
 
-        {/* sits above the Earth layer: as the globe parallaxes toward the
-            section edge it melts into black instead of clipping on a line */}
+        {/* the clip melts into black at the section edge instead of clipping
+            on a hard line — seamless hand-off to the Ethos below */}
         <div aria-hidden className="absolute bottom-0 inset-x-0 h-24 md:h-36 pointer-events-none bg-gradient-to-b from-transparent to-black" />
 
         <motion.div
@@ -885,6 +820,7 @@ function Landing({ onBegin, onExplore, onSignIn, stats }) {
           </motion.div>
         </motion.div>
       </section>
+      </div>
 
       {/* ETHOS */}
       <SectionCinematic
@@ -2306,7 +2242,9 @@ function App() {
       <AnimatePresence mode="wait">
         {view === 'landing' && (
           <motion.div key="landing" initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -12 }} transition={{ duration: 0.9, ease: EASE }}>
-            <Landing stats={stats} onBegin={handleBegin} onExplore={() => setView('community-preview')} onSignIn={() => { setAuthMode('login'); setShowAuth(true); }} />
+            <SmoothScroll>
+              <Landing stats={stats} onBegin={handleBegin} onExplore={() => setView('community-preview')} onSignIn={() => { setAuthMode('login'); setShowAuth(true); }} />
+            </SmoothScroll>
           </motion.div>
         )}
         {view === 'community-preview' && (
