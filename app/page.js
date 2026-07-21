@@ -16,13 +16,13 @@ import SpotlightController from '@/components/fx/SpotlightController';
 import Magnetic from '@/components/fx/Magnetic';
 import TiltCard from '@/components/fx/TiltCard';
 import LineReveal from '@/components/fx/LineReveal';
-import CinematicImage from '@/components/fx/CinematicImage';
 import ChampagneBurst from '@/components/fx/ChampagneBurst';
 import StreamedText, { streamDuration } from '@/components/fx/StreamedText';
 import SettleDust from '@/components/fx/SettleDust';
 import Monument from '@/components/fx/Monument';
 import GuardianPresence from '@/components/fx/GuardianPresence';
 import SmoothScroll from '@/components/fx/SmoothScroll';
+import ScrubScene from '@/components/fx/ScrubScene';
 import { EASE, SPRING_SOFT, SPRING_SNAPPY, SPRING_STONE, SPRING_STONE_HEAVY } from '@/lib/motion';
 import { useVideoScrub } from '@/lib/useVideoScrub';
 
@@ -64,8 +64,8 @@ async function apiFetch(path, { method = 'GET', body, timeoutMs = 15000 } = {}) 
   }
 }
 
-// Self-hosted landing stills (public/landing) — WebP, responsive sizes,
-// served via CinematicImage's blur-up. Replaces the raw Unsplash/Pexels hotlinks.
+// Self-hosted landing stills (public/landing) — WebP, responsive sizes.
+// The ethos still now doubles as Act 2's video poster / reduced-motion fallback.
 const LANDING_IMG = {
   ethos: {
     src: '/landing/ethos-2560.webp',
@@ -125,25 +125,6 @@ function useAnimationGate(ref) {
     io.observe(el);
     return () => io.disconnect();
   }, [ref]);
-}
-
-function SectionCinematic({ id, image, overlay = 'bg-black/60', children }) {
-  const ref = useRef(null);
-  const reduce = useReducedMotion();
-  useAnimationGate(ref);
-  // Background moves slower than content while the section crosses the viewport.
-  const { scrollYProgress } = useScroll({ target: ref, offset: ['start end', 'end start'] });
-  const bgY = useTransform(scrollYProgress, [0, 1], ['-7%', '7%']);
-  return (
-    <section id={id} ref={ref} className="relative overflow-hidden">
-      <motion.div style={{ y: reduce ? 0 : bgY }} className="absolute -inset-y-[9%] inset-x-0">
-        <CinematicImage src={image.src} srcSet={image.srcSet} sizes={image.sizes} className="w-full h-full" imgClassName="animate-kenburns" />
-        <div className={`absolute inset-0 ${overlay}`} />
-        <div className="light-sweep" />
-      </motion.div>
-      <div className="relative">{children}</div>
-    </section>
-  );
 }
 
 /* ── The First Stone ─────────────────────────────────────────────
@@ -822,13 +803,10 @@ function Landing({ onBegin, onExplore, onSignIn, stats }) {
       </section>
       </div>
 
-      {/* ETHOS */}
-      <SectionCinematic
-        id="ethos"
-        image={LANDING_IMG.ethos}
-        overlay="bg-gradient-to-b from-black from-[14%] via-black/45 to-black"
-      >
-        <div className="relative max-w-4xl mx-auto text-center px-8 py-56 md:py-72">
+      {/* ETHOS — Act 2 (sacrifice). act02 scrubs full-screen beneath the copy;
+          the ethos still doubles as the poster / reduced-motion fallback. */}
+      <ScrubScene id="ethos" videoBase="act02" poster={LANDING_IMG.ethos.src}>
+        <div className="relative max-w-4xl mx-auto text-center px-8 py-20">
           <motion.div initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} viewport={{ once: true, margin: '-100px' }} transition={{ duration: 2 }} className="text-[10px] tracking-[0.4em] uppercase text-white/40 mb-12">
             Why we exist
           </motion.div>
@@ -846,7 +824,7 @@ function Landing({ onBegin, onExplore, onSignIn, stats }) {
             The sacrifices. The failures. The restarts. The quiet mornings no one ever saw. Nothing about your journey deserves to disappear.
           </motion.p>
         </div>
-      </SectionCinematic>
+      </ScrubScene>
 
       {/* METHOD — The First Stone */}
       <FirstStoneScene />
