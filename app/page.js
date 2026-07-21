@@ -25,6 +25,7 @@ import SmoothScroll from '@/components/fx/SmoothScroll';
 import ScrubScene from '@/components/fx/ScrubScene';
 import { EASE, SPRING_SOFT, SPRING_SNAPPY, SPRING_STONE, SPRING_STONE_HEAVY } from '@/lib/motion';
 import { useVideoScrub } from '@/lib/useVideoScrub';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 // Races a promise against a timeout so auth/network calls can never hang the UI silently.
 function withTimeout(promise, ms, message) {
@@ -206,6 +207,7 @@ function ActCopy({ p, from, to, act }) {
 
 function FirstStoneScene() {
   const reduce = useReducedMotion();
+  const isMobile = useIsMobile();
   const trackRef = useRef(null);
   const [settled, setSettled] = useState(false);
   const { scrollYProgress: p } = useScroll({ target: trackRef, offset: ['start start', 'end end'] });
@@ -217,7 +219,10 @@ function FirstStoneScene() {
   const bandOpacity = useTransform(p, [0.1, 0.18, 0.84, 0.94], [0, 1, 1, 0]);
   const introOpacity = useTransform(p, [0, 0.1, 0.18], [1, 1, 0]);
 
-  if (reduce) {
+  // Mobile gets the static layout too: the 300vh scrubbed version leaves black
+  // voids and buggy-looking fades on a phone. Desktop is unaffected (isMobile
+  // is false there); reduced motion still collapses as before.
+  if (reduce || isMobile) {
     return (
       <section id="how" className="relative bg-black">
         <div className="max-w-[1100px] mx-auto px-8 md:px-14 py-40">
@@ -497,6 +502,7 @@ function Starfield({ density = 0.00025, parallax = 0.35 }) {
    Static, readable under reduced motion. */
 function MonumentRises() {
   const reduce = useReducedMotion();
+  const isMobile = useIsMobile();
   const trackRef = useRef(null);
   const [capped, setCapped] = useState(false);
   const { scrollYProgress: p } = useScroll({ target: trackRef, offset: ['start start', 'end end'] });
@@ -514,7 +520,8 @@ function MonumentRises() {
     return unsub;
   }, [p]);
 
-  if (reduce) {
+  // Mobile uses the static layout too — see FirstStoneScene. Desktop untouched.
+  if (reduce || isMobile) {
     return (
       <section className="relative bg-black">
         <div className="max-w-[1100px] mx-auto px-8 py-40 flex flex-col items-center text-center">
