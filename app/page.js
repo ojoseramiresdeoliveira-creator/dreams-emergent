@@ -698,7 +698,7 @@ function Landing({ onBegin, onExplore, onSignIn, stats }) {
           aria-hidden
           muted
           playsInline
-          preload="metadata"
+          preload="none"
           poster="/videos/act01-poster.jpg"
           className="absolute inset-0 w-full h-full object-cover pointer-events-none"
         >

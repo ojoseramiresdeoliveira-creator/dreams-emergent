@@ -42,7 +42,7 @@ export default function ScrubScene({
           aria-hidden
           muted
           playsInline
-          preload="metadata"
+          preload="none"
           poster={poster}
           className="absolute inset-0 w-full h-full object-cover pointer-events-none"
         >
