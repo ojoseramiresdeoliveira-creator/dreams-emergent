@@ -803,9 +803,10 @@ function Landing({ onBegin, onExplore, onSignIn, stats }) {
       </section>
       </div>
 
-      {/* ETHOS — Act 2 (sacrifice). act02 scrubs full-screen beneath the copy;
-          the ethos still doubles as the poster / reduced-motion fallback. */}
-      <ScrubScene id="ethos" videoBase="act02" poster={LANDING_IMG.ethos.src}>
+      {/* ETHOS — Act 2 (sacrifice). act02 (the hand writing) scrubs full-screen
+          beneath the copy; a frame of that same clip is the poster / mobile /
+          reduced-motion fallback, so desktop and mobile show the same scene. */}
+      <ScrubScene id="ethos" videoBase="act02" poster="/videos/act02-poster.jpg">
         <div className="relative max-w-4xl mx-auto text-center px-8 py-20">
           <motion.div initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} viewport={{ once: true, margin: '-100px' }} transition={{ duration: 2 }} className="text-[10px] tracking-[0.4em] uppercase text-white/40 mb-12">
             Why we exist

@@ -90,3 +90,6 @@ node_modules/@next/swc-linux-arm64-musl/next-swc.linux-arm64-musl.node
 credentials.json
 *.key
 .credentials
+
+# Video source masters — keep only web-encoded act0* assets
+/public/videos/*.mov
