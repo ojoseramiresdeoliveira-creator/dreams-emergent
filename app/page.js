@@ -662,12 +662,12 @@ function Landing({ onBegin, onExplore, onSignIn, stats }) {
     pointerY.set(((e.clientY - r.top) / r.height - 0.5) * 2);
   }
   function onHeroLeave() { pointerX.set(0); pointerY.set(0); }
-  // The track is 200vh: the hero copy stays pinned and readable while Act 1
-  // scrubs full-screen beneath it, then rises and fades over the final third
-  // as it releases to the Ethos below.
-  const textY = useTransform(scrollYProgress, [0, 1], [0, -90]);
-  const heroOpacity = useTransform(scrollYProgress, [0, 0.82, 1], [1, 1, 0]);
-  const cueOpacity = useTransform(scrollYProgress, [0, 0.08], [1, 0]);
+  // The track is 320vh (≈220vh of pinned scrub): the hero copy stays put and
+  // readable while Act 1 scrubs full-screen beneath it, drifting up slowly and
+  // only fading over the final ~12% as it releases to the Ethos below.
+  const textY = useTransform(scrollYProgress, [0, 1], [0, -120]);
+  const heroOpacity = useTransform(scrollYProgress, [0, 0.88, 1], [1, 1, 0]);
+  const cueOpacity = useTransform(scrollYProgress, [0, 0.05], [1, 0]);
 
   return (
     <div className="relative bg-black">
@@ -699,10 +699,10 @@ function Landing({ onBegin, onExplore, onSignIn, stats }) {
         </div>
       </nav>
 
-      {/* HERO — Act 1 (anonymous life). The sticky hero pins inside a 200vh
-          track so Act 1's clip can scrub beneath the Earth/text as they recede.
-          Under reduced motion the track collapses to a normal 100svh section. */}
-      <div ref={heroTrackRef} className={reduce ? 'relative' : 'relative h-[200vh]'}>
+      {/* HERO — Act 1 (anonymous life). The sticky hero pins inside a 320vh
+          track (≈220vh of scrub) so Act 1's clip plays out slowly beneath the
+          copy. Under reduced motion the track collapses to a normal section. */}
+      <div ref={heroTrackRef} className={reduce ? 'relative' : 'relative h-[320vh]'}>
       <section
         ref={heroRef}
         onPointerMove={onHeroPointer}
