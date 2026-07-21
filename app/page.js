@@ -827,6 +827,27 @@ function Landing({ onBegin, onExplore, onSignIn, stats }) {
         </div>
       </ScrubScene>
 
+      {/* THE CLIMB — Act 3 (the ascent). act03 (the figure climbing toward the
+          light) scrubs full-screen beneath the copy; a frame of that same clip
+          is the poster / mobile / reduced-motion fallback. */}
+      <ScrubScene id="climb" videoBase="act03" poster="/videos/act03-poster.jpg">
+        <div className="relative max-w-4xl mx-auto text-center px-8 py-20">
+          <motion.div initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} viewport={{ once: true, margin: '-100px' }} transition={{ duration: 2 }} className="text-[10px] tracking-[0.4em] uppercase text-white/40 mb-12">
+            The climb
+          </motion.div>
+          <h2 className="font-serif text-[42px] md:text-[72px] leading-[1.08] tracking-[-0.02em] text-white">
+            <LineReveal
+              lines={[
+                <span key="l1">Every step, <span className="italic text-white/85">remembered.</span></span>,
+              ]}
+            />
+          </h2>
+          <motion.p initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} viewport={{ once: true, margin: '-100px' }} transition={{ duration: 2, delay: 0.5 }} className="mt-14 text-white/55 text-base md:text-lg font-light leading-[2] max-w-2xl mx-auto">
+            The sacrifice, the doubt, the slow mornings no one saw — every step is kept.
+          </motion.p>
+        </div>
+      </ScrubScene>
+
       {/* METHOD — The First Stone */}
       <FirstStoneScene />
 

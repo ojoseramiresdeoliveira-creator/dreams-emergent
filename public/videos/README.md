@@ -70,7 +70,7 @@ Rules of thumb:
 
     act01  ✅ mp4 · ✅ mobile · ✅ poster
     act02  ✅ mp4 · ✅ mobile · ✅ poster
-    act03  — pending
+    act03  ✅ mp4 · ✅ mobile · ✅ poster
     act04  — pending
     act05  — pending
 
