@@ -27,6 +27,7 @@ import { EASE, SPRING_SOFT, SPRING_SNAPPY, SPRING_STONE, SPRING_STONE_HEAVY } fr
 import { useVideoScrub } from '@/lib/useVideoScrub';
 import { useAutoplayInView } from '@/lib/useAutoplayInView';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { videoSrc } from '@/lib/videoSrc';
 
 // Races a promise against a timeout so auth/network calls can never hang the UI silently.
 function withTimeout(promise, ms, message) {
@@ -714,8 +715,8 @@ function Landing({ onBegin, onExplore, onSignIn, stats }) {
           poster="/videos/act01-poster.jpg"
           className="absolute inset-0 w-full h-full object-cover pointer-events-none"
         >
-          <source src="/videos/act01-mobile.mp4" media="(max-width: 768px)" type="video/mp4" />
-          <source src="/videos/act01.mp4" type="video/mp4" />
+          <source src={videoSrc('/videos/act01-mobile.mp4')} media="(max-width: 768px)" type="video/mp4" />
+          <source src={videoSrc('/videos/act01.mp4')} type="video/mp4" />
         </video>
         {/* legibility scrim over the clip — darker top and bottom so the copy
             and the melt into the Ethos below both stay clean. Act 1's video is

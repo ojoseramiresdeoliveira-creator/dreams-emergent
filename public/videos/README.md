@@ -25,13 +25,34 @@ The five acts:
 | File                | Tracked? | Where it comes from            |
 |---------------------|----------|--------------------------------|
 | `actNN-poster.jpg`  | ✅ yes   | committed — every clone has it |
-| `actNN.mp4`         | ❌ no    | encoded locally / served from CDN |
-| `actNN-mobile.mp4`  | ❌ no    | encoded locally / served from CDN |
+| `actNN.mp4`         | ❌ no    | encoded locally / served from R2 in prod |
+| `actNN-mobile.mp4`  | ❌ no    | encoded locally / served from R2 in prod |
 | `*.mov` (masters)   | ❌ no    | source masters — never committed |
 
 Git-ignored patterns live in `.gitignore` (`/public/videos/*.mp4`, `/public/videos/*.mov`).
 Posters are the fallback, so a fresh clone renders every act on its poster
 even before the `.mp4`s are present — the page is fully readable without them.
+
+## Where the `.mp4`s are served from (local vs. production)
+
+The `<source>` URLs are built by `lib/videoSrc.js` from a single env var:
+
+    NEXT_PUBLIC_VIDEO_BASE
+
+| Environment | Value                                   | Clips come from            |
+|-------------|-----------------------------------------|----------------------------|
+| local / dev | *(unset)* → base is `''`                | `/public/videos/*.mp4`     |
+| production  | the R2 bucket's public URL (no trailing `/`) | Cloudflare R2 (free egress) |
+
+So local dev is unchanged (drop the `.mp4`s in this folder and go), and in
+production the heavy clips are pulled from R2 instead of the Vercel origin.
+Posters are **not** affected — they always ship from `/public`.
+
+To upload/refresh the clips on R2, push the 10 files
+(`act01…act05` × desktop + `-mobile`) to the bucket, keeping the `videos/`
+prefix so the paths line up (`<bucket>/videos/act01.mp4`, …). Then set
+`NEXT_PUBLIC_VIDEO_BASE` in the Vercel project settings to the bucket's public
+URL and redeploy.
 
 ## What a new machine needs locally
 

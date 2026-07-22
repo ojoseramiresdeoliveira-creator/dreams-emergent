@@ -20,6 +20,7 @@ import { useReducedMotion } from 'framer-motion';
 import { useVideoScrub } from '@/lib/useVideoScrub';
 import { useAutoplayInView } from '@/lib/useAutoplayInView';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { videoSrc } from '@/lib/videoSrc';
 
 export default function ScrubScene({
   id,
@@ -59,8 +60,8 @@ export default function ScrubScene({
           poster={poster}
           className="absolute inset-0 w-full h-full object-cover pointer-events-none"
         >
-          <source src={`/videos/${videoBase}-mobile.mp4`} media="(max-width: 768px)" type="video/mp4" />
-          <source src={`/videos/${videoBase}.mp4`} type="video/mp4" />
+          <source src={videoSrc(`/videos/${videoBase}-mobile.mp4`)} media="(max-width: 768px)" type="video/mp4" />
+          <source src={videoSrc(`/videos/${videoBase}.mp4`)} type="video/mp4" />
         </video>
         {/* legibility scrim so the copy reads over any frame */}
         <div aria-hidden className={`absolute inset-0 pointer-events-none ${overlay}`} />
