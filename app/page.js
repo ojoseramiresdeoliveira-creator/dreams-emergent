@@ -1053,6 +1053,33 @@ function Landing({ onBegin, onExplore, onSignIn, stats }) {
         </div>
       </section>
 
+      {/* CLOSING CTA — the page must never end without a call to action. A quiet
+          band after Premium: one serif line, one outline button. Deliberately
+          light and distinct from the Act 5 finale (no video, no repeated copy,
+          no solid button) so it closes the page without competing with it. */}
+      <section className="relative bg-black">
+        <div className="max-w-[900px] mx-auto px-8 md:px-14 py-32 md:py-44 text-center">
+          <motion.h2
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: '-100px' }}
+            transition={{ duration: 1.4, ease: EASE }}
+            className="font-serif text-[32px] md:text-[48px] leading-[1.12] tracking-[-0.02em] text-white"
+          >
+            The first stone <span className="italic text-white/70">won&rsquo;t lay itself.</span>
+          </motion.h2>
+          <Magnetic className="mt-12 inline-block">
+            <button
+              onClick={onBegin}
+              className="group inline-flex items-center gap-3 px-10 py-4 rounded-full border border-white/20 text-[11px] tracking-[0.24em] uppercase text-white/85 hover:text-white hover:border-white/45 hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.98] transition-all duration-500"
+            >
+              Begin your journey
+              <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform duration-500" />
+            </button>
+          </Magnetic>
+        </div>
+      </section>
+
       {/* FOOTER */}
       <footer className="bg-black">
         <div className="max-w-[1200px] mx-auto px-8 md:px-14 py-14 flex flex-col md:flex-row items-center justify-between gap-6" style={{ borderTop: '1px solid rgba(255,255,255,0.04)' }}>
