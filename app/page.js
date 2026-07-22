@@ -125,7 +125,7 @@ function FirstStoneScene() {
         className="max-w-[1100px] mx-auto px-8 md:px-14 py-32 md:py-48"
       >
         <div className="eyebrow mb-6">The Rite</div>
-        <h2 className="font-serif text-[44px] md:text-[64px] leading-[1.05] tracking-[-0.02em] text-platinum">
+        <h2 className="font-serif text-[clamp(34px,5vw,56px)] leading-[1.05] tracking-[-0.02em] text-platinum">
           Three acts. <span className="italic text-white/60">One life.</span>
         </h2>
         <p className="mt-8 text-platinum-muted text-base leading-[1.65] max-w-xl">
@@ -135,7 +135,7 @@ function FirstStoneScene() {
           {RITE_ACTS.map((a) => (
             <div key={a.n}>
               <div className="eyebrow-accent mb-4">{a.n}</div>
-              <div className="font-serif text-[26px] md:text-[30px] text-platinum leading-tight mb-4">{a.t}</div>
+              <div className="font-serif text-[clamp(24px,3vw,30px)] text-platinum leading-[1.15] mb-4">{a.t}</div>
               <p className="text-platinum-muted text-[15px] leading-[1.65]">{a.d}</p>
             </div>
           ))}
@@ -433,7 +433,7 @@ function Landing({ onBegin, onExplore, onSignIn, stats }) {
             >
               Monument of Dreams
             </motion.div>
-            <h1 className="relative font-serif text-[clamp(24px,6.6vw,88px)] sm:text-[clamp(38px,9vw,88px)] leading-[0.98] tracking-[-0.025em] text-platinum">
+            <h1 className="relative font-serif text-[clamp(24px,6.6vw,92px)] sm:text-[clamp(40px,8vw,92px)] leading-[0.98] tracking-[-0.03em] text-platinum">
               <LineReveal
                 mode="mount"
                 delay={0.7}
@@ -505,7 +505,7 @@ function Landing({ onBegin, onExplore, onSignIn, stats }) {
           <motion.div initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} viewport={{ once: true, margin: '-100px' }} transition={{ duration: 2 }} className="eyebrow mb-6">
             Why we exist
           </motion.div>
-          <h2 className="font-serif text-[42px] md:text-[72px] leading-[1.0] tracking-[-0.02em] text-platinum">
+          <h2 className="font-serif text-[clamp(38px,6vw,68px)] leading-[1.0] tracking-[-0.025em] text-platinum">
             <LineReveal
               lines={[
                 'The world remembers',
@@ -529,7 +529,7 @@ function Landing({ onBegin, onExplore, onSignIn, stats }) {
           <motion.div initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} viewport={{ once: true, margin: '-100px' }} transition={{ duration: 2 }} className="eyebrow mb-6">
             The climb
           </motion.div>
-          <h2 className="font-serif text-[42px] md:text-[72px] leading-[1.0] tracking-[-0.02em] text-platinum">
+          <h2 className="font-serif text-[clamp(38px,6vw,68px)] leading-[1.0] tracking-[-0.025em] text-platinum">
             <LineReveal
               lines={[
                 <span key="l1">Every step, <span className="italic text-white/85">remembered.</span></span>,
@@ -553,7 +553,7 @@ function Landing({ onBegin, onExplore, onSignIn, stats }) {
           <motion.div initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} viewport={{ once: true, margin: '-100px' }} transition={{ duration: 2 }} className="eyebrow mb-6">
             The monument
           </motion.div>
-          <h2 className="font-serif text-[42px] md:text-[72px] leading-[1.0] tracking-[-0.02em] text-platinum">
+          <h2 className="font-serif text-[clamp(38px,6vw,68px)] leading-[1.0] tracking-[-0.025em] text-platinum">
             <LineReveal
               lines={[
                 'This is what a life looks like,',
@@ -575,7 +575,7 @@ function Landing({ onBegin, onExplore, onSignIn, stats }) {
           clickable. */}
       <ScrubScene id="finale" videoBase="act05" poster="/videos/act05-poster.jpg">
         <div className="relative max-w-4xl mx-auto text-center px-8 py-20">
-          <h2 className="font-serif text-[48px] md:text-[92px] leading-[0.98] tracking-[-0.025em] text-platinum">
+          <h2 className="font-serif text-[clamp(40px,8vw,92px)] leading-[0.98] tracking-[-0.03em] text-platinum">
             <LineReveal
               duration={1.4}
               lines={[
@@ -608,7 +608,7 @@ function Landing({ onBegin, onExplore, onSignIn, stats }) {
         <div className="max-w-[1200px] mx-auto px-8 md:px-14 py-32 md:py-48 grid md:grid-cols-12 gap-16 md:gap-20 items-center">
           <div className="md:col-span-6">
             <div className="eyebrow-accent mb-6">Guardian of the Journey</div>
-            <h2 className="font-serif text-[44px] md:text-[64px] leading-[1.05] tracking-[-0.02em] text-platinum">
+            <h2 className="font-serif text-[clamp(34px,5vw,56px)] leading-[1.05] tracking-[-0.02em] text-platinum">
               <LineReveal
                 lines={[
                   <span key="l1">An intelligence that <span className="italic text-white/70">walks with you.</span></span>,
@@ -630,7 +630,7 @@ function Landing({ onBegin, onExplore, onSignIn, stats }) {
           <motion.div initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, margin: '-100px' }} transition={{ duration: 1.8, ease: EASE }} className="md:col-span-6">
             <div className="relative bg-gradient-to-br from-white/[0.04] via-white/[0.015] to-transparent p-10 md:p-14 rounded-sm" style={{ boxShadow: '0 40px 100px -40px rgba(212,176,106,0.15), inset 0 1px 0 rgba(255,255,255,0.05)' }}>
               <div className="eyebrow mb-8">A Sunday, quietly</div>
-              <div className="font-serif text-[22px] md:text-[28px] leading-[1.4] text-white/90">
+              <div className="font-serif text-[clamp(22px,3vw,28px)] leading-[1.4] text-white/90">
                 &ldquo;I see three restarts this month around the same block. This is not weakness. It is a signal. The story is asking for a smaller commitment, not a bigger one. Try twelve minutes tomorrow. Only twelve. Then come and inscribe it.&rdquo;
               </div>
               <div className="mt-12 pt-6 flex items-center justify-between" style={{ borderTop: '1px solid rgba(255,255,255,0.05)' }}>
@@ -647,7 +647,7 @@ function Landing({ onBegin, onExplore, onSignIn, stats }) {
         <div className="max-w-[1200px] mx-auto px-8 md:px-14 py-32 md:py-48">
           <div className="max-w-2xl mb-28">
             <div className="eyebrow mb-6">Monument Eternal</div>
-            <h2 className="font-serif text-[44px] md:text-[64px] leading-[1.05] tracking-[-0.02em] text-platinum">
+            <h2 className="font-serif text-[clamp(34px,5vw,56px)] leading-[1.05] tracking-[-0.02em] text-platinum">
               <LineReveal
                 lines={[
                   <span key="l1">For the ones who <span className="italic text-white/70">refuse to be forgotten.</span></span>,
@@ -697,7 +697,7 @@ function Landing({ onBegin, onExplore, onSignIn, stats }) {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true, margin: '-100px' }}
             transition={{ duration: 1.4, ease: EASE }}
-            className="font-serif text-[32px] md:text-[48px] leading-[1.12] tracking-[-0.02em] text-platinum"
+            className="font-serif text-[clamp(30px,4vw,44px)] leading-[1.08] tracking-[-0.02em] text-platinum"
           >
             The first stone <span className="italic text-white/70">won&rsquo;t lay itself.</span>
           </motion.h2>
