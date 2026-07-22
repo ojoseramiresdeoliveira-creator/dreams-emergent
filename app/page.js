@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useId, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { motion, AnimatePresence, MotionConfig, useScroll, useTransform, useReducedMotion, useSpring, useInView } from 'framer-motion';
 import { getBrowserClient } from '@/lib/supabase';
 import {
@@ -104,193 +104,43 @@ function Counter({ value }) {
   return <span ref={ref}>{n.toLocaleString()}</span>;
 }
 
-/* ── The First Stone ─────────────────────────────────────────────
-   A sticky ~300vh scene: the first Stone barely moves (< 10% of the
-   travel) while a champagne beam descends and carves the three acts of
-   the Rite into it, one at a time — the stone stays, the light and the
-   world pass. Reuses SPRING_STONE (the settle) and SettleDust (the
-   impact). Degrades to a static, readable block under reduced motion.
-   Replaces the three photographic Method rows. */
+/* ── The Rite (Method, #how) ──────────────────────────────────────
+   The three acts of the ritual as plain, legible content — this section
+   explains how it works. Flattened from a 300vh sticky scrub with a heavy
+   carved-stone SVG down to a normal section (audit phase 2). */
 const RITE_ACTS = [
-  { n: '01', t: 'Name the story', d: 'A north star — the story only you can tell, spoken out loud for the first time.', top: '28%' },
-  { n: '02', t: 'Lay each stone', d: 'Every failure. Every restart. Every quiet victory no one saw. One inscription at a time. Nothing disappears.', top: '52%' },
-  { n: '03', t: 'Become the archive', d: 'A living record of your becoming, guarded by an intelligence that has walked beside you from the first stone.', top: '76%' },
+  { n: '01', t: 'Name the story', d: 'A north star — the story only you can tell, spoken out loud for the first time.' },
+  { n: '02', t: 'Lay each stone', d: 'Every failure. Every restart. Every quiet victory no one saw. One inscription at a time. Nothing disappears.' },
+  { n: '03', t: 'Become the archive', d: 'A living record of your becoming, guarded by an intelligence that has walked beside you from the first stone.' },
 ];
 
-// A single monolith in the Monument's stone vocabulary, with three carved
-// grooves the beam will later light. Namespaced ids so it can be multiplied.
-function StoneMonolith() {
-  const uid = useId().replace(/:/g, '');
-  const id = (k) => `${uid}-${k}`;
-  return (
-    <svg viewBox="0 0 300 440" className="w-full h-full" aria-hidden fill="none">
-      <defs>
-        <linearGradient id={id('stone')} x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0" stopColor="#2b2824" />
-          <stop offset="1" stopColor="#131110" />
-        </linearGradient>
-        <linearGradient id={id('side')} x1="0" y1="0" x2="1" y2="0">
-          <stop offset="0" stopColor="rgba(0,0,0,0.45)" />
-          <stop offset="0.5" stopColor="rgba(0,0,0,0)" />
-          <stop offset="1" stopColor="rgba(245,245,243,0.05)" />
-        </linearGradient>
-        <linearGradient id={id('fog')} x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0" stopColor="rgba(10,10,11,0)" />
-          <stop offset="0.6" stopColor="rgba(10,10,11,0.7)" />
-          <stop offset="1" stopColor="rgba(10,10,11,1)" />
-        </linearGradient>
-      </defs>
-      <rect x="46" y="26" width="208" height="392" rx="12" fill={`url(#${id('stone')})`} />
-      <rect x="46" y="26" width="208" height="392" rx="12" fill={`url(#${id('side')})`} />
-      {/* champagne catchlight on the top ledge */}
-      <rect x="46" y="26" width="208" height="2" rx="1" fill="rgba(212,176,106,0.35)" />
-      {/* carved grooves — dark inset + faint under-highlight, aligned to 28/52/76% */}
-      {[123, 229, 334].map((y) => (
-        <g key={y}>
-          <rect x="64" y={y} width="172" height="3" rx="1.5" fill="rgba(0,0,0,0.5)" />
-          <rect x="64" y={y + 3} width="172" height="1" fill="rgba(245,245,243,0.05)" />
-        </g>
-      ))}
-      {/* base fog — no ground line */}
-      <rect x="0" y="352" width="300" height="88" fill={`url(#${id('fog')})`} />
-    </svg>
-  );
-}
-
-// A carved groove lights up (and stays lit) as the beam reaches its height.
-function GrooveGlow({ p, from, top, reduce }) {
-  const opacity = useTransform(p, [from, from + 0.06], [0, 1]);
-  return (
-    <motion.div aria-hidden style={{ top, opacity: reduce ? 1 : opacity }} className="absolute inset-x-[16%] -translate-y-1/2 pointer-events-none">
-      <div className="h-px w-full bg-gradient-to-r from-transparent via-champagne to-transparent" />
-      <div className="absolute inset-x-0 -top-1 h-2 blur-[5px] bg-gradient-to-r from-transparent via-champagne/60 to-transparent" />
-    </motion.div>
-  );
-}
-
-// One act speaks while the beam is on it, then fades as the next arrives.
-function ActCopy({ p, from, to, act }) {
-  const opacity = useTransform(p, [from - 0.06, from, to, to + 0.06], [0, 1, 1, 0]);
-  const y = useTransform(p, [from - 0.06, from], [22, 0]);
-  return (
-    <motion.div style={{ opacity, y }} className="absolute inset-0">
-      <div className="text-[10px] tracking-[0.38em] uppercase text-champagne/70 mb-6">{act.n}</div>
-      <div className="font-serif text-[32px] md:text-[46px] text-white leading-[1.06] tracking-[-0.01em] mb-6">{act.t}</div>
-      <p className="text-white/55 text-[15px] md:text-[16px] leading-[1.85] font-light max-w-md">{act.d}</p>
-    </motion.div>
-  );
-}
-
 function FirstStoneScene() {
-  const reduce = useReducedMotion();
-  const isMobile = useIsMobile();
-  const trackRef = useRef(null);
-  const [settled, setSettled] = useState(false);
-  const { scrollYProgress: p } = useScroll({ target: trackRef, offset: ['start start', 'end end'] });
-  // The stone drifts < 10% of the frame across the whole scroll — it stays;
-  // the light and the world move.
-  const stoneY = useTransform(p, [0, 1], ['5%', '-3%']);
-  // The beam sits exactly on each groove (28/52/76%) as each act arrives.
-  const bandTop = useTransform(p, [0.16, 0.30, 0.52, 0.74, 0.9], ['2%', '28%', '52%', '76%', '98%']);
-  const bandOpacity = useTransform(p, [0.1, 0.18, 0.84, 0.94], [0, 1, 1, 0]);
-  const introOpacity = useTransform(p, [0, 0.1, 0.18], [1, 1, 0]);
-
-  // Mobile gets the static layout too: the 300vh scrubbed version leaves black
-  // voids and buggy-looking fades on a phone. Desktop is unaffected (isMobile
-  // is false there); reduced motion still collapses as before.
-  if (reduce || isMobile) {
-    return (
-      <section id="how" className="relative bg-black">
-        <div className="max-w-[1100px] mx-auto px-8 md:px-14 py-40">
-          <div className="text-[10px] tracking-[0.4em] uppercase text-white/40 mb-10">The Rite</div>
-          <h2 className="font-serif text-[44px] md:text-[64px] leading-[1.05] tracking-[-0.02em] text-white mb-16">
-            Three acts. <span className="italic text-white/60">One life.</span>
-          </h2>
-          <div className="grid md:grid-cols-2 gap-16 items-center">
-            <div className="relative w-[220px] aspect-[300/440] mx-auto">
-              <StoneMonolith />
-              {RITE_ACTS.map((a) => <GrooveGlow key={a.n} p={p} from={0} top={a.top} reduce />)}
-            </div>
-            <div className="space-y-10">
-              {RITE_ACTS.map((a) => (
-                <div key={a.n}>
-                  <div className="text-[10px] tracking-[0.38em] uppercase text-champagne/70 mb-3">{a.n}</div>
-                  <div className="font-serif text-[30px] text-white leading-tight mb-3">{a.t}</div>
-                  <p className="text-white/55 text-[15px] leading-[1.85] font-light max-w-md">{a.d}</p>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      </section>
-    );
-  }
-
   return (
     <section id="how" className="relative bg-black">
-      <div ref={trackRef} className="relative h-[300vh]">
-        <div className="sticky top-0 h-screen overflow-hidden flex items-center">
-          <div className="absolute inset-0 pointer-events-none">
-            <div className="absolute inset-0 vignette" />
-            <div className="absolute inset-0 dot-field opacity-10" />
-          </div>
-
-          <div className="relative w-full max-w-[1100px] mx-auto px-8 md:px-14 grid md:grid-cols-2 gap-12 md:gap-16 items-center">
-            {/* left — the thesis, then each act speaks and passes */}
-            <div className="order-2 md:order-1">
-              <div className="text-[10px] tracking-[0.4em] uppercase text-white/40 mb-8">The Rite</div>
-              <div className="relative min-h-[300px] md:min-h-[260px]">
-                <motion.div style={{ opacity: introOpacity }} className="absolute inset-0">
-                  <h2 className="font-serif text-[40px] md:text-[56px] leading-[1.05] tracking-[-0.02em] text-white mb-8">
-                    Three acts.<br /><span className="italic text-white/60">One life.</span>
-                  </h2>
-                  <p className="text-white/50 text-[15px] md:text-[16px] leading-[1.85] font-light max-w-md">
-                    A single, deliberate ritual repeated across a lifetime — until it becomes the thing you leave behind.
-                  </p>
-                </motion.div>
-                <ActCopy p={p} from={0.20} to={0.42} act={RITE_ACTS[0]} />
-                <ActCopy p={p} from={0.44} to={0.64} act={RITE_ACTS[1]} />
-                <ActCopy p={p} from={0.66} to={0.92} act={RITE_ACTS[2]} />
-              </div>
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true, margin: '-100px' }}
+        transition={{ duration: 1.2, ease: EASE }}
+        className="max-w-[1100px] mx-auto px-8 md:px-14 py-32 md:py-44"
+      >
+        <div className="text-[10px] tracking-[0.4em] uppercase text-white/40 mb-8">The Rite</div>
+        <h2 className="font-serif text-[44px] md:text-[64px] leading-[1.05] tracking-[-0.02em] text-white">
+          Three acts. <span className="italic text-white/60">One life.</span>
+        </h2>
+        <p className="mt-8 text-white/50 text-[15px] md:text-[16px] leading-[1.85] font-light max-w-xl">
+          A single, deliberate ritual repeated across a lifetime — until it becomes the thing you leave behind.
+        </p>
+        <div className="mt-20 grid md:grid-cols-3 gap-12 md:gap-10">
+          {RITE_ACTS.map((a) => (
+            <div key={a.n}>
+              <div className="text-[10px] tracking-[0.38em] uppercase text-champagne/70 mb-4">{a.n}</div>
+              <div className="font-serif text-[26px] md:text-[30px] text-white leading-tight mb-4">{a.t}</div>
+              <p className="text-white/55 text-[15px] leading-[1.85] font-light">{a.d}</p>
             </div>
-
-            {/* right — the stone remains; the beam carves it */}
-            <div className="order-1 md:order-2 flex justify-center">
-              <div className="relative w-[200px] md:w-[300px] aspect-[300/440]">
-                <motion.div style={{ y: stoneY }} className="w-full h-full">
-                  <motion.div
-                    initial={{ opacity: 0, y: 44 }}
-                    whileInView={{ opacity: 1, y: 0 }}
-                    viewport={{ once: true, margin: '-120px' }}
-                    transition={SPRING_STONE}
-                    onAnimationComplete={() => setSettled(true)}
-                    className="relative w-full h-full"
-                  >
-                    <StoneMonolith />
-                    {settled && (
-                      <div className="absolute inset-x-0 bottom-[6%] h-24">
-                        <SettleDust count={14} />
-                      </div>
-                    )}
-                  </motion.div>
-                </motion.div>
-                {/* grooves light as the beam passes — they stay carved */}
-                {RITE_ACTS.map((a, i) => (
-                  <GrooveGlow key={a.n} p={p} from={[0.28, 0.50, 0.72][i]} top={a.top} reduce={reduce} />
-                ))}
-                {/* the descending champagne beam */}
-                <motion.div
-                  aria-hidden
-                  style={{ top: bandTop, opacity: bandOpacity }}
-                  className="absolute inset-x-[-10%] -translate-y-1/2 h-28 pointer-events-none"
-                >
-                  <div className="w-full h-full blur-2xl mix-blend-screen" style={{ background: 'radial-gradient(ellipse at center, rgba(232,200,138,0.5), transparent 70%)' }} />
-                </motion.div>
-              </div>
-            </div>
-          </div>
+          ))}
         </div>
-      </div>
+      </motion.div>
     </section>
   );
 }
