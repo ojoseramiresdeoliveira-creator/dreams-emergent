@@ -126,7 +126,7 @@ function FirstStoneScene() {
       >
         <div className="eyebrow mb-6">The Rite</div>
         <h2 className="font-serif text-[clamp(34px,5vw,56px)] leading-[1.05] tracking-[-0.02em] text-platinum">
-          Three acts. <span className="italic text-white/60">One life.</span>
+          Three acts. <span className="italic text-champagne">One life.</span>
         </h2>
         <p className="mt-8 text-platinum-muted text-base leading-[1.65] max-w-xl">
           A single, deliberate ritual repeated across a lifetime — until it becomes the thing you leave behind.
@@ -439,7 +439,7 @@ function Landing({ onBegin, onExplore, onSignIn, stats }) {
                 delay={0.7}
                 lines={[
                   'Every dream deserves',
-                  <span key="l2" className="italic text-white/90">a monument.</span>,
+                  <span key="l2" className="italic text-champagne">a monument.</span>,
                 ]}
               />
             </h1>
@@ -460,7 +460,7 @@ function Landing({ onBegin, onExplore, onSignIn, stats }) {
               <Magnetic className="w-full sm:w-auto">
                 <button
                   onClick={onBegin}
-                  className="group w-full sm:w-auto whitespace-nowrap px-8 md:px-10 py-4 rounded-full bg-white text-black text-[11px] tracking-[0.24em] uppercase font-medium hover:bg-white/95 hover:shadow-[0_20px_50px_-15px_rgba(255,255,255,0.35)] active:scale-[0.98] transition-all duration-500 sheen flex items-center justify-center gap-3"
+                  className="group w-full sm:w-auto whitespace-nowrap px-8 md:px-10 py-4 rounded-full bg-platinum text-obsidian text-[11px] tracking-[0.24em] uppercase font-medium hover:bg-white hover:shadow-[0_20px_50px_-15px_rgba(255,255,255,0.35)] active:scale-[0.98] transition-all duration-500 sheen flex items-center justify-center gap-3"
                 >
                   Create My Monument
                   <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform duration-500" />
@@ -509,7 +509,7 @@ function Landing({ onBegin, onExplore, onSignIn, stats }) {
             <LineReveal
               lines={[
                 'The world remembers',
-                <span key="l2">those who <span className="italic text-white/85">arrived.</span></span>,
+                <span key="l2">those who <span className="italic text-champagne">arrived.</span></span>,
               ]}
             />
           </h2>
@@ -532,7 +532,7 @@ function Landing({ onBegin, onExplore, onSignIn, stats }) {
           <h2 className="font-serif text-[clamp(38px,6vw,68px)] leading-[1.0] tracking-[-0.025em] text-platinum">
             <LineReveal
               lines={[
-                <span key="l1">Every step, <span className="italic text-white/85">remembered.</span></span>,
+                <span key="l1">Every step, <span className="italic text-champagne">remembered.</span></span>,
               ]}
             />
           </h2>
@@ -557,7 +557,7 @@ function Landing({ onBegin, onExplore, onSignIn, stats }) {
             <LineReveal
               lines={[
                 'This is what a life looks like,',
-                <span key="l2">when nothing is <span className="italic text-white/85">forgotten.</span></span>,
+                <span key="l2">when nothing is <span className="italic text-champagne">forgotten.</span></span>,
               ]}
             />
           </h2>
@@ -580,7 +580,7 @@ function Landing({ onBegin, onExplore, onSignIn, stats }) {
               duration={1.4}
               lines={[
                 'Every dream deserves',
-                <span key="l2" className="italic text-white/85">a monument.</span>,
+                <span key="l2" className="italic text-champagne">a monument.</span>,
               ]}
             />
           </h2>
@@ -591,7 +591,7 @@ function Landing({ onBegin, onExplore, onSignIn, stats }) {
               viewport={{ once: true }}
               transition={{ duration: 1.6, delay: 0.7 }}
               onClick={onBegin}
-              className="group px-12 py-5 rounded-full bg-white text-black text-[11px] tracking-[0.24em] uppercase font-medium hover:bg-white/95 hover:shadow-[0_20px_50px_-15px_rgba(255,255,255,0.35)] active:scale-[0.98] transition-all duration-500 sheen inline-flex items-center gap-3"
+              className="group px-12 py-5 rounded-full bg-platinum text-obsidian text-[11px] tracking-[0.24em] uppercase font-medium hover:bg-white hover:shadow-[0_20px_50px_-15px_rgba(255,255,255,0.35)] active:scale-[0.98] transition-all duration-500 sheen inline-flex items-center gap-3"
             >
               Raise My Monument
               <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform duration-500" />
@@ -611,7 +611,7 @@ function Landing({ onBegin, onExplore, onSignIn, stats }) {
             <h2 className="font-serif text-[clamp(34px,5vw,56px)] leading-[1.05] tracking-[-0.02em] text-platinum">
               <LineReveal
                 lines={[
-                  <span key="l1">An intelligence that <span className="italic text-white/70">walks with you.</span></span>,
+                  <span key="l1">An intelligence that <span className="italic text-champagne">walks with you.</span></span>,
                 ]}
               />
             </h2>
@@ -650,7 +650,7 @@ function Landing({ onBegin, onExplore, onSignIn, stats }) {
             <h2 className="font-serif text-[clamp(34px,5vw,56px)] leading-[1.05] tracking-[-0.02em] text-platinum">
               <LineReveal
                 lines={[
-                  <span key="l1">For the ones who <span className="italic text-white/70">refuse to be forgotten.</span></span>,
+                  <span key="l1">For the ones who <span className="italic text-champagne">refuse to be forgotten.</span></span>,
                 ]}
               />
             </h2>
@@ -676,7 +676,7 @@ function Landing({ onBegin, onExplore, onSignIn, stats }) {
                 <p className="text-platinum-muted text-base leading-[1.65] max-w-md mb-12">
                   One quiet subscription. No tiers. No ads. No noise. Only the Monument, in the highest resolution we know how to preserve a human life.
                 </p>
-                <button onClick={onBegin} className="group w-full py-4 rounded-full bg-white text-black text-[11px] tracking-[0.24em] uppercase font-medium hover:bg-white/95 hover:-translate-y-0.5 hover:shadow-[0_20px_50px_-15px_rgba(255,255,255,0.35)] active:translate-y-0 active:scale-[0.98] transition-all duration-500 sheen flex items-center justify-center gap-3">
+                <button onClick={onBegin} className="group w-full py-4 rounded-full bg-platinum text-obsidian text-[11px] tracking-[0.24em] uppercase font-medium hover:bg-white hover:-translate-y-0.5 hover:shadow-[0_20px_50px_-15px_rgba(255,255,255,0.35)] active:translate-y-0 active:scale-[0.98] transition-all duration-500 sheen flex items-center justify-center gap-3">
                   Begin Eternal
                   <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform duration-500" />
                 </button>
@@ -699,7 +699,7 @@ function Landing({ onBegin, onExplore, onSignIn, stats }) {
             transition={{ duration: 1.4, ease: EASE }}
             className="font-serif text-[clamp(30px,4vw,44px)] leading-[1.08] tracking-[-0.02em] text-platinum"
           >
-            The first stone <span className="italic text-white/70">won&rsquo;t lay itself.</span>
+            The first stone <span className="italic text-champagne">won&rsquo;t lay itself.</span>
           </motion.h2>
           <Magnetic className="mt-12 inline-block">
             <button
@@ -1750,7 +1750,7 @@ function AuthModal({ mode: initialMode = 'signup', onSuccess, onClose }) {
           <button
             type="submit"
             disabled={loading}
-            className="btn-premium w-full py-4 rounded-full bg-white text-black text-[11px] tracking-[0.24em] uppercase font-medium hover:bg-white/95 disabled:opacity-40 transition-all duration-500 flex items-center justify-center gap-2"
+            className="btn-premium w-full py-4 rounded-full bg-platinum text-obsidian text-[11px] tracking-[0.24em] uppercase font-medium hover:bg-white disabled:opacity-40 transition-all duration-500 flex items-center justify-center gap-2"
           >
             {loading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : mode === 'signup' ? 'Create Account' : 'Sign In'}
           </button>
