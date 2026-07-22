@@ -995,53 +995,24 @@ function Landing({ onBegin, onExplore, onSignIn, stats }) {
         </div>
       </section>
 
-      {/* FINALE — the complete Monument, warm */}
-      <section className="relative overflow-hidden bg-black">
-        {/* warm champagne bloom — the light warms up as the finale enters view */}
-        <motion.div
-          aria-hidden
-          className="absolute inset-0 pointer-events-none"
-          initial={{ opacity: 0 }}
-          whileInView={{ opacity: 1 }}
-          viewport={{ once: true, margin: '-120px' }}
-          transition={{ duration: 2.6, ease: EASE }}
-        >
-          <div
-            className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[1200px] max-w-[160vw] aspect-square"
-            style={{ background: 'radial-gradient(circle, rgba(232,200,138,0.22), rgba(212,176,106,0.08) 40%, transparent 68%)' }}
-          />
-        </motion.div>
-
-        <div className="relative max-w-[1100px] mx-auto px-8 md:px-14 pt-40 md:pt-52 pb-40 md:pb-56 flex flex-col items-center text-center">
-          {/* the complete Monument, re-encountered one last time in full light */}
-          <motion.div
-            initial={{ opacity: 0, y: 40 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, margin: '-120px' }}
-            transition={{ duration: 1.8, ease: EASE }}
-            className="relative w-[220px] md:w-[300px] aspect-[240/380]"
-          >
-            <Monument reveal={false} className="w-full h-full" />
-            {/* warm bloom settling on the capstone */}
-            <div
-              aria-hidden
-              className="absolute inset-x-0 top-[15%] h-24"
-              style={{ background: 'radial-gradient(ellipse at center, rgba(232,200,138,0.4), transparent 70%)', mixBlendMode: 'screen' }}
-            />
-          </motion.div>
-
-          <h2 className="mt-14 md:mt-16 font-serif text-[48px] md:text-[92px] leading-[0.98] tracking-[-0.025em] text-white">
+      {/* ACT 5 — the invitation. act05 (the lit stone niche / pedestal) scrubs
+          full-screen beneath the closing copy; this is the finale of the 5-act
+          trailer and where the primary CTA lives. Replaces the former graphic
+          finale — same ScrubScene contract every act shares (edge fades,
+          desktop scrub, mobile autoplay-in-view). The copy + button live in the
+          children layer (pointer-events auto) above the pointer-events-none
+          video, scrims and fade bands, so the CTA stays clickable. */}
+      <ScrubScene id="finale" videoBase="act05" poster="/videos/act05-poster.jpg">
+        <div className="relative max-w-4xl mx-auto text-center px-8 py-20">
+          <h2 className="font-serif text-[48px] md:text-[92px] leading-[0.98] tracking-[-0.025em] text-white">
             <LineReveal
               duration={1.4}
               lines={[
-                'Your story',
-                <span key="l2" className="italic text-white/85">has already begun.</span>,
+                'Every dream deserves',
+                <span key="l2" className="italic text-white/85">a monument.</span>,
               ]}
             />
           </h2>
-          <motion.p initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} viewport={{ once: true }} transition={{ duration: 2, delay: 0.4 }} className="mt-12 text-white/55 text-[16px] font-light tracking-wide">
-            Now it will be remembered.
-          </motion.p>
           <Magnetic className="mt-16">
             <motion.button
               initial={{ opacity: 0, y: 10 }}
@@ -1056,10 +1027,7 @@ function Landing({ onBegin, onExplore, onSignIn, stats }) {
             </motion.button>
           </Magnetic>
         </div>
-
-        {/* the final frame closes in — warm centre, obsidian edges */}
-        <div aria-hidden className="absolute inset-0 pointer-events-none vignette" />
-      </section>
+      </ScrubScene>
 
       {/* FOOTER */}
       <footer className="bg-black">
