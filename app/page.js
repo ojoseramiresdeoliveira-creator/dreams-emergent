@@ -868,9 +868,8 @@ function Landing({ onBegin, onExplore, onSignIn, stats }) {
           stones lifted into place) scrubs full-screen beneath the copy; a frame
           of that same clip is the poster / mobile / reduced-motion fallback.
           Same ScrubScene contract as every act (edge fades, desktop scrub,
-          mobile autoplay-in-view). Placed right after the Climb so the video
-          acts run contiguously; the graphic MonumentRises below is left in
-          place for now, on request. */}
+          mobile autoplay-in-view). Fourth of the five contiguous acts, between
+          the Climb and the Act 5 finale. */}
       <ScrubScene id="monument" videoBase="act04" poster="/videos/act04-poster.jpg">
         <div className="relative max-w-4xl mx-auto text-center px-8 py-20">
           <motion.div initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} viewport={{ once: true, margin: '-100px' }} transition={{ duration: 2 }} className="text-[10px] tracking-[0.4em] uppercase text-white/40 mb-12">
@@ -884,6 +883,42 @@ function Landing({ onBegin, onExplore, onSignIn, stats }) {
               ]}
             />
           </h2>
+        </div>
+      </ScrubScene>
+
+      {/* ACT 5 — the invitation. act05 (the lit stone niche / pedestal) scrubs
+          full-screen beneath the closing copy; the finale of the 5-act trailer
+          and home of the primary CTA. Sits right after Act 4 so all five acts
+          run contiguously; the detail sections (Method, MonumentRises, World,
+          Mentor, Premium) follow below. Same ScrubScene contract every act
+          shares (edge fades, desktop scrub, mobile autoplay-in-view). The copy
+          + button live in the children layer (pointer-events auto) above the
+          pointer-events-none video, scrims and fade bands, so the CTA stays
+          clickable. */}
+      <ScrubScene id="finale" videoBase="act05" poster="/videos/act05-poster.jpg">
+        <div className="relative max-w-4xl mx-auto text-center px-8 py-20">
+          <h2 className="font-serif text-[48px] md:text-[92px] leading-[0.98] tracking-[-0.025em] text-white">
+            <LineReveal
+              duration={1.4}
+              lines={[
+                'Every dream deserves',
+                <span key="l2" className="italic text-white/85">a monument.</span>,
+              ]}
+            />
+          </h2>
+          <Magnetic className="mt-16">
+            <motion.button
+              initial={{ opacity: 0, y: 10 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 1.6, delay: 0.7 }}
+              onClick={onBegin}
+              className="group px-12 py-5 rounded-full bg-white text-black text-[11px] tracking-[0.24em] uppercase font-medium hover:bg-white/95 hover:shadow-[0_20px_50px_-15px_rgba(255,255,255,0.35)] active:scale-[0.98] transition-all duration-500 sheen inline-flex items-center gap-3"
+            >
+              Raise My Monument
+              <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform duration-500" />
+            </motion.button>
+          </Magnetic>
         </div>
       </ScrubScene>
 
@@ -1017,40 +1052,6 @@ function Landing({ onBegin, onExplore, onSignIn, stats }) {
           </div>
         </div>
       </section>
-
-      {/* ACT 5 — the invitation. act05 (the lit stone niche / pedestal) scrubs
-          full-screen beneath the closing copy; this is the finale of the 5-act
-          trailer and where the primary CTA lives. Replaces the former graphic
-          finale — same ScrubScene contract every act shares (edge fades,
-          desktop scrub, mobile autoplay-in-view). The copy + button live in the
-          children layer (pointer-events auto) above the pointer-events-none
-          video, scrims and fade bands, so the CTA stays clickable. */}
-      <ScrubScene id="finale" videoBase="act05" poster="/videos/act05-poster.jpg">
-        <div className="relative max-w-4xl mx-auto text-center px-8 py-20">
-          <h2 className="font-serif text-[48px] md:text-[92px] leading-[0.98] tracking-[-0.025em] text-white">
-            <LineReveal
-              duration={1.4}
-              lines={[
-                'Every dream deserves',
-                <span key="l2" className="italic text-white/85">a monument.</span>,
-              ]}
-            />
-          </h2>
-          <Magnetic className="mt-16">
-            <motion.button
-              initial={{ opacity: 0, y: 10 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 1.6, delay: 0.7 }}
-              onClick={onBegin}
-              className="group px-12 py-5 rounded-full bg-white text-black text-[11px] tracking-[0.24em] uppercase font-medium hover:bg-white/95 hover:shadow-[0_20px_50px_-15px_rgba(255,255,255,0.35)] active:scale-[0.98] transition-all duration-500 sheen inline-flex items-center gap-3"
-            >
-              Raise My Monument
-              <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform duration-500" />
-            </motion.button>
-          </Magnetic>
-        </div>
-      </ScrubScene>
 
       {/* FOOTER */}
       <footer className="bg-black">
