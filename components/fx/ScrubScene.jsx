@@ -8,7 +8,7 @@
 // collapses to a normal ~100svh section, so the copy never depends on it
 // (SEO-safe, same contract as the Act 1 hero). Desktop scrubs the clip by
 // scroll; on mobile the clip autoplays a gentle muted loop while it is on
-// screen instead (no dead 320vh track, no frozen poster) — exactly the Act 1
+// screen instead (no dead scrub track, no frozen poster) — exactly the Act 1
 // hero's mobile behaviour.
 //
 //   <ScrubScene id="ethos" videoBase="act02" poster="/landing/ethos-2560.webp">
@@ -26,7 +26,7 @@ export default function ScrubScene({
   id,
   videoBase,            // 'act02' → /videos/act02.mp4 (+ /videos/act02-mobile.mp4)
   poster,
-  trackVh = 320,        // ≈220vh of pinned scrub — paces a ~10s clip like Act 1
+  trackVh = 220,        // ≈120vh of pinned scrub — tight pacing, no dead scroll
   overlay = 'bg-gradient-to-b from-black/60 via-black/25 to-black/70',
   children,
 }) {
@@ -39,7 +39,7 @@ export default function ScrubScene({
   useVideoScrub({ videoRef, trackRef, enabled: !isMobile });
   useAutoplayInView({ videoRef, enabled: isMobile });
 
-  // Mobile (and reduced motion) collapse the 320vh track to a normal section so
+  // Mobile (and reduced motion) collapse the scrub track to a normal section so
   // there is no dead scroll and no black void beneath a frozen frame.
   const flat = reduce || isMobile;
 

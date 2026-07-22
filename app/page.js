@@ -331,7 +331,7 @@ function Landing({ onBegin, onExplore, onSignIn, stats }) {
   // Hero parallax + Act 1 video scrub both read the 200vh track
   // (0 = entering, 1 = released to the Ethos below).
   const { scrollYProgress } = useScroll({ target: heroTrackRef, offset: ['start start', 'end end'] });
-  // Desktop: scrub Act 1's currentTime from the 320vh track. Mobile: no scrub —
+  // Desktop: scrub Act 1's currentTime from the 220vh track. Mobile: no scrub —
   // the clip plays a gentle muted loop while it's on screen instead (no dead
   // scroll, no frozen poster). Only one of the two is ever enabled.
   useVideoScrub({ videoRef: heroVideoRef, trackRef: heroTrackRef, enabled: !isMobile });
@@ -347,7 +347,7 @@ function Landing({ onBegin, onExplore, onSignIn, stats }) {
     pointerY.set(((e.clientY - r.top) / r.height - 0.5) * 2);
   }
   function onHeroLeave() { pointerX.set(0); pointerY.set(0); }
-  // The track is 320vh (≈220vh of pinned scrub): the hero copy stays put and
+  // The track is 220vh (≈120vh of pinned scrub): the hero copy stays put and
   // readable while Act 1 scrubs full-screen beneath it, drifting up slowly and
   // only fading over the final ~12% as it releases to the Ethos below.
   const textY = useTransform(scrollYProgress, [0, 1], [0, -120]);
@@ -383,11 +383,12 @@ function Landing({ onBegin, onExplore, onSignIn, stats }) {
         </div>
       </nav>
 
-      {/* HERO — Act 1 (anonymous life). The sticky hero pins inside a 320vh
-          track (≈220vh of scrub) so Act 1's clip plays out slowly beneath the
-          copy. Under reduced motion — or on mobile, where the clip autoplays a
-          loop instead of scrubbing — the track collapses to a normal section. */}
-      <div ref={heroTrackRef} className={(reduce || isMobile) ? 'relative' : 'relative h-[320vh]'}>
+      {/* HERO — Act 1 (anonymous life). The sticky hero pins inside a 220vh
+          track (≈120vh of scrub) so Act 1's clip plays beneath the copy without
+          a long stretch of dead scroll. Under reduced motion — or on mobile,
+          where the clip autoplays a loop instead of scrubbing — the track
+          collapses to a normal section. */}
+      <div ref={heroTrackRef} className={(reduce || isMobile) ? 'relative' : 'relative h-[220vh]'}>
       <section
         ref={heroRef}
         onPointerMove={onHeroPointer}
@@ -441,21 +442,6 @@ function Landing({ onBegin, onExplore, onSignIn, stats }) {
                   <span key="l2" className="italic text-white/90">a monument.</span>,
                 ]}
               />
-              {/* golden light travels across the title as the Monument's peak
-                  lights up — the two moments of light answer each other */}
-              {!reduce && (
-                <motion.span
-                  aria-hidden
-                  className="pointer-events-none absolute inset-0"
-                  style={{
-                    background: 'linear-gradient(100deg, transparent 34%, rgba(232,200,138,0.38) 50%, transparent 66%)',
-                    mixBlendMode: 'screen',
-                  }}
-                  initial={{ opacity: 0, x: '-30%' }}
-                  animate={{ opacity: [0, 1, 0], x: ['-30%', '50%', '130%'] }}
-                  transition={{ duration: 1.7, delay: 2.3, ease: EASE, times: [0, 0.5, 1] }}
-                />
-              )}
             </h1>
             <motion.p
               initial={{ opacity: 0 }}
