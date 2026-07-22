@@ -19,7 +19,6 @@ import LineReveal from '@/components/fx/LineReveal';
 import ChampagneBurst from '@/components/fx/ChampagneBurst';
 import StreamedText, { streamDuration } from '@/components/fx/StreamedText';
 import SettleDust from '@/components/fx/SettleDust';
-import Monument from '@/components/fx/Monument';
 import GuardianPresence from '@/components/fx/GuardianPresence';
 import SmoothScroll from '@/components/fx/SmoothScroll';
 import ScrubScene from '@/components/fx/ScrubScene';
@@ -67,16 +66,6 @@ async function apiFetch(path, { method = 'GET', body, timeoutMs = 15000 } = {}) 
   }
 }
 
-// Self-hosted landing stills (public/landing) — WebP, responsive sizes.
-// The ethos still now doubles as Act 2's video poster / reduced-motion fallback.
-const LANDING_IMG = {
-  ethos: {
-    src: '/landing/ethos-2560.webp',
-    srcSet: '/landing/ethos-1280.webp 1280w, /landing/ethos-2560.webp 2560w, /landing/ethos-3840.webp 3840w',
-    sizes: '100vw',
-  },
-};
-
 const ENTRY_TYPES = [
   { key: 'milestone', label: 'Milestone', icon: Trophy },
   { key: 'reflection', label: 'Reflection', icon: Feather },
@@ -113,21 +102,6 @@ function Counter({ value }) {
     return unsub;
   }, [value, reduce, spring, inView]);
   return <span ref={ref}>{n.toLocaleString()}</span>;
-}
-
-// Pauses descendant CSS animations (ken burns, light sweep) while the
-// section is outside the viewport — no compositor work for nobody.
-function useAnimationGate(ref) {
-  useEffect(() => {
-    const el = ref.current;
-    if (!el) return;
-    const io = new IntersectionObserver(
-      ([entry]) => { el.toggleAttribute('data-offscreen', !entry.isIntersecting); },
-      { rootMargin: '120px' }
-    );
-    io.observe(el);
-    return () => io.disconnect();
-  }, [ref]);
 }
 
 /* ── The First Stone ─────────────────────────────────────────────
@@ -496,138 +470,6 @@ function Starfield({ density = 0.00025, parallax = 0.35 }) {
   return <canvas ref={canvasRef} className="absolute inset-0 w-full h-full pointer-events-none" style={{ display: 'block' }} />;
 }
 
-/* ── The Monument rises ──────────────────────────────────────────
-   The distant Monument from the hero is re-encountered here and, as the
-   reader scrolls, assembles stone by stone while the camera draws it from
-   small-and-distant to massive-and-present. Reuses the Monument component
-   (progress-driven assembly) and SettleDust for the capstone landing.
-   Static, readable under reduced motion. */
-function MonumentRises() {
-  const reduce = useReducedMotion();
-  const isMobile = useIsMobile();
-  const trackRef = useRef(null);
-  const [capped, setCapped] = useState(false);
-  const { scrollYProgress: p } = useScroll({ target: trackRef, offset: ['start start', 'end end'] });
-  // Camera: small and distant (an echo of the hero) → massive and present →
-  // a slight pull back, so it reads as monumental rather than merely grown.
-  const camScale = useTransform(p, [0, 0.72, 1], [0.55, 1.06, 0.98]);
-  const camY = useTransform(p, [0, 1], ['9%', '-5%']);
-  const worldOpen = useTransform(p, [0, 0.8], [0.7, 0.28]); // vignette lifts as it grows
-  const line1 = useTransform(p, [0.03, 0.12, 0.26, 0.34], [0, 1, 1, 0]);
-  const line2 = useTransform(p, [0.44, 0.54, 0.74, 0.82], [0, 1, 1, 0]);
-  const line3 = useTransform(p, [0.86, 0.95], [0, 1]);
-
-  useEffect(() => {
-    const unsub = p.on('change', (v) => { if (v > 0.9) setCapped(true); });
-    return unsub;
-  }, [p]);
-
-  // Mobile uses the static layout too — see FirstStoneScene. Desktop untouched.
-  if (reduce || isMobile) {
-    return (
-      <section className="relative bg-black">
-        <div className="max-w-[1100px] mx-auto px-8 py-40 flex flex-col items-center text-center">
-          <div className="w-[220px] aspect-[240/380]"><Monument reveal={false} className="w-full h-full" /></div>
-          <h2 className="mt-14 font-serif text-[40px] md:text-[56px] leading-[1.05] tracking-[-0.02em] text-white">
-            One stone becomes <span className="italic text-white/70">a monument.</span>
-          </h2>
-          <p className="mt-8 text-white/55 text-[16px] font-light max-w-md">This is what you are building — one inscription at a time.</p>
-        </div>
-      </section>
-    );
-  }
-
-  return (
-    <section className="relative bg-black">
-      <div ref={trackRef} className="relative h-[300vh]">
-        <div className="sticky top-0 h-screen overflow-hidden flex items-center justify-center">
-          <motion.div aria-hidden className="absolute inset-0 pointer-events-none vignette" style={{ opacity: worldOpen }} />
-          <div className="absolute inset-0 dot-field opacity-10 pointer-events-none" />
-
-          {/* the assembling monument, moved by the camera */}
-          <motion.div style={{ scale: camScale, y: camY }} className="relative w-[240px] sm:w-[300px] md:w-[360px] aspect-[240/380]">
-            <Monument progress={p} className="w-full h-full" />
-            {capped && (
-              <div className="absolute inset-x-0 top-[18%] h-24">
-                <SettleDust count={18} />
-              </div>
-            )}
-          </motion.div>
-
-          {/* marginal narration — each line speaks, then passes */}
-          <div className="absolute left-6 md:left-14 bottom-[16%] max-w-xs pointer-events-none">
-            <motion.div style={{ opacity: line1 }} className="absolute bottom-0 font-serif text-[26px] md:text-[34px] text-white/90 leading-tight">One stone.</motion.div>
-            <motion.div style={{ opacity: line2 }} className="absolute bottom-0 font-serif text-[26px] md:text-[34px] text-white/90 leading-tight">Then another. Then a life.</motion.div>
-            <motion.div style={{ opacity: line3 }} className="absolute bottom-0 font-serif text-[26px] md:text-[34px] text-champagne/90 leading-tight">Your monument.</motion.div>
-          </div>
-        </div>
-      </div>
-    </section>
-  );
-}
-
-/* ── The Community field ─────────────────────────────────────────
-   Dozens of distant Monuments in depth, each with a champagne peak glow
-   breathing out of phase — the world made of the journeys the counters
-   describe. Layout is seeded (deterministic) so server and client render
-   identically. Reuses the Monument `distant` variant (SVG = free copies)
-   and pauses its glows when scrolled offscreen. */
-function mulberry32(a) {
-  return function () {
-    a |= 0; a = (a + 0x6d2b79f5) | 0;
-    let t = Math.imul(a ^ (a >>> 15), 1 | a);
-    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
-    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
-  };
-}
-const MONUMENT_FIELD = (() => {
-  const rnd = mulberry32(20260715);
-  const arr = [];
-  for (let i = 0; i < 34; i++) {
-    const depth = rnd(); // 0 = far horizon, 1 = near foreground
-    arr.push({
-      left: rnd() * 100,
-      depth,
-      w: 44 + depth * 122,               // far small, near large
-      bottom: 10 + (1 - depth) * 34,     // far ones sit near the horizon
-      opacity: 0.4 + depth * 0.5,
-      stones: 3 + Math.floor(rnd() * 5), // 3–7 stones: journeys at different climbs
-      glowDelay: -rnd() * 7,             // negative so phases are spread from t=0
-    });
-  }
-  return arr.sort((a, b) => a.depth - b.depth); // painter's order: far first
-})();
-
-function MonumentField() {
-  const ref = useRef(null);
-  useAnimationGate(ref);
-  return (
-    <div ref={ref} className="absolute inset-0 overflow-hidden pointer-events-none">
-      {/* faint atmosphere behind the horizon */}
-      <div className="absolute inset-0" style={{ background: 'radial-gradient(120% 80% at 50% 24%, rgba(22,32,62,0.35), transparent 60%)' }} />
-      {MONUMENT_FIELD.map((m, i) => (
-        <div
-          key={i}
-          className="absolute -translate-x-1/2"
-          style={{
-            left: `${m.left}%`,
-            bottom: `${m.bottom}%`,
-            width: `${m.w}px`,
-            opacity: m.opacity,
-            zIndex: Math.floor(m.depth * 100),
-            filter: m.depth < 0.4 ? 'blur(1px)' : undefined,
-          }}
-        >
-          <Monument variant="distant" stones={m.stones} glowDelay={m.glowDelay} className="w-full h-auto" />
-        </div>
-      ))}
-      {/* horizon haze + a floor of fog so the field never shows a ground line */}
-      <div className="absolute inset-x-0 bottom-0 h-[32%] bg-gradient-to-b from-transparent to-black" />
-      <div className="absolute inset-0 vignette" />
-    </div>
-  );
-}
-
 function Landing({ onBegin, onExplore, onSignIn, stats }) {
   const heroRef = useRef(null);
   const heroTrackRef = useRef(null); // 200vh track the sticky hero pins inside
@@ -679,7 +521,6 @@ function Landing({ onBegin, onExplore, onSignIn, stats }) {
           <div className="hidden md:flex items-center gap-10 text-[12px] tracking-wide text-white/55">
             <a href="#ethos" className="nav-link hover:text-white">Ethos</a>
             <a href="#how" className="nav-link hover:text-white">Method</a>
-            <a href="#world" className="nav-link hover:text-white">Live</a>
             <a href="#mentor" className="nav-link hover:text-white">Mentor</a>
             <a href="#premium" className="nav-link hover:text-white">Eternal</a>
           </div>
@@ -890,8 +731,8 @@ function Landing({ onBegin, onExplore, onSignIn, stats }) {
       {/* ACT 5 — the invitation. act05 (the lit stone niche / pedestal) scrubs
           full-screen beneath the closing copy; the finale of the 5-act trailer
           and home of the primary CTA. Sits right after Act 4 so all five acts
-          run contiguously; the detail sections (Method, MonumentRises, World,
-          Mentor, Premium) follow below. Same ScrubScene contract every act
+          run contiguously; the detail sections (Method, Mentor, Premium)
+          follow below. Same ScrubScene contract every act
           shares (edge fades, desktop scrub, mobile autoplay-in-view). The copy
           + button live in the children layer (pointer-events auto) above the
           pointer-events-none video, scrims and fade bands, so the CTA stays
@@ -925,51 +766,6 @@ function Landing({ onBegin, onExplore, onSignIn, stats }) {
 
       {/* METHOD — The First Stone */}
       <FirstStoneScene />
-
-      {/* THE MONUMENT RISES */}
-      <MonumentRises />
-
-      {/* WORLD LIVE — the community of monuments */}
-      <section id="world" className="relative overflow-hidden bg-black">
-        <MonumentField />
-        <div className="absolute inset-0 bg-gradient-to-b from-black/80 via-black/40 to-black pointer-events-none" />
-        <div className="relative max-w-[1200px] mx-auto px-8 md:px-14 py-40 md:py-56">
-          <div className="text-[10px] tracking-[0.4em] uppercase text-white/45 mb-10">Live · Global</div>
-          <h2 className="font-serif text-[44px] md:text-[64px] leading-[1.05] tracking-[-0.02em] text-white max-w-2xl">
-            <LineReveal
-              lines={[
-                <span key="l1">The world is <span className="italic text-white/80">walking.</span></span>,
-              ]}
-            />
-          </h2>
-          <p className="mt-10 text-white/55 text-[16px] font-light max-w-xl leading-[1.85]">
-            Real journeys. Real people. Preserved as they happen — not after they end.
-          </p>
-
-          <div className="mt-28 grid md:grid-cols-4 gap-12 md:gap-8">
-            {[
-              { label: 'Stories declared', value: stats?.dreamsCreated ?? 12847 },
-              { label: 'Stones laid today', value: stats?.dreamsCompletedToday ?? 342 },
-              { label: 'Walkers present', value: stats?.buildersOnline ?? 1247 },
-              { label: 'Countries', value: stats?.countries ?? 96 },
-            ].map((s, i) => (
-              <motion.div
-                key={s.label}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true, margin: '-80px' }}
-                transition={{ duration: 1.4, delay: i * 0.15, ease: EASE }}
-              >
-                <div className="font-serif text-[56px] md:text-[76px] text-white leading-none tracking-[-0.03em] tabular">
-                  <Counter value={s.value} duration={2400} />
-                </div>
-                <div className="mt-6 text-[10px] tracking-[0.32em] uppercase text-white/45">{s.label}</div>
-                <div className="mt-6 h-px w-14 bg-white/20" />
-              </motion.div>
-            ))}
-          </div>
-        </div>
-      </section>
 
       {/* MENTOR */}
       <section id="mentor" className="relative bg-black">
