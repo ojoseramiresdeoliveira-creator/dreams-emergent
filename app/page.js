@@ -423,7 +423,7 @@ function Landing({ onBegin, onExplore, onSignIn, stats }) {
           {/* Text + actions — the only thing above Act 1's clip */}
           <motion.div
             style={(reduce || isMobile) ? undefined : { y: textY, opacity: heroOpacity, x: textLeanX }}
-            className="relative text-center"
+            className="relative w-full text-center"
           >
             <motion.div
               initial={{ opacity: 0 }}
@@ -433,7 +433,7 @@ function Landing({ onBegin, onExplore, onSignIn, stats }) {
             >
               Monument of Dreams
             </motion.div>
-            <h1 className="relative font-serif text-[clamp(38px,9vw,88px)] leading-[0.98] tracking-[-0.025em] text-white">
+            <h1 className="relative font-serif text-[clamp(24px,6.6vw,88px)] sm:text-[clamp(38px,9vw,88px)] leading-[0.98] tracking-[-0.025em] text-white">
               <LineReveal
                 mode="mount"
                 delay={0.7}
