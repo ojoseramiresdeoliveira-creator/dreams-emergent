@@ -122,9 +122,9 @@ function FirstStoneScene() {
         whileInView={{ opacity: 1, y: 0 }}
         viewport={{ once: true, margin: '-100px' }}
         transition={{ duration: 1.2, ease: EASE }}
-        className="max-w-[1100px] mx-auto px-8 md:px-14 py-32 md:py-44"
+        className="max-w-[1100px] mx-auto px-8 md:px-14 py-32 md:py-48"
       >
-        <div className="eyebrow mb-8">The Rite</div>
+        <div className="eyebrow mb-6">The Rite</div>
         <h2 className="font-serif text-[44px] md:text-[64px] leading-[1.05] tracking-[-0.02em] text-platinum">
           Three acts. <span className="italic text-white/60">One life.</span>
         </h2>
@@ -429,7 +429,7 @@ function Landing({ onBegin, onExplore, onSignIn, stats }) {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ duration: 2, delay: 0.5 }}
-              className="eyebrow mb-6 md:mb-10"
+              className="eyebrow mb-6"
             >
               Monument of Dreams
             </motion.div>
@@ -447,7 +447,7 @@ function Landing({ onBegin, onExplore, onSignIn, stats }) {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ duration: 2, delay: 1.3 }}
-              className="mt-6 md:mt-10 text-base md:text-lg text-platinum-muted max-w-md mx-auto leading-[1.7] tracking-wide"
+              className="mt-8 text-base md:text-lg text-platinum-muted max-w-md mx-auto leading-[1.7] tracking-wide"
             >
               Preserve your journey. Build your future.<br className="hidden sm:block" /> Become who you dream of becoming.
             </motion.p>
@@ -455,7 +455,7 @@ function Landing({ onBegin, onExplore, onSignIn, stats }) {
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 1.6, delay: 1.8 }}
-              className="mt-10 md:mt-14 flex flex-col lg:flex-row items-center justify-center gap-3 sm:gap-4"
+              className="mt-12 flex flex-col lg:flex-row items-center justify-center gap-3 sm:gap-4"
             >
               <Magnetic className="w-full sm:w-auto">
                 <button
@@ -502,7 +502,7 @@ function Landing({ onBegin, onExplore, onSignIn, stats }) {
           reduced-motion fallback, so desktop and mobile show the same scene. */}
       <ScrubScene id="ethos" videoBase="act02" poster="/videos/act02-poster.jpg">
         <div className="relative max-w-4xl mx-auto text-center px-8 py-20">
-          <motion.div initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} viewport={{ once: true, margin: '-100px' }} transition={{ duration: 2 }} className="eyebrow mb-12">
+          <motion.div initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} viewport={{ once: true, margin: '-100px' }} transition={{ duration: 2 }} className="eyebrow mb-6">
             Why we exist
           </motion.div>
           <h2 className="font-serif text-[42px] md:text-[72px] leading-[1.0] tracking-[-0.02em] text-platinum">
@@ -513,7 +513,7 @@ function Landing({ onBegin, onExplore, onSignIn, stats }) {
               ]}
             />
           </h2>
-          <motion.p initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} viewport={{ once: true, margin: '-100px' }} transition={{ duration: 2, delay: 0.5 }} className="mt-14 text-platinum-muted text-base md:text-lg leading-[1.7] max-w-2xl mx-auto">
+          <motion.p initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} viewport={{ once: true, margin: '-100px' }} transition={{ duration: 2, delay: 0.5 }} className="mt-8 text-platinum-muted text-base md:text-lg leading-[1.7] max-w-xl mx-auto">
             We remember everyone still walking.
             <br /><br />
             The sacrifices. The failures. The restarts. The quiet mornings no one ever saw. Nothing about your journey deserves to disappear.
@@ -526,7 +526,7 @@ function Landing({ onBegin, onExplore, onSignIn, stats }) {
           is the poster / mobile / reduced-motion fallback. */}
       <ScrubScene id="climb" videoBase="act03" poster="/videos/act03-poster.jpg">
         <div className="relative max-w-4xl mx-auto text-center px-8 py-20">
-          <motion.div initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} viewport={{ once: true, margin: '-100px' }} transition={{ duration: 2 }} className="eyebrow mb-12">
+          <motion.div initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} viewport={{ once: true, margin: '-100px' }} transition={{ duration: 2 }} className="eyebrow mb-6">
             The climb
           </motion.div>
           <h2 className="font-serif text-[42px] md:text-[72px] leading-[1.0] tracking-[-0.02em] text-platinum">
@@ -536,7 +536,7 @@ function Landing({ onBegin, onExplore, onSignIn, stats }) {
               ]}
             />
           </h2>
-          <motion.p initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} viewport={{ once: true, margin: '-100px' }} transition={{ duration: 2, delay: 0.5 }} className="mt-14 text-platinum-muted text-base md:text-lg leading-[1.7] max-w-2xl mx-auto">
+          <motion.p initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} viewport={{ once: true, margin: '-100px' }} transition={{ duration: 2, delay: 0.5 }} className="mt-8 text-platinum-muted text-base md:text-lg leading-[1.7] max-w-xl mx-auto">
             The sacrifice, the doubt, the slow mornings no one saw — every step is kept.
           </motion.p>
         </div>
@@ -550,7 +550,7 @@ function Landing({ onBegin, onExplore, onSignIn, stats }) {
           the Climb and the Act 5 finale. */}
       <ScrubScene id="monument" videoBase="act04" poster="/videos/act04-poster.jpg">
         <div className="relative max-w-4xl mx-auto text-center px-8 py-20">
-          <motion.div initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} viewport={{ once: true, margin: '-100px' }} transition={{ duration: 2 }} className="eyebrow mb-12">
+          <motion.div initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} viewport={{ once: true, margin: '-100px' }} transition={{ duration: 2 }} className="eyebrow mb-6">
             The monument
           </motion.div>
           <h2 className="font-serif text-[42px] md:text-[72px] leading-[1.0] tracking-[-0.02em] text-platinum">
@@ -584,7 +584,7 @@ function Landing({ onBegin, onExplore, onSignIn, stats }) {
               ]}
             />
           </h2>
-          <Magnetic className="mt-16">
+          <Magnetic className="mt-12">
             <motion.button
               initial={{ opacity: 0, y: 10 }}
               whileInView={{ opacity: 1, y: 0 }}
@@ -605,9 +605,9 @@ function Landing({ onBegin, onExplore, onSignIn, stats }) {
 
       {/* MENTOR */}
       <section id="mentor" className="relative bg-black">
-        <div className="max-w-[1200px] mx-auto px-8 md:px-14 py-40 md:py-56 grid md:grid-cols-12 gap-16 md:gap-20 items-center">
+        <div className="max-w-[1200px] mx-auto px-8 md:px-14 py-32 md:py-48 grid md:grid-cols-12 gap-16 md:gap-20 items-center">
           <div className="md:col-span-6">
-            <div className="eyebrow-accent mb-10">Guardian of the Journey</div>
+            <div className="eyebrow-accent mb-6">Guardian of the Journey</div>
             <h2 className="font-serif text-[44px] md:text-[64px] leading-[1.05] tracking-[-0.02em] text-platinum">
               <LineReveal
                 lines={[
@@ -615,7 +615,7 @@ function Landing({ onBegin, onExplore, onSignIn, stats }) {
                 ]}
               />
             </h2>
-            <p className="mt-10 text-platinum-muted text-base leading-[1.65] max-w-lg">
+            <p className="mt-8 text-platinum-muted text-base leading-[1.65] max-w-lg">
               Not a coach. Not a chatbot. The Guardian remembers every stone you have laid. It never gives generic motivation. It only speaks to you using your own story — and reminds you, when you forget, how far you have already come.
             </p>
             <div className="mt-14 space-y-5 max-w-md">
@@ -644,9 +644,9 @@ function Landing({ onBegin, onExplore, onSignIn, stats }) {
 
       {/* PREMIUM */}
       <section id="premium" className="relative bg-black">
-        <div className="max-w-[1200px] mx-auto px-8 md:px-14 py-40 md:py-56">
+        <div className="max-w-[1200px] mx-auto px-8 md:px-14 py-32 md:py-48">
           <div className="max-w-2xl mb-28">
-            <div className="eyebrow mb-10">Monument Eternal</div>
+            <div className="eyebrow mb-6">Monument Eternal</div>
             <h2 className="font-serif text-[44px] md:text-[64px] leading-[1.05] tracking-[-0.02em] text-platinum">
               <LineReveal
                 lines={[
@@ -691,7 +691,7 @@ function Landing({ onBegin, onExplore, onSignIn, stats }) {
           light and distinct from the Act 5 finale (no video, no repeated copy,
           no solid button) so it closes the page without competing with it. */}
       <section className="relative bg-black">
-        <div className="max-w-[900px] mx-auto px-8 md:px-14 py-32 md:py-44 text-center">
+        <div className="max-w-[900px] mx-auto px-8 md:px-14 py-32 md:py-48 text-center">
           <motion.h2
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
