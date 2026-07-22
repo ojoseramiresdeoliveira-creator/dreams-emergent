@@ -124,19 +124,19 @@ function FirstStoneScene() {
         transition={{ duration: 1.2, ease: EASE }}
         className="max-w-[1100px] mx-auto px-8 md:px-14 py-32 md:py-44"
       >
-        <div className="text-[10px] tracking-[0.4em] uppercase text-white/40 mb-8">The Rite</div>
-        <h2 className="font-serif text-[44px] md:text-[64px] leading-[1.05] tracking-[-0.02em] text-white">
+        <div className="eyebrow mb-8">The Rite</div>
+        <h2 className="font-serif text-[44px] md:text-[64px] leading-[1.05] tracking-[-0.02em] text-platinum">
           Three acts. <span className="italic text-white/60">One life.</span>
         </h2>
-        <p className="mt-8 text-white/50 text-[15px] md:text-[16px] leading-[1.85] font-light max-w-xl">
+        <p className="mt-8 text-platinum-muted text-base leading-[1.65] max-w-xl">
           A single, deliberate ritual repeated across a lifetime — until it becomes the thing you leave behind.
         </p>
         <div className="mt-20 grid md:grid-cols-3 gap-12 md:gap-10">
           {RITE_ACTS.map((a) => (
             <div key={a.n}>
-              <div className="text-[10px] tracking-[0.38em] uppercase text-champagne/70 mb-4">{a.n}</div>
-              <div className="font-serif text-[26px] md:text-[30px] text-white leading-tight mb-4">{a.t}</div>
-              <p className="text-white/55 text-[15px] leading-[1.85] font-light">{a.d}</p>
+              <div className="eyebrow-accent mb-4">{a.n}</div>
+              <div className="font-serif text-[26px] md:text-[30px] text-platinum leading-tight mb-4">{a.t}</div>
+              <p className="text-platinum-muted text-[15px] leading-[1.65]">{a.d}</p>
             </div>
           ))}
         </div>
@@ -429,11 +429,11 @@ function Landing({ onBegin, onExplore, onSignIn, stats }) {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ duration: 2, delay: 0.5 }}
-              className="text-[10px] tracking-[0.4em] uppercase text-white/50 mb-6 md:mb-10"
+              className="eyebrow mb-6 md:mb-10"
             >
               Monument of Dreams
             </motion.div>
-            <h1 className="relative font-serif text-[clamp(24px,6.6vw,88px)] sm:text-[clamp(38px,9vw,88px)] leading-[0.98] tracking-[-0.025em] text-white">
+            <h1 className="relative font-serif text-[clamp(24px,6.6vw,88px)] sm:text-[clamp(38px,9vw,88px)] leading-[0.98] tracking-[-0.025em] text-platinum">
               <LineReveal
                 mode="mount"
                 delay={0.7}
@@ -447,7 +447,7 @@ function Landing({ onBegin, onExplore, onSignIn, stats }) {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ duration: 2, delay: 1.3 }}
-              className="mt-6 md:mt-10 text-[14px] md:text-[17px] text-white/60 max-w-md mx-auto leading-[1.8] md:leading-[1.85] font-light tracking-wide"
+              className="mt-6 md:mt-10 text-base md:text-lg text-platinum-muted max-w-md mx-auto leading-[1.7] tracking-wide"
             >
               Preserve your journey. Build your future.<br className="hidden sm:block" /> Become who you dream of becoming.
             </motion.p>
@@ -502,10 +502,10 @@ function Landing({ onBegin, onExplore, onSignIn, stats }) {
           reduced-motion fallback, so desktop and mobile show the same scene. */}
       <ScrubScene id="ethos" videoBase="act02" poster="/videos/act02-poster.jpg">
         <div className="relative max-w-4xl mx-auto text-center px-8 py-20">
-          <motion.div initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} viewport={{ once: true, margin: '-100px' }} transition={{ duration: 2 }} className="text-[10px] tracking-[0.4em] uppercase text-white/40 mb-12">
+          <motion.div initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} viewport={{ once: true, margin: '-100px' }} transition={{ duration: 2 }} className="eyebrow mb-12">
             Why we exist
           </motion.div>
-          <h2 className="font-serif text-[42px] md:text-[72px] leading-[1.08] tracking-[-0.02em] text-white">
+          <h2 className="font-serif text-[42px] md:text-[72px] leading-[1.0] tracking-[-0.02em] text-platinum">
             <LineReveal
               lines={[
                 'The world remembers',
@@ -513,7 +513,7 @@ function Landing({ onBegin, onExplore, onSignIn, stats }) {
               ]}
             />
           </h2>
-          <motion.p initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} viewport={{ once: true, margin: '-100px' }} transition={{ duration: 2, delay: 0.5 }} className="mt-14 text-white/55 text-base md:text-lg font-light leading-[2] max-w-2xl mx-auto">
+          <motion.p initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} viewport={{ once: true, margin: '-100px' }} transition={{ duration: 2, delay: 0.5 }} className="mt-14 text-platinum-muted text-base md:text-lg leading-[1.7] max-w-2xl mx-auto">
             We remember everyone still walking.
             <br /><br />
             The sacrifices. The failures. The restarts. The quiet mornings no one ever saw. Nothing about your journey deserves to disappear.
@@ -526,17 +526,17 @@ function Landing({ onBegin, onExplore, onSignIn, stats }) {
           is the poster / mobile / reduced-motion fallback. */}
       <ScrubScene id="climb" videoBase="act03" poster="/videos/act03-poster.jpg">
         <div className="relative max-w-4xl mx-auto text-center px-8 py-20">
-          <motion.div initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} viewport={{ once: true, margin: '-100px' }} transition={{ duration: 2 }} className="text-[10px] tracking-[0.4em] uppercase text-white/40 mb-12">
+          <motion.div initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} viewport={{ once: true, margin: '-100px' }} transition={{ duration: 2 }} className="eyebrow mb-12">
             The climb
           </motion.div>
-          <h2 className="font-serif text-[42px] md:text-[72px] leading-[1.08] tracking-[-0.02em] text-white">
+          <h2 className="font-serif text-[42px] md:text-[72px] leading-[1.0] tracking-[-0.02em] text-platinum">
             <LineReveal
               lines={[
                 <span key="l1">Every step, <span className="italic text-white/85">remembered.</span></span>,
               ]}
             />
           </h2>
-          <motion.p initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} viewport={{ once: true, margin: '-100px' }} transition={{ duration: 2, delay: 0.5 }} className="mt-14 text-white/55 text-base md:text-lg font-light leading-[2] max-w-2xl mx-auto">
+          <motion.p initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} viewport={{ once: true, margin: '-100px' }} transition={{ duration: 2, delay: 0.5 }} className="mt-14 text-platinum-muted text-base md:text-lg leading-[1.7] max-w-2xl mx-auto">
             The sacrifice, the doubt, the slow mornings no one saw — every step is kept.
           </motion.p>
         </div>
@@ -550,10 +550,10 @@ function Landing({ onBegin, onExplore, onSignIn, stats }) {
           the Climb and the Act 5 finale. */}
       <ScrubScene id="monument" videoBase="act04" poster="/videos/act04-poster.jpg">
         <div className="relative max-w-4xl mx-auto text-center px-8 py-20">
-          <motion.div initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} viewport={{ once: true, margin: '-100px' }} transition={{ duration: 2 }} className="text-[10px] tracking-[0.4em] uppercase text-white/40 mb-12">
+          <motion.div initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} viewport={{ once: true, margin: '-100px' }} transition={{ duration: 2 }} className="eyebrow mb-12">
             The monument
           </motion.div>
-          <h2 className="font-serif text-[42px] md:text-[72px] leading-[1.08] tracking-[-0.02em] text-white">
+          <h2 className="font-serif text-[42px] md:text-[72px] leading-[1.0] tracking-[-0.02em] text-platinum">
             <LineReveal
               lines={[
                 'This is what a life looks like,',
@@ -575,7 +575,7 @@ function Landing({ onBegin, onExplore, onSignIn, stats }) {
           clickable. */}
       <ScrubScene id="finale" videoBase="act05" poster="/videos/act05-poster.jpg">
         <div className="relative max-w-4xl mx-auto text-center px-8 py-20">
-          <h2 className="font-serif text-[48px] md:text-[92px] leading-[0.98] tracking-[-0.025em] text-white">
+          <h2 className="font-serif text-[48px] md:text-[92px] leading-[0.98] tracking-[-0.025em] text-platinum">
             <LineReveal
               duration={1.4}
               lines={[
@@ -607,15 +607,15 @@ function Landing({ onBegin, onExplore, onSignIn, stats }) {
       <section id="mentor" className="relative bg-black">
         <div className="max-w-[1200px] mx-auto px-8 md:px-14 py-40 md:py-56 grid md:grid-cols-12 gap-16 md:gap-20 items-center">
           <div className="md:col-span-6">
-            <div className="text-[10px] tracking-[0.4em] uppercase text-champagne/70 mb-10">Guardian of the Journey</div>
-            <h2 className="font-serif text-[44px] md:text-[64px] leading-[1.05] tracking-[-0.02em] text-white">
+            <div className="eyebrow-accent mb-10">Guardian of the Journey</div>
+            <h2 className="font-serif text-[44px] md:text-[64px] leading-[1.05] tracking-[-0.02em] text-platinum">
               <LineReveal
                 lines={[
                   <span key="l1">An intelligence that <span className="italic text-white/70">walks with you.</span></span>,
                 ]}
               />
             </h2>
-            <p className="mt-10 text-white/55 text-[16px] leading-[1.95] font-light max-w-lg">
+            <p className="mt-10 text-platinum-muted text-base leading-[1.65] max-w-lg">
               Not a coach. Not a chatbot. The Guardian remembers every stone you have laid. It never gives generic motivation. It only speaks to you using your own story — and reminds you, when you forget, how far you have already come.
             </p>
             <div className="mt-14 space-y-5 max-w-md">
@@ -629,12 +629,12 @@ function Landing({ onBegin, onExplore, onSignIn, stats }) {
           </div>
           <motion.div initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, margin: '-100px' }} transition={{ duration: 1.8, ease: EASE }} className="md:col-span-6">
             <div className="relative bg-gradient-to-br from-white/[0.04] via-white/[0.015] to-transparent p-10 md:p-14 rounded-sm" style={{ boxShadow: '0 40px 100px -40px rgba(212,176,106,0.15), inset 0 1px 0 rgba(255,255,255,0.05)' }}>
-              <div className="text-[10px] tracking-[0.35em] uppercase text-white/40 mb-8">A Sunday, quietly</div>
+              <div className="eyebrow mb-8">A Sunday, quietly</div>
               <div className="font-serif text-[22px] md:text-[28px] leading-[1.4] text-white/90">
                 &ldquo;I see three restarts this month around the same block. This is not weakness. It is a signal. The story is asking for a smaller commitment, not a bigger one. Try twelve minutes tomorrow. Only twelve. Then come and inscribe it.&rdquo;
               </div>
               <div className="mt-12 pt-6 flex items-center justify-between" style={{ borderTop: '1px solid rgba(255,255,255,0.05)' }}>
-                <div className="text-[10px] tracking-[0.32em] uppercase text-white/45">Guardian</div>
+                <div className="eyebrow">Guardian</div>
                 <div className="text-[10px] tracking-wider text-white/25">remembered forever</div>
               </div>
             </div>
@@ -646,8 +646,8 @@ function Landing({ onBegin, onExplore, onSignIn, stats }) {
       <section id="premium" className="relative bg-black">
         <div className="max-w-[1200px] mx-auto px-8 md:px-14 py-40 md:py-56">
           <div className="max-w-2xl mb-28">
-            <div className="text-[10px] tracking-[0.4em] uppercase text-white/40 mb-10">Monument Eternal</div>
-            <h2 className="font-serif text-[44px] md:text-[64px] leading-[1.05] tracking-[-0.02em] text-white">
+            <div className="eyebrow mb-10">Monument Eternal</div>
+            <h2 className="font-serif text-[44px] md:text-[64px] leading-[1.05] tracking-[-0.02em] text-platinum">
               <LineReveal
                 lines={[
                   <span key="l1">For the ones who <span className="italic text-white/70">refuse to be forgotten.</span></span>,
@@ -668,12 +668,12 @@ function Landing({ onBegin, onExplore, onSignIn, stats }) {
               <div className="p-10 md:p-14 rounded-sm bg-gradient-to-br from-white/[0.04] via-white/[0.015] to-transparent" style={{ boxShadow: '0 40px 100px -40px rgba(212,176,106,0.18), inset 0 1px 0 rgba(255,255,255,0.05)' }}>
                 <div className="flex items-baseline justify-between mb-10">
                   <div>
-                    <div className="text-[10px] tracking-[0.4em] uppercase text-champagne mb-4">Eternal</div>
+                    <div className="eyebrow-accent mb-4">Eternal</div>
                     <div className="text-white/55 text-[13px] font-light">Monthly · billed yearly</div>
                   </div>
-                  <div className="font-serif text-[72px] md:text-[88px] text-white leading-none tracking-[-0.03em]">$12</div>
+                  <div className="font-serif text-[72px] md:text-[88px] text-platinum leading-none tracking-[-0.03em]">$12</div>
                 </div>
-                <p className="text-white/50 text-[15px] font-light leading-[1.95] max-w-md mb-12">
+                <p className="text-platinum-muted text-base leading-[1.65] max-w-md mb-12">
                   One quiet subscription. No tiers. No ads. No noise. Only the Monument, in the highest resolution we know how to preserve a human life.
                 </p>
                 <button onClick={onBegin} className="group w-full py-4 rounded-full bg-white text-black text-[11px] tracking-[0.24em] uppercase font-medium hover:bg-white/95 hover:-translate-y-0.5 hover:shadow-[0_20px_50px_-15px_rgba(255,255,255,0.35)] active:translate-y-0 active:scale-[0.98] transition-all duration-500 sheen flex items-center justify-center gap-3">
@@ -697,7 +697,7 @@ function Landing({ onBegin, onExplore, onSignIn, stats }) {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true, margin: '-100px' }}
             transition={{ duration: 1.4, ease: EASE }}
-            className="font-serif text-[32px] md:text-[48px] leading-[1.12] tracking-[-0.02em] text-white"
+            className="font-serif text-[32px] md:text-[48px] leading-[1.12] tracking-[-0.02em] text-platinum"
           >
             The first stone <span className="italic text-white/70">won&rsquo;t lay itself.</span>
           </motion.h2>

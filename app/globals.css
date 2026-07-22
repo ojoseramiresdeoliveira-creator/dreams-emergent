@@ -54,6 +54,22 @@ html, body { background: var(--obsidian); }
 .text-platinum { color: var(--platinum); }
 .text-platinum-muted { color: var(--platinum-muted); }
 .text-champagne { color: var(--champagne); }
+
+/* Landing kicker labels — two tokens only (design audit, Phase 1). Replaces the
+   nine ad-hoc tracking/colour combinations that stood in for section eyebrows.
+   .eyebrow is the default (muted platinum); .eyebrow-accent is the reserved
+   champagne beat. Layout (margins) stays on the element. */
+.eyebrow,
+.eyebrow-accent {
+  font-family: 'Inter', system-ui, sans-serif;
+  font-size: 10px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.3em;
+}
+.eyebrow { color: var(--platinum-muted); }
+.eyebrow-accent { letter-spacing: 0.32em; color: var(--champagne); }
+
 .bg-obsidian { background: var(--obsidian); }
 .bg-obsidian-2 { background: var(--obsidian-2); }
 
