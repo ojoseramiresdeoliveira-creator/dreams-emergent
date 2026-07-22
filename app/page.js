@@ -721,6 +721,10 @@ function Landing({ onBegin, onExplore, onSignIn, stats }) {
             and the melt into the Ethos below both stay clean. Act 1's video is
             the hero's only background now. */}
         <div aria-hidden className="absolute inset-0 pointer-events-none bg-gradient-to-b from-black/55 via-black/30 to-black/75" />
+        {/* top edge fade — the clip is born out of pure black so the hand-off
+            from the nav / page top is seamless, mirroring the bottom melt into
+            the Ethos. Same edge treatment every act shares. */}
+        <div aria-hidden className="absolute top-0 inset-x-0 h-28 md:h-40 pointer-events-none bg-gradient-to-b from-black to-transparent" />
 
         <div className="relative w-full max-w-[1100px] mx-auto px-6 md:px-14 pt-28 md:pt-24 pb-20 md:pb-0 flex justify-center">
           {/* Text + actions — the only thing above Act 1's clip */}
@@ -796,7 +800,7 @@ function Landing({ onBegin, onExplore, onSignIn, stats }) {
 
         {/* the clip melts into black at the section edge instead of clipping
             on a hard line — seamless hand-off to the Ethos below */}
-        <div aria-hidden className="absolute bottom-0 inset-x-0 h-24 md:h-36 pointer-events-none bg-gradient-to-b from-transparent to-black" />
+        <div aria-hidden className="absolute bottom-0 inset-x-0 h-28 md:h-40 pointer-events-none bg-gradient-to-b from-transparent to-black" />
 
         <motion.div
           style={{ opacity: reduce ? 1 : cueOpacity }}

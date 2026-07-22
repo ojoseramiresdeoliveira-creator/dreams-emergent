@@ -64,6 +64,12 @@ export default function ScrubScene({
         </video>
         {/* legibility scrim so the copy reads over any frame */}
         <div aria-hidden className={`absolute inset-0 pointer-events-none ${overlay}`} />
+        {/* edge fades — each clip melts to pure black at the top and bottom so
+            adjacent acts bleed into one another instead of showing a seam. The
+            section background is black too, so the boundary between two acts is
+            a continuous stretch of black: one film, not stacked stills. */}
+        <div aria-hidden className="absolute top-0 inset-x-0 h-28 md:h-40 pointer-events-none bg-gradient-to-b from-black to-transparent" />
+        <div aria-hidden className="absolute bottom-0 inset-x-0 h-28 md:h-40 pointer-events-none bg-gradient-to-t from-black to-transparent" />
         <div className="relative w-full">{children}</div>
       </section>
     </div>
