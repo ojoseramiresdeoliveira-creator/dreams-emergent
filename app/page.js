@@ -864,6 +864,29 @@ function Landing({ onBegin, onExplore, onSignIn, stats }) {
         </div>
       </ScrubScene>
 
+      {/* THE MONUMENT — Act 4. act04 (the monument under construction, carved
+          stones lifted into place) scrubs full-screen beneath the copy; a frame
+          of that same clip is the poster / mobile / reduced-motion fallback.
+          Same ScrubScene contract as every act (edge fades, desktop scrub,
+          mobile autoplay-in-view). Placed right after the Climb so the video
+          acts run contiguously; the graphic MonumentRises below is left in
+          place for now, on request. */}
+      <ScrubScene id="monument" videoBase="act04" poster="/videos/act04-poster.jpg">
+        <div className="relative max-w-4xl mx-auto text-center px-8 py-20">
+          <motion.div initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} viewport={{ once: true, margin: '-100px' }} transition={{ duration: 2 }} className="text-[10px] tracking-[0.4em] uppercase text-white/40 mb-12">
+            The monument
+          </motion.div>
+          <h2 className="font-serif text-[42px] md:text-[72px] leading-[1.08] tracking-[-0.02em] text-white">
+            <LineReveal
+              lines={[
+                'This is what a life looks like,',
+                <span key="l2">when nothing is <span className="italic text-white/85">forgotten.</span></span>,
+              ]}
+            />
+          </h2>
+        </div>
+      </ScrubScene>
+
       {/* METHOD — The First Stone */}
       <FirstStoneScene />
 
