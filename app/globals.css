@@ -35,13 +35,22 @@
 
 html, body { background: var(--obsidian); }
 
-.font-serif { font-family: 'Fraunces', 'Times New Roman', serif; font-weight: 400; font-optical-sizing: auto; letter-spacing: -0.01em; }
+.font-serif { font-family: 'Fraunces', 'Times New Roman', serif; font-weight: 400; font-optical-sizing: auto; }
 .font-sans { font-family: 'Inter', system-ui, sans-serif; }
 
 /* Monumental display weight — engraved titles reach into the upper end of
    Fraunces' weight axis instead of the single 400 Instrument Serif offered.
    Defined after .font-serif so it wins the equal-specificity cascade. */
 .font-display { font-weight: 600; }
+
+/* Title tracking tiers. Fraunces' display letter-spacing lives here, not on
+   .font-serif — so it is tunable per size tier and actually wins the cascade
+   (these are defined after .font-serif; a bare `tracking-[…]` utility would
+   otherwise be overridden by .font-serif and silently do nothing). Both sit at
+   -0.01em today — the previous effective value, so nothing shifts visually.
+   Split them when a tier needs to open up (large sizes) or tighten. */
+.track-display { letter-spacing: -0.01em; }  /* ~72–96px monumental titles */
+.track-title   { letter-spacing: -0.01em; }  /* ~24–68px titles & figures  */
 
 /* Grain overlay */
 .grain::before {
@@ -154,7 +163,7 @@ html {
   text-rendering: optimizeLegibility;
   font-feature-settings: 'ss01', 'ss02', 'cv11', 'kern';
 }
-.font-serif { font-feature-settings: 'liga', 'dlig', 'kern'; letter-spacing: -0.01em; }
+.font-serif { font-feature-settings: 'liga', 'dlig', 'kern'; }
 .tabular { font-variant-numeric: tabular-nums; }
 
 /* Respect reduced motion */
