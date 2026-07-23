@@ -27,7 +27,7 @@ export default function ScrubScene({
   videoBase,            // 'act02' → /videos/act02.mp4 (+ /videos/act02-mobile.mp4)
   poster,
   trackVh = 220,        // ≈120vh of pinned scrub — tight pacing, no dead scroll
-  overlay = 'bg-gradient-to-b from-black/60 via-black/25 to-black/70',
+  overlay = 'bg-gradient-to-b from-black/40 via-black/10 to-black/45',
   children,
 }) {
   const reduce = useReducedMotion();
@@ -69,8 +69,8 @@ export default function ScrubScene({
             adjacent acts bleed into one another instead of showing a seam. The
             section background is black too, so the boundary between two acts is
             a continuous stretch of black: one film, not stacked stills. */}
-        <div aria-hidden className="absolute top-0 inset-x-0 h-28 md:h-40 pointer-events-none bg-gradient-to-b from-black to-transparent" />
-        <div aria-hidden className="absolute bottom-0 inset-x-0 h-28 md:h-40 pointer-events-none bg-gradient-to-t from-black to-transparent" />
+        <div aria-hidden className="absolute top-0 inset-x-0 h-16 md:h-24 pointer-events-none bg-gradient-to-b from-black to-transparent" />
+        <div aria-hidden className="absolute bottom-0 inset-x-0 h-16 md:h-24 pointer-events-none bg-gradient-to-t from-black to-transparent" />
         <div className="relative w-full">{children}</div>
       </section>
     </div>
