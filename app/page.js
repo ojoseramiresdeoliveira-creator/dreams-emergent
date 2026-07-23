@@ -124,7 +124,6 @@ function FirstStoneScene() {
         transition={{ duration: 1.2, ease: EASE }}
         className="max-w-[1100px] mx-auto px-8 md:px-14 py-32 md:py-48"
       >
-        <div className="eyebrow mb-6">The Rite</div>
         <h2 className="font-serif font-display text-[clamp(34px,5vw,56px)] leading-[1.05] track-title text-platinum">
           Three acts. <span className="italic text-champagne">One life.</span>
         </h2>
@@ -425,14 +424,6 @@ function Landing({ onBegin, onExplore, onSignIn, stats }) {
             style={(reduce || isMobile) ? undefined : { y: textY, opacity: heroOpacity, x: textLeanX }}
             className="relative w-full text-center"
           >
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ duration: 2, delay: 0.5 }}
-              className="eyebrow mb-6"
-            >
-              Monument of Dreams
-            </motion.div>
             <h1 className="relative font-serif font-display text-[clamp(24px,6.6vw,92px)] sm:text-[clamp(40px,8vw,92px)] leading-[0.98] track-display text-platinum">
               <LineReveal
                 mode="mount"
@@ -502,9 +493,6 @@ function Landing({ onBegin, onExplore, onSignIn, stats }) {
           reduced-motion fallback, so desktop and mobile show the same scene. */}
       <ScrubScene id="ethos" videoBase="act02" poster="/videos/act02-poster.jpg">
         <div className="relative max-w-4xl mx-auto text-center px-8 py-20">
-          <motion.div initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} viewport={{ once: true, margin: '-100px' }} transition={{ duration: 2 }} className="eyebrow mb-6">
-            Why we exist
-          </motion.div>
           <h2 className="font-serif font-display text-[clamp(38px,6vw,68px)] leading-[1.0] track-title text-platinum">
             <LineReveal
               lines={[
@@ -526,13 +514,11 @@ function Landing({ onBegin, onExplore, onSignIn, stats }) {
           is the poster / mobile / reduced-motion fallback. */}
       <ScrubScene id="climb" videoBase="act03" poster="/videos/act03-poster.jpg">
         <div className="relative max-w-4xl mx-auto text-center px-8 py-20">
-          <motion.div initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} viewport={{ once: true, margin: '-100px' }} transition={{ duration: 2 }} className="eyebrow mb-6">
-            The climb
-          </motion.div>
           <h2 className="font-serif font-display text-[clamp(38px,6vw,68px)] leading-[1.0] track-title text-platinum">
             <LineReveal
               lines={[
-                <span key="l1">Every step, <span className="italic text-champagne">remembered.</span></span>,
+                'The world saw the summit.',
+                <span key="l2">Every step, <span className="italic text-champagne">remembered.</span></span>,
               ]}
             />
           </h2>
@@ -550,9 +536,6 @@ function Landing({ onBegin, onExplore, onSignIn, stats }) {
           the Climb and the Act 5 finale. */}
       <ScrubScene id="monument" videoBase="act04" poster="/videos/act04-poster.jpg">
         <div className="relative max-w-4xl mx-auto text-center px-8 py-20">
-          <motion.div initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} viewport={{ once: true, margin: '-100px' }} transition={{ duration: 2 }} className="eyebrow mb-6">
-            The monument
-          </motion.div>
           <h2 className="font-serif font-display text-[clamp(38px,6vw,68px)] leading-[1.0] track-title text-platinum">
             <LineReveal
               lines={[
@@ -668,7 +651,6 @@ function Landing({ onBegin, onExplore, onSignIn, stats }) {
               <div className="p-10 md:p-14 rounded-sm bg-gradient-to-br from-white/[0.04] via-white/[0.015] to-transparent" style={{ boxShadow: '0 40px 100px -40px rgba(212,176,106,0.18), inset 0 1px 0 rgba(255,255,255,0.05)' }}>
                 <div className="flex items-baseline justify-between mb-10">
                   <div>
-                    <div className="eyebrow-accent mb-4">Eternal</div>
                     <div className="text-white/55 text-[13px] font-light">Monthly · billed yearly</div>
                   </div>
                   <div className="font-serif font-display text-[72px] md:text-[88px] text-platinum leading-none track-display">$12</div>
