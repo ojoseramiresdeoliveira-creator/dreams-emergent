@@ -308,21 +308,6 @@ html {
   border-radius: 6px;
 }
 
-/* Film grain overlay for hero cinematic quality */
-.film-grain {
-  position: absolute; inset: 0; pointer-events: none;
-  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='180' height='180'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0.9 0 0 0 0 0.85 0 0 0 0 0.75 0 0 0 0.06 0'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
-  opacity: 0.5;
-  mix-blend-mode: overlay;
-}
-
-/* Very subtle floating drift for hero elements */
-@keyframes hero-drift {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-6px); }
-}
-.animate-hero-drift { animation: hero-drift 10s ease-in-out infinite; }
-
 /* Starfield twinkle */
 @keyframes twinkle { 0%,100% { opacity: 0.35 } 50% { opacity: 0.8 } }
 .twinkle { animation: twinkle 4s ease-in-out infinite; }
@@ -333,13 +318,6 @@ html {
 }
 
 /* Cinematic image animations */
-@keyframes kenburns {
-  0% { transform: scale(1.05) translate3d(0, 0, 0); }
-  50% { transform: scale(1.12) translate3d(-1%, -1%, 0); }
-  100% { transform: scale(1.05) translate3d(0, 0, 0); }
-}
-.animate-kenburns { animation: kenburns 42s ease-in-out infinite; will-change: transform; }
-
 @keyframes earthdrift {
   0% { transform: scale(1.15) rotate(0deg); }
   100% { transform: scale(1.15) rotate(360deg); }
@@ -408,39 +386,6 @@ html, body { overflow-x: hidden; }
 }
 .input-lux:focus { background-size: 100% 1px; }
 
-/* ============ Cinematic landing (Phase 2) ============ */
-
-/* Slow champagne light band that pans across cinematic stills.
-   Transform/opacity only, screen-blended, barely-there. */
-@keyframes lightsweep {
-  0%   { transform: translateX(-80%) skewX(-14deg); opacity: 0; }
-  12%  { opacity: 1; }
-  55%  { opacity: 1; }
-  100% { transform: translateX(320%) skewX(-14deg); opacity: 0; }
-}
-.light-sweep {
-  position: absolute; inset: 0;
-  overflow: hidden;
-  pointer-events: none;
-  mix-blend-mode: screen;
-}
-.light-sweep::before {
-  content: '';
-  position: absolute;
-  top: -20%; bottom: -20%;
-  left: 0; width: 45%;
-  background: linear-gradient(
-    100deg,
-    transparent 0%,
-    rgba(212,176,106,0.05) 35%,
-    rgba(238,236,229,0.09) 50%,
-    rgba(212,176,106,0.05) 65%,
-    transparent 100%
-  );
-  animation: lightsweep 16s var(--ease-in-out) infinite;
-  will-change: transform, opacity;
-}
-
 /* ============ Guardian vivo (Phase 4) ============ */
 
 /* Chat input bar — champagne glow when focused */
@@ -486,8 +431,6 @@ html, body { overflow-x: hidden; }
 
 /* Offscreen sections stop paying for their ambient loops
    (attribute toggled by useAnimationGate in app/page.js) */
-[data-offscreen] .animate-kenburns,
-[data-offscreen] .monument-glow,
-[data-offscreen] .light-sweep::before {
+[data-offscreen] .monument-glow {
   animation-play-state: paused;
 }

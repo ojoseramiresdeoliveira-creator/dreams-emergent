@@ -1880,8 +1880,11 @@ function App() {
   return (
     <MotionConfig reducedMotion="user">
     <div className="min-h-screen grain">
-      <Ambient />
-      <SpotlightController />
+      {/* Ambient sits at -z-10 behind opaque sections, and the spotlight only
+          drives .spotlight in the app dashboard — both are wasted on the
+          landing (occluded / nothing to read), so skip them there. */}
+      {view !== 'landing' && <Ambient />}
+      {view !== 'landing' && <SpotlightController />}
       <AnimatePresence>
         {showAuth && (
           <AuthModal key="auth" mode={authMode} onSuccess={handleAuthSuccess} onClose={() => setShowAuth(false)} />
