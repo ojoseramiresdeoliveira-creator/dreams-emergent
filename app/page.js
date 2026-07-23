@@ -611,7 +611,7 @@ function Landing({ onBegin, onExplore, onSignIn, stats }) {
             </div>
           </div>
           <motion.div initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, margin: '-100px' }} transition={{ duration: 1.8, ease: EASE }} className="md:col-span-6">
-            <div className="relative bg-gradient-to-br from-white/[0.04] via-white/[0.015] to-transparent p-10 md:p-14 rounded-sm" style={{ boxShadow: '0 40px 100px -40px rgba(212,176,106,0.15), inset 0 1px 0 rgba(255,255,255,0.05)' }}>
+            <div className="card-glow relative p-10 md:p-14 rounded-sm">
               <div className="eyebrow mb-8">A Sunday, quietly</div>
               <div className="font-serif text-[clamp(22px,3vw,28px)] leading-[1.4] text-platinum">
                 &ldquo;I see three restarts this month around the same block. This is not weakness. It is a signal. The story is asking for a smaller commitment, not a bigger one. Try twelve minutes tomorrow. Only twelve. Then come and inscribe it.&rdquo;
@@ -648,7 +648,7 @@ function Landing({ onBegin, onExplore, onSignIn, stats }) {
               ))}
             </div>
             <div className="md:col-span-6 md:col-start-7">
-              <div className="p-10 md:p-14 rounded-sm bg-gradient-to-br from-white/[0.04] via-white/[0.015] to-transparent" style={{ boxShadow: '0 40px 100px -40px rgba(212,176,106,0.18), inset 0 1px 0 rgba(255,255,255,0.05)' }}>
+              <div className="card-glow p-10 md:p-14 rounded-sm">
                 <div className="flex items-baseline justify-between mb-10">
                   <div>
                     <div className="text-platinum-muted text-[13px] font-light">Monthly · billed yearly</div>
