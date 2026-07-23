@@ -92,8 +92,14 @@ Rules of thumb:
     act01  ✅ mp4 · ✅ mobile · ✅ poster
     act02  ✅ mp4 · ✅ mobile · ✅ poster
     act03  ✅ mp4 · ✅ mobile · ✅ poster
-    act04  — pending
-    act05  — pending
+    act04  ✅ mp4 · ✅ mobile · ✅ poster
+    act05  ✅ mp4 · ✅ mobile · ✅ poster
 
 (`.mp4`s are local-only, so "✅" means the poster is committed and the clips
 have been encoded on at least one machine — grab them from CDN/shared drive.)
+
+Note: act04/act05 desktop clips exceed the old ≤2 MB rule of thumb on purpose
+(act04 ~8.5 MB, act05 ~5.4 MB) — they're the full-quality batch, matched to
+act01–03, since R2 egress is free. Don't re-shrink them. An earlier ≤2 MB
+crf 37/32 pass looked visibly worse; those are the versions to replace on R2.
+Quality above this batch needs the `.mov` masters (José's machine).
