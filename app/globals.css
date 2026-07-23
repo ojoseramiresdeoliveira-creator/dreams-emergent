@@ -9,6 +9,7 @@
   --platinum-muted: #A8A49A;
   --champagne: #D4B06A;
   --champagne-soft: #E8C88A;
+  --hairline-faint: rgba(245, 245, 243, 0.05);
   --hairline: rgba(245, 245, 243, 0.06);
   --hairline-strong: rgba(245, 245, 243, 0.10);
   --background: 240 4% 4%;
@@ -62,6 +63,7 @@ html, body { background: var(--obsidian); }
 }
 
 /* Hairline utility */
+.hairline-faint { border-color: var(--hairline-faint); }
 .hairline { border-color: var(--hairline); }
 .hairline-strong { border-color: var(--hairline-strong); }
 

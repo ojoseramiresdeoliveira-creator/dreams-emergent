@@ -365,17 +365,17 @@ function Landing({ onBegin, onExplore, onSignIn, stats }) {
         <div className="max-w-[1440px] mx-auto px-6 md:px-14 py-5 md:py-6 flex items-center justify-between">
           <div className="flex items-center gap-2.5">
             <div className="w-1.5 h-1.5 rounded-full bg-champagne" />
-            <span className="text-[10px] md:text-[11px] tracking-[0.28em] md:tracking-[0.3em] uppercase text-white/90 font-medium">Monument of Dreams</span>
+            <span className="text-[10px] md:text-[11px] tracking-[0.28em] md:tracking-[0.3em] uppercase text-platinum/70 font-medium">Monument of Dreams</span>
           </div>
-          <div className="hidden md:flex items-center gap-10 text-[12px] tracking-wide text-white/55">
-            <a href="#ethos" className="nav-link hover:text-white">Ethos</a>
-            <a href="#how" className="nav-link hover:text-white">Method</a>
-            <a href="#mentor" className="nav-link hover:text-white">Mentor</a>
-            <a href="#premium" className="nav-link hover:text-white">Eternal</a>
+          <div className="hidden md:flex items-center gap-10 text-[12px] tracking-wide text-platinum-muted">
+            <a href="#ethos" className="nav-link hover:text-platinum">Ethos</a>
+            <a href="#how" className="nav-link hover:text-platinum">Method</a>
+            <a href="#mentor" className="nav-link hover:text-platinum">Mentor</a>
+            <a href="#premium" className="nav-link hover:text-platinum">Eternal</a>
           </div>
           <div className="flex items-center gap-5">
-            {onSignIn && <button onClick={onSignIn} className="text-[10px] md:text-[11px] tracking-[0.24em] uppercase text-white/55 hover:text-white transition-colors duration-500">Sign In</button>}
-            <button onClick={onBegin} className="text-[10px] md:text-[11px] tracking-[0.24em] uppercase text-white/80 hover:text-white transition-colors duration-500 flex items-center gap-2">
+            {onSignIn && <button onClick={onSignIn} className="text-[10px] md:text-[11px] tracking-[0.24em] uppercase text-platinum-muted hover:text-platinum transition-colors duration-500">Sign In</button>}
+            <button onClick={onBegin} className="text-[10px] md:text-[11px] tracking-[0.24em] uppercase text-platinum/70 hover:text-platinum transition-colors duration-500 flex items-center gap-2">
               Enter <ArrowUpRight className="w-3 h-3" />
             </button>
           </div>
@@ -473,7 +473,7 @@ function Landing({ onBegin, onExplore, onSignIn, stats }) {
 
         <motion.div
           style={{ opacity: reduce ? 1 : cueOpacity }}
-          className="hidden md:flex absolute bottom-8 left-1/2 -translate-x-1/2 text-white/40 text-[9px] tracking-[0.4em] uppercase flex-col items-center gap-4"
+          className="hidden md:flex absolute bottom-8 left-1/2 -translate-x-1/2 text-platinum/40 text-[9px] tracking-[0.4em] uppercase flex-col items-center gap-4"
         >
           <motion.div
             initial={{ opacity: 0 }}
@@ -603,7 +603,7 @@ function Landing({ onBegin, onExplore, onSignIn, stats }) {
             </p>
             <div className="mt-14 space-y-5 max-w-md">
               {['Remembers every entry of your journey', 'Connects memories you cannot see', 'Reminds you how much you have grown', 'Speaks only in the language of your story'].map((f) => (
-                <div key={f} className="flex items-start gap-4 text-white/70">
+                <div key={f} className="flex items-start gap-4 text-platinum/70">
                   <div className="mt-2.5 w-1 h-1 rounded-full bg-champagne shrink-0" />
                   <span className="text-[15px] font-light leading-relaxed">{f}</span>
                 </div>
@@ -613,12 +613,12 @@ function Landing({ onBegin, onExplore, onSignIn, stats }) {
           <motion.div initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, margin: '-100px' }} transition={{ duration: 1.8, ease: EASE }} className="md:col-span-6">
             <div className="relative bg-gradient-to-br from-white/[0.04] via-white/[0.015] to-transparent p-10 md:p-14 rounded-sm" style={{ boxShadow: '0 40px 100px -40px rgba(212,176,106,0.15), inset 0 1px 0 rgba(255,255,255,0.05)' }}>
               <div className="eyebrow mb-8">A Sunday, quietly</div>
-              <div className="font-serif text-[clamp(22px,3vw,28px)] leading-[1.4] text-white/90">
+              <div className="font-serif text-[clamp(22px,3vw,28px)] leading-[1.4] text-platinum">
                 &ldquo;I see three restarts this month around the same block. This is not weakness. It is a signal. The story is asking for a smaller commitment, not a bigger one. Try twelve minutes tomorrow. Only twelve. Then come and inscribe it.&rdquo;
               </div>
-              <div className="mt-12 pt-6 flex items-center justify-between" style={{ borderTop: '1px solid rgba(255,255,255,0.05)' }}>
+              <div className="mt-12 pt-6 flex items-center justify-between border-t hairline-faint">
                 <div className="eyebrow">Guardian</div>
-                <div className="text-[10px] tracking-wider text-white/25">remembered forever</div>
+                <div className="text-[10px] tracking-wider text-platinum/25">remembered forever</div>
               </div>
             </div>
           </motion.div>
@@ -641,9 +641,9 @@ function Landing({ onBegin, onExplore, onSignIn, stats }) {
           <div className="grid md:grid-cols-12 gap-16 md:gap-20 items-start">
             <div className="md:col-span-5 space-y-0">
               {['Unlimited Monument', 'The Guardian, always with you', 'Yearly Life Book, printed', 'Timeline preserved forever', 'Life Chapters, auto-written', 'Time Capsules to your future self', 'Full journey export'].map((f) => (
-                <div key={f} className="flex items-center gap-4 py-5" style={{ borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
+                <div key={f} className="flex items-center gap-4 py-5 border-b hairline-faint">
                   <Check className="w-3 h-3 text-champagne shrink-0" strokeWidth={2.5} />
-                  <span className="text-white/80 text-[15px] font-light">{f}</span>
+                  <span className="text-platinum/70 text-[15px] font-light">{f}</span>
                 </div>
               ))}
             </div>
@@ -651,7 +651,7 @@ function Landing({ onBegin, onExplore, onSignIn, stats }) {
               <div className="p-10 md:p-14 rounded-sm bg-gradient-to-br from-white/[0.04] via-white/[0.015] to-transparent" style={{ boxShadow: '0 40px 100px -40px rgba(212,176,106,0.18), inset 0 1px 0 rgba(255,255,255,0.05)' }}>
                 <div className="flex items-baseline justify-between mb-10">
                   <div>
-                    <div className="text-white/55 text-[13px] font-light">Monthly · billed yearly</div>
+                    <div className="text-platinum-muted text-[13px] font-light">Monthly · billed yearly</div>
                   </div>
                   <div className="font-serif font-display text-[72px] md:text-[88px] text-platinum leading-none track-display">$12</div>
                 </div>
@@ -695,7 +695,7 @@ function Landing({ onBegin, onExplore, onSignIn, stats }) {
 
       {/* FOOTER */}
       <footer className="bg-black">
-        <div className="max-w-[1200px] mx-auto px-8 md:px-14 py-14 flex flex-col md:flex-row items-center justify-between gap-6" style={{ borderTop: '1px solid rgba(255,255,255,0.04)' }}>
+        <div className="max-w-[1200px] mx-auto px-8 md:px-14 py-14 flex flex-col md:flex-row items-center justify-between gap-6 border-t hairline-faint">
           <div className="flex items-center gap-2.5">
             <div className="w-1.5 h-1.5 rounded-full bg-champagne" />
             <span className="text-[11px] tracking-[0.3em] uppercase text-platinum/70">Monument of Dreams</span>
