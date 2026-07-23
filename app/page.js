@@ -125,7 +125,7 @@ function FirstStoneScene() {
         className="max-w-[1100px] mx-auto px-8 md:px-14 py-32 md:py-48"
       >
         <div className="eyebrow mb-6">The Rite</div>
-        <h2 className="font-serif text-[clamp(34px,5vw,56px)] leading-[1.05] tracking-[-0.02em] text-platinum">
+        <h2 className="font-serif font-display text-[clamp(34px,5vw,56px)] leading-[1.05] tracking-[-0.02em] text-platinum">
           Three acts. <span className="italic text-champagne">One life.</span>
         </h2>
         <p className="mt-8 text-platinum-muted text-base leading-[1.65] max-w-xl">
@@ -433,7 +433,7 @@ function Landing({ onBegin, onExplore, onSignIn, stats }) {
             >
               Monument of Dreams
             </motion.div>
-            <h1 className="relative font-serif text-[clamp(24px,6.6vw,92px)] sm:text-[clamp(40px,8vw,92px)] leading-[0.98] tracking-[-0.03em] text-platinum">
+            <h1 className="relative font-serif font-display text-[clamp(24px,6.6vw,92px)] sm:text-[clamp(40px,8vw,92px)] leading-[0.98] tracking-[-0.03em] text-platinum">
               <LineReveal
                 mode="mount"
                 delay={0.7}
@@ -505,7 +505,7 @@ function Landing({ onBegin, onExplore, onSignIn, stats }) {
           <motion.div initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} viewport={{ once: true, margin: '-100px' }} transition={{ duration: 2 }} className="eyebrow mb-6">
             Why we exist
           </motion.div>
-          <h2 className="font-serif text-[clamp(38px,6vw,68px)] leading-[1.0] tracking-[-0.025em] text-platinum">
+          <h2 className="font-serif font-display text-[clamp(38px,6vw,68px)] leading-[1.0] tracking-[-0.025em] text-platinum">
             <LineReveal
               lines={[
                 'The world remembers',
@@ -529,7 +529,7 @@ function Landing({ onBegin, onExplore, onSignIn, stats }) {
           <motion.div initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} viewport={{ once: true, margin: '-100px' }} transition={{ duration: 2 }} className="eyebrow mb-6">
             The climb
           </motion.div>
-          <h2 className="font-serif text-[clamp(38px,6vw,68px)] leading-[1.0] tracking-[-0.025em] text-platinum">
+          <h2 className="font-serif font-display text-[clamp(38px,6vw,68px)] leading-[1.0] tracking-[-0.025em] text-platinum">
             <LineReveal
               lines={[
                 <span key="l1">Every step, <span className="italic text-champagne">remembered.</span></span>,
@@ -553,7 +553,7 @@ function Landing({ onBegin, onExplore, onSignIn, stats }) {
           <motion.div initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} viewport={{ once: true, margin: '-100px' }} transition={{ duration: 2 }} className="eyebrow mb-6">
             The monument
           </motion.div>
-          <h2 className="font-serif text-[clamp(38px,6vw,68px)] leading-[1.0] tracking-[-0.025em] text-platinum">
+          <h2 className="font-serif font-display text-[clamp(38px,6vw,68px)] leading-[1.0] tracking-[-0.025em] text-platinum">
             <LineReveal
               lines={[
                 'This is what a life looks like,',
@@ -575,7 +575,7 @@ function Landing({ onBegin, onExplore, onSignIn, stats }) {
           clickable. */}
       <ScrubScene id="finale" videoBase="act05" poster="/videos/act05-poster.jpg">
         <div className="relative max-w-4xl mx-auto text-center px-8 py-20">
-          <h2 className="font-serif text-[clamp(40px,8vw,92px)] leading-[0.98] tracking-[-0.03em] text-platinum">
+          <h2 className="font-serif font-display text-[clamp(40px,8vw,92px)] leading-[0.98] tracking-[-0.03em] text-platinum">
             <LineReveal
               duration={1.4}
               lines={[
@@ -608,7 +608,7 @@ function Landing({ onBegin, onExplore, onSignIn, stats }) {
         <div className="max-w-[1200px] mx-auto px-8 md:px-14 py-32 md:py-48 grid md:grid-cols-12 gap-16 md:gap-20 items-center">
           <div className="md:col-span-6">
             <div className="eyebrow-accent mb-6">Guardian of the Journey</div>
-            <h2 className="font-serif text-[clamp(34px,5vw,56px)] leading-[1.05] tracking-[-0.02em] text-platinum">
+            <h2 className="font-serif font-display text-[clamp(34px,5vw,56px)] leading-[1.05] tracking-[-0.02em] text-platinum">
               <LineReveal
                 lines={[
                   <span key="l1">An intelligence that <span className="italic text-champagne">walks with you.</span></span>,
@@ -647,7 +647,7 @@ function Landing({ onBegin, onExplore, onSignIn, stats }) {
         <div className="max-w-[1200px] mx-auto px-8 md:px-14 py-32 md:py-48">
           <div className="max-w-2xl mb-28">
             <div className="eyebrow mb-6">Monument Eternal</div>
-            <h2 className="font-serif text-[clamp(34px,5vw,56px)] leading-[1.05] tracking-[-0.02em] text-platinum">
+            <h2 className="font-serif font-display text-[clamp(34px,5vw,56px)] leading-[1.05] tracking-[-0.02em] text-platinum">
               <LineReveal
                 lines={[
                   <span key="l1">For the ones who <span className="italic text-champagne">refuse to be forgotten.</span></span>,
@@ -671,7 +671,7 @@ function Landing({ onBegin, onExplore, onSignIn, stats }) {
                     <div className="eyebrow-accent mb-4">Eternal</div>
                     <div className="text-white/55 text-[13px] font-light">Monthly · billed yearly</div>
                   </div>
-                  <div className="font-serif text-[72px] md:text-[88px] text-platinum leading-none tracking-[-0.03em]">$12</div>
+                  <div className="font-serif font-display text-[72px] md:text-[88px] text-platinum leading-none tracking-[-0.03em]">$12</div>
                 </div>
                 <p className="text-platinum-muted text-base leading-[1.65] max-w-md mb-12">
                   One quiet subscription. No tiers. No ads. No noise. Only the Monument, in the highest resolution we know how to preserve a human life.
@@ -697,7 +697,7 @@ function Landing({ onBegin, onExplore, onSignIn, stats }) {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true, margin: '-100px' }}
             transition={{ duration: 1.4, ease: EASE }}
-            className="font-serif text-[clamp(30px,4vw,44px)] leading-[1.08] tracking-[-0.02em] text-platinum"
+            className="font-serif font-display text-[clamp(30px,4vw,44px)] leading-[1.08] tracking-[-0.02em] text-platinum"
           >
             The first stone <span className="italic text-champagne">won&rsquo;t lay itself.</span>
           </motion.h2>
@@ -770,7 +770,7 @@ function RaiseCeremony({ name, onDone }) {
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 1, delay: 0.9 }} className="text-[10px] tracking-[0.44em] uppercase text-champagne/70 mb-8">
           The Monument of
         </motion.div>
-        <h2 className="font-serif text-[clamp(44px,9vw,96px)] leading-[1.02] tracking-[-0.02em] text-platinum">
+        <h2 className="font-serif font-display text-[clamp(44px,9vw,96px)] leading-[1.02] tracking-[-0.02em] text-platinum">
           <LineReveal mode="mount" delay={1.3} lines={[name]} />
         </h2>
         {/* engraved hairline draws beneath the name */}

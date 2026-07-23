@@ -35,8 +35,13 @@
 
 html, body { background: var(--obsidian); }
 
-.font-serif { font-family: 'Instrument Serif', 'Times New Roman', serif; font-weight: 400; letter-spacing: -0.01em; }
+.font-serif { font-family: 'Fraunces', 'Times New Roman', serif; font-weight: 400; font-optical-sizing: auto; letter-spacing: -0.01em; }
 .font-sans { font-family: 'Inter', system-ui, sans-serif; }
+
+/* Monumental display weight — engraved titles reach into the upper end of
+   Fraunces' weight axis instead of the single 400 Instrument Serif offered.
+   Defined after .font-serif so it wins the equal-specificity cascade. */
+.font-display { font-weight: 600; }
 
 /* Grain overlay */
 .grain::before {
