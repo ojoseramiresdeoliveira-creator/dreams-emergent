@@ -451,7 +451,7 @@ function Landing({ onBegin, onExplore, onSignIn, stats }) {
               <Magnetic className="w-full sm:w-auto">
                 <button
                   onClick={onBegin}
-                  className="group w-full sm:w-auto whitespace-nowrap px-8 md:px-10 py-4 rounded-full bg-platinum text-obsidian text-[11px] tracking-[0.24em] uppercase font-medium hover:bg-white hover:shadow-[0_20px_50px_-15px_rgba(255,255,255,0.35)] active:scale-[0.98] transition-all duration-500 sheen flex items-center justify-center gap-3"
+                  className="btn-premium btn-solid sheen group w-full sm:w-auto whitespace-nowrap px-12 py-5 rounded-full text-[11px] tracking-[0.24em] uppercase font-medium flex items-center justify-center gap-3"
                 >
                   Create My Monument
                   <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform duration-500" />
@@ -459,7 +459,7 @@ function Landing({ onBegin, onExplore, onSignIn, stats }) {
               </Magnetic>
               <button
                 onClick={onExplore}
-                className="w-full sm:w-auto whitespace-nowrap px-8 md:px-10 py-4 rounded-full border border-white/15 text-[11px] tracking-[0.24em] uppercase text-white/80 hover:text-white hover:border-white/40 hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.98] transition-all duration-500"
+                className="btn-premium btn-outline w-full sm:w-auto whitespace-nowrap px-10 py-4 rounded-full text-[11px] tracking-[0.24em] uppercase"
               >
                 Explore the Community
               </button>
@@ -574,7 +574,7 @@ function Landing({ onBegin, onExplore, onSignIn, stats }) {
               viewport={{ once: true }}
               transition={{ duration: 1.6, delay: 0.7 }}
               onClick={onBegin}
-              className="group px-12 py-5 rounded-full bg-platinum text-obsidian text-[11px] tracking-[0.24em] uppercase font-medium hover:bg-white hover:shadow-[0_20px_50px_-15px_rgba(255,255,255,0.35)] active:scale-[0.98] transition-all duration-500 sheen inline-flex items-center gap-3"
+              className="btn-premium btn-solid sheen group px-12 py-5 rounded-full text-[11px] tracking-[0.24em] uppercase font-medium inline-flex items-center gap-3"
             >
               Raise My Monument
               <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform duration-500" />
@@ -658,7 +658,7 @@ function Landing({ onBegin, onExplore, onSignIn, stats }) {
                 <p className="text-platinum-muted text-base leading-[1.65] max-w-md mb-12">
                   One quiet subscription. No tiers. No ads. No noise. Only the Monument, in the highest resolution we know how to preserve a human life.
                 </p>
-                <button onClick={onBegin} className="group w-full py-4 rounded-full bg-platinum text-obsidian text-[11px] tracking-[0.24em] uppercase font-medium hover:bg-white hover:-translate-y-0.5 hover:shadow-[0_20px_50px_-15px_rgba(255,255,255,0.35)] active:translate-y-0 active:scale-[0.98] transition-all duration-500 sheen flex items-center justify-center gap-3">
+                <button onClick={onBegin} className="btn-premium btn-solid sheen group w-full py-4 rounded-full text-[11px] tracking-[0.24em] uppercase font-medium flex items-center justify-center gap-3">
                   Begin Eternal
                   <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform duration-500" />
                 </button>
@@ -683,15 +683,13 @@ function Landing({ onBegin, onExplore, onSignIn, stats }) {
           >
             The first stone <span className="italic text-champagne">won&rsquo;t lay itself.</span>
           </motion.h2>
-          <Magnetic className="mt-12 inline-block">
-            <button
-              onClick={onBegin}
-              className="group inline-flex items-center gap-3 px-10 py-4 rounded-full border border-white/20 text-[11px] tracking-[0.24em] uppercase text-white/85 hover:text-white hover:border-white/45 hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.98] transition-all duration-500"
-            >
-              Begin your journey
-              <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform duration-500" />
-            </button>
-          </Magnetic>
+          <button
+            onClick={onBegin}
+            className="btn-premium btn-outline group mt-12 inline-flex items-center gap-3 px-10 py-4 rounded-full text-[11px] tracking-[0.24em] uppercase"
+          >
+            Begin your journey
+            <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform duration-500" />
+          </button>
         </div>
       </section>
 

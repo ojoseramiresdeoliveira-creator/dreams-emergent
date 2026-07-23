@@ -211,7 +211,7 @@ html {
   width: 40%;
   background: linear-gradient(120deg, transparent 0%, rgba(255,255,255,0.35) 50%, transparent 100%);
   transform: skewX(-20deg);
-  transition: left var(--dur-slow) var(--ease-out);
+  transition: left var(--dur) var(--ease-out);
   pointer-events: none;
   z-index: 0;
 }
@@ -225,6 +225,15 @@ html {
 .btn-premium:hover { transform: translateY(-1px); }
 .btn-premium:active { transform: translateY(0) scale(0.98); }
 .btn-premium:focus-visible { outline: 2px solid rgba(212,180,131,0.5); outline-offset: 3px; }
+
+/* Landing CTA grammar — one primitive, two surfaces. Interaction (the -1px
+   lift, scoped token-driven transitions, the focus ring) is .btn-premium;
+   these add only the surface. Every CTA lifts -1px via .btn-premium; Magnetic
+   is reserved in the markup for the two anchor moments (hero + finale). */
+.btn-solid { background: var(--platinum); color: var(--obsidian); }
+.btn-solid:hover { background: #fff; box-shadow: 0 20px 50px -15px rgba(255,255,255,0.35); }
+.btn-outline { border: 1px solid rgba(245,245,243,0.18); color: rgba(245,245,243,0.85); }
+.btn-outline:hover { border-color: rgba(245,245,243,0.42); color: #fff; }
 
 /* Focus visible — premium ring on any interactive el */
 :focus-visible {
