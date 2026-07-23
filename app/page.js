@@ -1087,7 +1087,7 @@ function Home({ monument, setView, userId }) {
       <motion.div initial="hidden" animate="show" className="mt-10 md:mt-16 grid sm:grid-cols-3 gap-4 md:gap-6">
         <motion.div custom={0} variants={cardVariants} className="glass spotlight rounded-xl p-6">
           <div className="text-[10px] tracking-[0.3em] uppercase text-platinum/40 mb-3">Preserved today</div>
-          <div className="font-serif text-4xl text-platinum tabular">{entries === null ? <span className="skeleton inline-block w-10 h-10" /> : <Counter value={entriesCount} />}</div>
+          <div className="font-serif font-display text-4xl text-platinum tabular">{entries === null ? <span className="skeleton inline-block w-10 h-10" /> : <Counter value={entriesCount} />}</div>
           <div className="text-xs text-platinum/50 mt-1">{entriesCount === 1 ? 'stone inscribed' : 'stones inscribed'}</div>
         </motion.div>
         <motion.div custom={1} variants={cardVariants} className="glass spotlight rounded-xl p-6 sm:col-span-2">
@@ -1636,8 +1636,8 @@ function Profile({ monument }) {
       <div className="mt-14 md:mt-16 text-[10px] tracking-[0.3em] uppercase text-platinum/40 mb-6">The Monument in numbers</div>
       <div className="grid sm:grid-cols-3 gap-4 md:gap-6">
         {[
-          { label: 'Days preserved', body: <div className="font-serif text-4xl md:text-5xl text-platinum tabular"><Counter value={daysSince} /></div> },
-          { label: 'Stones inscribed', body: <div className="font-serif text-4xl md:text-5xl text-platinum tabular"><Counter value={entries.length} /></div> },
+          { label: 'Days preserved', body: <div className="font-serif font-display text-4xl md:text-5xl text-platinum tabular"><Counter value={daysSince} /></div> },
+          { label: 'Stones inscribed', body: <div className="font-serif font-display text-4xl md:text-5xl text-platinum tabular"><Counter value={entries.length} /></div> },
           { label: 'The horizon', body: <div className="font-serif text-xl md:text-2xl text-platinum">{monument.timeframe}</div> },
         ].map((card, i) => (
           <motion.div key={card.label} initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} transition={{ ...SPRING_SOFT, delay: 0.08 * i }} className="glass spotlight rounded-xl p-6">
