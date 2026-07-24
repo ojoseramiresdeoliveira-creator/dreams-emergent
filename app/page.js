@@ -404,7 +404,7 @@ function Landing({ onBegin, onExplore, onSignIn, stats }) {
           playsInline
           preload="none"
           poster="/videos/act01-poster.jpg"
-          className="clip-melt absolute inset-0 w-full h-full object-cover pointer-events-none"
+          className="clip-melt brightness-105 absolute inset-0 w-full h-full object-cover pointer-events-none"
         >
           <source src={videoSrc('/videos/act01-mobile.mp4')} media="(max-width: 768px)" type="video/mp4" />
           <source src={videoSrc('/videos/act01.mp4')} type="video/mp4" />
@@ -412,7 +412,7 @@ function Landing({ onBegin, onExplore, onSignIn, stats }) {
         {/* legibility scrim over the clip — darker top and bottom so the copy
             and the melt into the Ethos below both stay clean. Act 1's video is
             the hero's only background now. */}
-        <div aria-hidden className="absolute inset-0 pointer-events-none bg-gradient-to-b from-black/40 via-black/12 to-black/45" />
+        <div aria-hidden className="absolute inset-0 pointer-events-none bg-gradient-to-b from-black/25 via-black/8 to-black/30" />
         {/* The clip carries a top/bottom mask (.clip-melt) that dissolves its
             edges into the black section, so the hand-off from the nav above and
             the melt into the Ethos below are both seamless — no hard edge line. */}

@@ -27,7 +27,7 @@ export default function ScrubScene({
   videoBase,            // 'act02' → /videos/act02.mp4 (+ /videos/act02-mobile.mp4)
   poster,
   trackVh = 220,        // ≈120vh of pinned scrub — tight pacing, no dead scroll
-  overlay = 'bg-gradient-to-b from-black/40 via-black/10 to-black/45',
+  overlay = 'bg-gradient-to-b from-black/25 via-black/8 to-black/30',
   children,
 }) {
   const reduce = useReducedMotion();
@@ -58,7 +58,7 @@ export default function ScrubScene({
           playsInline
           preload="none"
           poster={poster}
-          className="clip-melt absolute inset-0 w-full h-full object-cover pointer-events-none"
+          className="clip-melt brightness-105 absolute inset-0 w-full h-full object-cover pointer-events-none"
         >
           <source src={videoSrc(`/videos/${videoBase}-mobile.mp4`)} media="(max-width: 768px)" type="video/mp4" />
           <source src={videoSrc(`/videos/${videoBase}.mp4`)} type="video/mp4" />
