@@ -1632,6 +1632,13 @@ function AuthModal({ mode: initialMode = 'signup', onSuccess, onClose }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [info, setInfo] = useState(null);
+  // Email awaiting confirmation after signup — enables "resend confirmation".
+  const [pendingEmail, setPendingEmail] = useState(null);
+
+  // reset = email only (send a link); update = new password only (arrived from
+  // the link, recovery session already active).
+  const needsEmail = mode !== 'update';
+  const needsPassword = mode !== 'reset';
 
   async function submit(e) {
     e.preventDefault();
@@ -1640,7 +1647,25 @@ function AuthModal({ mode: initialMode = 'signup', onSuccess, onClose }) {
     setInfo(null);
     try {
       const supabase = getBrowserClient();
-      if (mode === 'signup') {
+      if (mode === 'reset') {
+        const { error: err } = await withTimeout(
+          supabase.auth.resetPasswordForEmail(email, { redirectTo: window.location.origin }),
+          15000,
+          'The request is taking too long. Check your connection and try again.'
+        );
+        if (err) { setError(err.message); return; }
+        // Generic on purpose — never reveal whether an account exists.
+        setInfo('If an account exists for that email, a link to set a new password is on its way.');
+      } else if (mode === 'update') {
+        const { error: err } = await withTimeout(
+          supabase.auth.updateUser({ password }),
+          15000,
+          'The update is taking too long. Check your connection and try again.'
+        );
+        if (err) { setError(err.message); return; }
+        toast.success('Your password is set. Welcome back.');
+        onSuccess();
+      } else if (mode === 'signup') {
         const { data, error: err } = await withTimeout(
           supabase.auth.signUp({ email, password }),
           15000,
@@ -1649,6 +1674,7 @@ function AuthModal({ mode: initialMode = 'signup', onSuccess, onClose }) {
         if (err) { setError(err.message); return; }
         if (!data.session) {
           setInfo('Account created. Check your email to confirm your address, then sign in.');
+          setPendingEmail(email);
           setMode('login');
         } else {
           onSuccess();
@@ -1668,6 +1694,46 @@ function AuthModal({ mode: initialMode = 'signup', onSuccess, onClose }) {
       setLoading(false);
     }
   }
+
+  async function resendConfirmation() {
+    if (!pendingEmail) return;
+    setLoading(true);
+    setError(null);
+    setInfo(null);
+    try {
+      const supabase = getBrowserClient();
+      const { error: err } = await withTimeout(
+        supabase.auth.resend({ type: 'signup', email: pendingEmail }),
+        15000,
+        'Resend timed out. Try again in a moment.'
+      );
+      if (err) setError(err.message);
+      else setInfo('Confirmation email sent again. Check your inbox and spam.');
+    } catch (e) {
+      setError(e.message || 'Could not resend. Try again.');
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  const TITLES = {
+    signup: 'Raise your monument.',
+    login:  'Return to your monument.',
+    reset:  'Reset your password.',
+    update: 'Set a new password.',
+  };
+  const SUBTITLES = {
+    signup: 'Create an account to begin.',
+    login:  'Sign in to continue your story.',
+    reset:  'We will email you a link to choose a new one.',
+    update: 'Choose a new password for your Monument.',
+  };
+  const SUBMIT_LABEL = {
+    signup: 'Create Account',
+    login:  'Sign In',
+    reset:  'Send reset link',
+    update: 'Set new password',
+  };
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-md" onClick={onClose}>
@@ -1689,55 +1755,93 @@ function AuthModal({ mode: initialMode = 'signup', onSuccess, onClose }) {
         </div>
 
         <h2 className="font-serif font-display track-title text-3xl text-platinum mb-2">
-          {mode === 'signup' ? 'Raise your monument.' : 'Return to your monument.'}
+          {TITLES[mode]}
         </h2>
         <p className="text-platinum/40 text-sm mb-10">
-          {mode === 'signup' ? 'Create an account to begin.' : 'Sign in to continue your story.'}
+          {SUBTITLES[mode]}
         </p>
 
         {info && <div className="mb-6 text-sm text-champagne/90 bg-champagne/10 border border-champagne/20 rounded px-4 py-3">{info}</div>}
         {error && <div className="mb-6 text-sm text-red-400/90 bg-red-900/20 border border-red-500/20 rounded px-4 py-3">{error}</div>}
 
         <form onSubmit={submit} className="space-y-6">
-          <div>
-            <label className="text-[10px] tracking-[0.25em] uppercase text-platinum/50 block mb-2">Email</label>
-            <Input
-              type="email"
-              value={email}
-              onChange={e => setEmail(e.target.value)}
-              required
-              placeholder="your@email.com"
-              className="bg-transparent input-lux border-0 border-b hairline-strong rounded-none focus-visible:ring-0 text-platinum placeholder:text-platinum/20 h-12 px-0"
-            />
-          </div>
-          <div>
-            <label className="text-[10px] tracking-[0.25em] uppercase text-platinum/50 block mb-2">Password</label>
-            <Input
-              type="password"
-              value={password}
-              onChange={e => setPassword(e.target.value)}
-              required
-              minLength={6}
-              placeholder="At least 6 characters"
-              className="bg-transparent input-lux border-0 border-b hairline-strong rounded-none focus-visible:ring-0 text-platinum placeholder:text-platinum/20 h-12 px-0"
-            />
-          </div>
+          {needsEmail && (
+            <div>
+              <label className="text-[10px] tracking-[0.25em] uppercase text-platinum/50 block mb-2">Email</label>
+              <Input
+                type="email"
+                value={email}
+                onChange={e => setEmail(e.target.value)}
+                required
+                placeholder="your@email.com"
+                className="bg-transparent input-lux border-0 border-b hairline-strong rounded-none focus-visible:ring-0 text-platinum placeholder:text-platinum/20 h-12 px-0"
+              />
+            </div>
+          )}
+          {needsPassword && (
+            <div>
+              <label className="text-[10px] tracking-[0.25em] uppercase text-platinum/50 block mb-2">{mode === 'update' ? 'New password' : 'Password'}</label>
+              <Input
+                type="password"
+                value={password}
+                onChange={e => setPassword(e.target.value)}
+                required
+                minLength={6}
+                placeholder="At least 6 characters"
+                className="bg-transparent input-lux border-0 border-b hairline-strong rounded-none focus-visible:ring-0 text-platinum placeholder:text-platinum/20 h-12 px-0"
+              />
+            </div>
+          )}
           <button
             type="submit"
             disabled={loading}
             className="btn-premium w-full py-4 rounded-full bg-platinum text-obsidian text-[11px] tracking-[0.24em] uppercase font-medium hover:bg-white disabled:opacity-40 transition-all duration-500 flex items-center justify-center gap-2"
           >
-            {loading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : mode === 'signup' ? 'Create Account' : 'Sign In'}
+            {loading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : SUBMIT_LABEL[mode]}
           </button>
         </form>
 
+        {/* Forgot password — offered from the sign-in form. */}
+        {mode === 'login' && (
+          <div className="mt-5 text-center">
+            <button
+              onClick={() => { setMode('reset'); setError(null); setInfo(null); }}
+              className="text-[11px] tracking-wide text-platinum/40 hover:text-platinum/80 transition"
+            >
+              Forgot your password?
+            </button>
+          </div>
+        )}
+
+        {/* Resend confirmation — when a just-created account still needs it. */}
+        {pendingEmail && (mode === 'login' || mode === 'signup') && (
+          <div className="mt-3 text-center">
+            <button
+              onClick={resendConfirmation}
+              disabled={loading}
+              className="text-[11px] tracking-wide text-champagne/60 hover:text-champagne/90 transition disabled:opacity-40"
+            >
+              Resend confirmation email
+            </button>
+          </div>
+        )}
+
         <div className="mt-8 text-center">
-          <button
-            onClick={() => { setMode(mode === 'signup' ? 'login' : 'signup'); setError(null); setInfo(null); }}
-            className="text-[11px] tracking-wide text-platinum/40 hover:text-platinum/80 transition"
-          >
-            {mode === 'signup' ? 'Already have an account? Sign in.' : "Don't have an account? Sign up."}
-          </button>
+          {mode === 'reset' ? (
+            <button
+              onClick={() => { setMode('login'); setError(null); setInfo(null); }}
+              className="text-[11px] tracking-wide text-platinum/40 hover:text-platinum/80 transition"
+            >
+              ← Back to sign in
+            </button>
+          ) : (mode === 'signup' || mode === 'login') ? (
+            <button
+              onClick={() => { setMode(mode === 'signup' ? 'login' : 'signup'); setError(null); setInfo(null); }}
+              className="text-[11px] tracking-wide text-platinum/40 hover:text-platinum/80 transition"
+            >
+              {mode === 'signup' ? 'Already have an account? Sign in.' : "Don't have an account? Sign up."}
+            </button>
+          ) : null}
         </div>
       </motion.div>
     </div>
@@ -1798,8 +1902,10 @@ function App() {
         if (!cancelled) setAuthChecked(true);
       });
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       if (cancelled) return;
+      // Arriving from a password-reset email: open the modal to set a new one.
+      if (event === 'PASSWORD_RECOVERY') { setAuthMode('update'); setShowAuth(true); }
       setUser(session?.user ?? null);
       setAuthChecked(true);
     });
@@ -1882,7 +1988,7 @@ function App() {
       {view !== 'landing' && <SpotlightController />}
       <AnimatePresence>
         {showAuth && (
-          <AuthModal key="auth" mode={authMode} onSuccess={handleAuthSuccess} onClose={() => setShowAuth(false)} />
+          <AuthModal key={`auth-${authMode}`} mode={authMode} onSuccess={handleAuthSuccess} onClose={() => setShowAuth(false)} />
         )}
       </AnimatePresence>
       <AnimatePresence mode="wait">
