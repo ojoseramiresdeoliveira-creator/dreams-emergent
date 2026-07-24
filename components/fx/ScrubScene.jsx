@@ -44,7 +44,7 @@ export default function ScrubScene({
   const flat = reduce || isMobile;
 
   return (
-    <div ref={trackRef} className="relative" style={flat ? undefined : { height: `${trackVh}vh` }}>
+    <div ref={trackRef} className="relative bg-black" style={flat ? undefined : { height: `${trackVh}vh` }}>
       <section
         id={id}
         className={`overflow-hidden flex items-center justify-center bg-black ${flat ? 'relative min-h-[100svh]' : 'sticky top-0 h-screen'}`}
@@ -58,19 +58,16 @@ export default function ScrubScene({
           playsInline
           preload="none"
           poster={poster}
-          className="absolute inset-0 w-full h-full object-cover pointer-events-none"
+          className="clip-melt absolute inset-0 w-full h-full object-cover pointer-events-none"
         >
           <source src={videoSrc(`/videos/${videoBase}-mobile.mp4`)} media="(max-width: 768px)" type="video/mp4" />
           <source src={videoSrc(`/videos/${videoBase}.mp4`)} type="video/mp4" />
         </video>
         {/* legibility scrim so the copy reads over any frame */}
         <div aria-hidden className={`absolute inset-0 pointer-events-none ${overlay}`} />
-        {/* edge fades — each clip melts to pure black at the top and bottom so
-            adjacent acts bleed into one another instead of showing a seam. The
-            section background is black too, so the boundary between two acts is
-            a continuous stretch of black: one film, not stacked stills. */}
-        <div aria-hidden className="absolute top-0 inset-x-0 h-16 md:h-24 pointer-events-none bg-gradient-to-b from-black to-transparent" />
-        <div aria-hidden className="absolute bottom-0 inset-x-0 h-16 md:h-24 pointer-events-none bg-gradient-to-t from-black to-transparent" />
+        {/* The clip itself carries a top/bottom mask (.clip-melt) that dissolves
+            its edges into the black section background, so adjacent acts bleed
+            into one another with no seam — one film, not stacked stills. */}
         <div className="relative w-full">{children}</div>
       </section>
     </div>

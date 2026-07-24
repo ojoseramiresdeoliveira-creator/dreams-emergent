@@ -62,6 +62,16 @@ html, body { background: var(--obsidian); }
   mix-blend-mode: soft-light;
 }
 
+/* Each act's clip dissolves at its top and bottom edges so adjacent acts melt
+   into one another instead of meeting on a hard seam — a single strip of film,
+   not stacked stills. Replaces the old stacked black edge-fade overlays. */
+.clip-melt {
+  -webkit-mask-image: linear-gradient(to bottom, transparent 0, #000 7%, #000 93%, transparent 100%);
+  mask-image: linear-gradient(to bottom, transparent 0, #000 7%, #000 93%, transparent 100%);
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+}
+
 /* Hairline utility */
 .hairline-faint { border-color: var(--hairline-faint); }
 .hairline { border-color: var(--hairline); }

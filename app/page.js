@@ -387,7 +387,7 @@ function Landing({ onBegin, onExplore, onSignIn, stats }) {
           a long stretch of dead scroll. Under reduced motion — or on mobile,
           where the clip autoplays a loop instead of scrubbing — the track
           collapses to a normal section. */}
-      <div ref={heroTrackRef} className={(reduce || isMobile) ? 'relative' : 'relative h-[220vh]'}>
+      <div ref={heroTrackRef} className={(reduce || isMobile) ? 'relative bg-black' : 'relative bg-black h-[220vh]'}>
       <section
         ref={heroRef}
         onPointerMove={onHeroPointer}
@@ -404,7 +404,7 @@ function Landing({ onBegin, onExplore, onSignIn, stats }) {
           playsInline
           preload="none"
           poster="/videos/act01-poster.jpg"
-          className="absolute inset-0 w-full h-full object-cover pointer-events-none"
+          className="clip-melt absolute inset-0 w-full h-full object-cover pointer-events-none"
         >
           <source src={videoSrc('/videos/act01-mobile.mp4')} media="(max-width: 768px)" type="video/mp4" />
           <source src={videoSrc('/videos/act01.mp4')} type="video/mp4" />
@@ -413,10 +413,9 @@ function Landing({ onBegin, onExplore, onSignIn, stats }) {
             and the melt into the Ethos below both stay clean. Act 1's video is
             the hero's only background now. */}
         <div aria-hidden className="absolute inset-0 pointer-events-none bg-gradient-to-b from-black/40 via-black/12 to-black/45" />
-        {/* top edge fade — the clip is born out of pure black so the hand-off
-            from the nav / page top is seamless, mirroring the bottom melt into
-            the Ethos. Same edge treatment every act shares. */}
-        <div aria-hidden className="absolute top-0 inset-x-0 h-16 md:h-24 pointer-events-none bg-gradient-to-b from-black to-transparent" />
+        {/* The clip carries a top/bottom mask (.clip-melt) that dissolves its
+            edges into the black section, so the hand-off from the nav above and
+            the melt into the Ethos below are both seamless — no hard edge line. */}
 
         <div className="relative w-full max-w-[1100px] mx-auto px-6 md:px-14 pt-28 md:pt-24 pb-20 md:pb-0 flex justify-center">
           {/* Text + actions — the only thing above Act 1's clip */}
@@ -466,10 +465,6 @@ function Landing({ onBegin, onExplore, onSignIn, stats }) {
             </motion.div>
           </motion.div>
         </div>
-
-        {/* the clip melts into black at the section edge instead of clipping
-            on a hard line — seamless hand-off to the Ethos below */}
-        <div aria-hidden className="absolute bottom-0 inset-x-0 h-16 md:h-24 pointer-events-none bg-gradient-to-b from-transparent to-black" />
 
         <motion.div
           style={{ opacity: reduce ? 1 : cueOpacity }}
