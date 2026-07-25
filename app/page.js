@@ -108,8 +108,8 @@ function Counter({ value }) {
    explains how it works. Flattened from a 300vh sticky scrub with a heavy
    carved-stone SVG down to a normal section (audit phase 2). */
 const RITE_ACTS = [
-  { n: '01', t: 'Name the story', d: 'A north star — the story only you can tell, spoken out loud for the first time.' },
-  { n: '02', t: 'Lay each stone', d: 'Every failure. Every restart. Every quiet victory no one saw. One inscription at a time. Nothing disappears.' },
+  { n: '01', t: 'Name the story', d: 'A north star. The story only you can tell, spoken out loud for the first time.' },
+  { n: '02', t: 'Lay each stone', d: 'Every failure, every restart, every quiet victory no one saw, set down one inscription at a time. Nothing disappears.' },
   { n: '03', t: 'Become the archive', d: 'A living record of your becoming, guarded by an intelligence that has walked beside you from the first stone.' },
 ];
 
@@ -127,7 +127,7 @@ function FirstStoneScene() {
           Three acts. <span className="italic text-champagne">One life.</span>
         </h2>
         <p className="mt-8 text-platinum-muted text-base leading-[1.65] max-w-xl">
-          A single, deliberate ritual repeated across a lifetime — until it becomes the thing you leave behind.
+          A single, deliberate ritual, repeated across a lifetime until it becomes the thing you leave behind.
         </p>
         <div className="mt-20 grid md:grid-cols-3 gap-12 md:gap-10">
           {RITE_ACTS.map((a) => (
@@ -517,7 +517,7 @@ function Landing({ onBegin, onExplore, onSignIn }) {
             />
           </h2>
           <motion.p initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} viewport={{ once: true, margin: '-100px' }} transition={{ duration: 2, delay: 0.5 }} className="mt-8 text-platinum-muted text-base md:text-lg leading-[1.7] max-w-xl mx-auto">
-            The sacrifice, the doubt, the slow mornings no one saw — every step is kept.
+            The sacrifice, the doubt, the slow mornings no one saw. Every step is kept.
           </motion.p>
         </div>
       </ScrubScene>
@@ -593,7 +593,7 @@ function Landing({ onBegin, onExplore, onSignIn }) {
               />
             </h2>
             <p className="mt-8 text-platinum-muted text-base leading-[1.65] max-w-lg">
-              Not a coach. Not a chatbot. The Guardian remembers every stone you have laid. It never gives generic motivation. It only speaks to you using your own story — and reminds you, when you forget, how far you have already come.
+              The Guardian is not a coach or a chatbot. It remembers every stone you have laid. It never gives generic motivation. It only speaks to you using your own story. When you forget, it reminds you how far you have already come.
             </p>
             <div className="mt-14 space-y-5 max-w-md">
               {['Remembers every entry of your journey', 'Connects memories you cannot see', 'Reminds you how much you have grown', 'Speaks only in the language of your story'].map((f) => (
@@ -650,7 +650,7 @@ function Landing({ onBegin, onExplore, onSignIn }) {
                   <div className="font-serif font-display text-[72px] md:text-[88px] text-platinum leading-none track-display">$12</div>
                 </div>
                 <p className="text-platinum-muted text-base leading-[1.65] max-w-md mb-12">
-                  One quiet subscription. No tiers. No ads. No noise. Only the Monument, in the highest resolution we know how to preserve a human life.
+                  One quiet subscription. No tiers, no ads, no noise. Only the Monument, in the highest resolution we know how to preserve a human life.
                 </p>
                 <button onClick={onBegin} className="btn-premium btn-solid sheen group w-full py-4 rounded-full text-[11px] tracking-[0.24em] uppercase font-medium flex items-center justify-center gap-3">
                   Begin Eternal
@@ -789,7 +789,7 @@ function Onboard({ onDone, onCancel, userId }) {
     { q: 'By when must this exist in the world?', hint: 'A year, a season, a chapter of your life. Be honest, not perfect.', input: (
       <Input autoFocus value={timeframe} onChange={(e) => setTimeframe(e.target.value)} placeholder="e.g. by 2028, before I turn 30, this decade" className="bg-transparent input-lux border-0 border-b hairline-strong rounded-none text-2xl md:text-3xl font-serif focus-visible:ring-0 px-0 text-platinum placeholder:text-platinum/20 h-16" />
     ), canNext: timeframe.trim().length > 0 },
-    { q: 'Which words must never leave your Monument?', hint: 'Choose three. They will be inscribed at the base — the ground your story stands on.', input: (
+    { q: 'Which words must never leave your Monument?', hint: 'Choose three. They will be inscribed at the base, the ground your story stands on.', input: (
       <div>
         <div className="flex flex-wrap gap-3">
           {VALUE_OPTIONS.map((v, i) => {
@@ -1537,7 +1537,7 @@ function Community() {
     <div className="px-6 md:px-16 py-10 md:py-16">
       <div className="text-[10px] md:text-xs tracking-[0.3em] uppercase text-champagne/80 mb-4">Witnesses</div>
       <h1 className="font-serif font-display text-4xl sm:text-5xl md:text-6xl text-platinum track-title leading-[1.05]">A world <em className="text-gold-shimmer not-italic">walking.</em></h1>
-      <p className="mt-4 text-platinum/50 text-base md:text-lg max-w-2xl">Not followers. Not likes. Only journeys, witnessed by others walking their own. Every Monument here was raised by a real person.</p>
+      <p className="mt-4 text-platinum/50 text-base md:text-lg max-w-2xl">Here there are no followers and no likes, only journeys witnessed by others walking their own. Every Monument here was raised by a real person.</p>
       <div className="mt-12 md:mt-16 grid sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
         {status === 'ready' && builders.map((b, i) => (
           <motion.div key={i} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05, duration: 0.7, ease: EASE }} className="glass spotlight rounded-xl p-6 cursor-default h-full">
@@ -1569,7 +1569,7 @@ function Community() {
               <div className="font-serif text-2xl md:text-3xl text-platinum/85 leading-tight">
                 <LineReveal lines={['Yours will be the first Monument raised here.']} />
               </div>
-              <div className="mt-4 text-platinum/50 text-sm max-w-md mx-auto">Before you have followers. Before you have witnesses. There is only your journey — and someone quietly walking beside it.</div>
+              <div className="mt-4 text-platinum/50 text-sm max-w-md mx-auto">Before you have followers. Before you have witnesses. There is only your journey, and someone quietly walking beside it.</div>
             </div>
           </div>
         )}
@@ -1577,7 +1577,7 @@ function Community() {
           <div className="col-span-full">
             <div className="glass rounded-xl p-10 md:p-16 text-center max-w-2xl mx-auto">
               <div className="font-serif text-2xl md:text-3xl text-platinum/85 leading-tight">We couldn&apos;t reach the community right now.</div>
-              <div className="mt-4 text-platinum/50 text-sm max-w-md mx-auto">Something went wrong loading the Monuments — not that no one is here. Check your connection and try again.</div>
+              <div className="mt-4 text-platinum/50 text-sm max-w-md mx-auto">Something went wrong loading the Monuments. It does not mean no one is here yet. Check your connection and try again.</div>
               <button
                 onClick={() => setReloadKey(k => k + 1)}
                 className="mt-8 px-6 py-3 rounded-full border border-champagne/30 text-[10px] md:text-xs tracking-[0.2em] uppercase text-champagne hover:bg-champagne/10 transition-colors duration-500"
