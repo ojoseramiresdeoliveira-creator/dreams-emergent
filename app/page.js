@@ -612,7 +612,7 @@ function Landing({ onBegin, onExplore, onSignIn }) {
               </div>
               <div className="mt-12 pt-6 flex items-center justify-between border-t hairline-faint">
                 <div className="eyebrow">Guardian</div>
-                <div className="text-[10px] tracking-wider text-platinum/25">remembered forever</div>
+                <div className="text-[10px] tracking-wider text-platinum/55">remembered forever</div>
               </div>
             </div>
           </motion.div>
@@ -694,7 +694,7 @@ function Landing({ onBegin, onExplore, onSignIn }) {
             <div className="w-1.5 h-1.5 rounded-full bg-champagne" />
             <span className="text-[11px] tracking-[0.3em] uppercase text-platinum/70">Monument of Dreams</span>
           </div>
-          <div className="text-[10px] tracking-[0.35em] uppercase text-platinum/30">MMXXV · No journey forgotten</div>
+          <div className="text-[10px] tracking-[0.35em] uppercase text-platinum/55">MMXXV · No journey forgotten</div>
         </div>
       </footer>
     </div>

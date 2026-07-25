@@ -188,6 +188,22 @@ html {
   }
 }
 
+/* Higher contrast on request: lift the faint platinum text tiers to near-full
+   so the dim labels (dates, captions, secondary hints) stop being the weak
+   link. The resting base already meets AA on dark; this is the extra margin
+   for users who ask for more. Hover states still resolve to full platinum.
+   These win over the Tailwind opacity utilities by source order (this file
+   is emitted after @tailwind utilities). */
+@media (prefers-contrast: more) {
+  .text-platinum\/25,
+  .text-platinum\/30,
+  .text-platinum\/40,
+  .text-platinum\/50,
+  .text-platinum\/55 {
+    color: rgb(245 245 243 / 0.92);
+  }
+}
+
 /* Premium glass — soft top light, inner rim, ambient shadow */
 .glass {
   background:
