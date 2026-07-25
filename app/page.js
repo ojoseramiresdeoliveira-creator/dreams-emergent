@@ -373,8 +373,8 @@ function Landing({ onBegin, onExplore, onSignIn }) {
             <a href="#premium" className="nav-link hover:text-platinum">Eternal</a>
           </div>
           <div className="flex items-center gap-5">
-            {onSignIn && <button onClick={onSignIn} className="text-[10px] md:text-[11px] tracking-[0.24em] uppercase text-platinum-muted hover:text-platinum transition-colors duration-500">Sign In</button>}
-            <button onClick={onBegin} className="text-[10px] md:text-[11px] tracking-[0.24em] uppercase text-platinum/70 hover:text-platinum transition-colors duration-500 flex items-center gap-2">
+            {onSignIn && <button onClick={onSignIn} className="inline-flex items-center py-[14px] -my-[14px] text-[10px] md:text-[11px] tracking-[0.24em] uppercase text-platinum-muted hover:text-platinum transition-colors duration-500">Sign In</button>}
+            <button onClick={onBegin} className="text-[10px] md:text-[11px] tracking-[0.24em] uppercase text-platinum/70 hover:text-platinum transition-colors duration-500 flex items-center gap-2 py-[14px] -my-[14px]">
               Enter <ArrowUpRight className="w-3 h-3" />
             </button>
           </div>
