@@ -14,7 +14,6 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import SpotlightController from '@/components/fx/SpotlightController';
 import Magnetic from '@/components/fx/Magnetic';
-import TiltCard from '@/components/fx/TiltCard';
 import LineReveal from '@/components/fx/LineReveal';
 import ChampagneBurst from '@/components/fx/ChampagneBurst';
 import StreamedText, { streamDuration } from '@/components/fx/StreamedText';
@@ -1520,35 +1519,39 @@ function Mentor({ userId }) {
 
 function Community() {
   const [builders, setBuilders] = useState([]);
+  // 'loading' until the first fetch resolves, so the empty state never flashes
+  // before data arrives; 'error' is kept distinct from an empty 'ready' so a
+  // failed request reads as a real problem, not as "no one is here yet".
+  const [status, setStatus] = useState('loading');
+  const [reloadKey, setReloadKey] = useState(0);
   const reduce = useReducedMotion();
   useEffect(() => {
     let cancelled = false;
+    setStatus('loading');
     apiFetch('/api/community')
-      .then(d => { if (!cancelled) setBuilders(d.builders || []); })
-      .catch(() => { if (!cancelled) setBuilders([]); });
+      .then(d => { if (!cancelled) { setBuilders(d.builders || []); setStatus('ready'); } })
+      .catch(() => { if (!cancelled) setStatus('error'); });
     return () => { cancelled = true; };
-  }, []);
+  }, [reloadKey]);
   return (
     <div className="px-6 md:px-16 py-10 md:py-16">
       <div className="text-[10px] md:text-xs tracking-[0.3em] uppercase text-champagne/80 mb-4">Witnesses</div>
       <h1 className="font-serif font-display text-4xl sm:text-5xl md:text-6xl text-platinum track-title leading-[1.05]">A world <em className="text-gold-shimmer not-italic">walking.</em></h1>
       <p className="mt-4 text-platinum/50 text-base md:text-lg max-w-2xl">Not followers. Not likes. Only journeys, witnessed by others walking their own. Every Monument here was raised by a real person.</p>
       <div className="mt-12 md:mt-16 grid sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
-        {builders.map((b, i) => (
-          <TiltCard key={i}>
-            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05, duration: 0.7, ease: EASE }} className="glass spotlight rounded-xl p-6 cursor-default group h-full">
-            <div className="flex items-center gap-3 mb-4"><div className="w-8 h-8 rounded-full bg-gradient-to-br from-champagne/40 to-platinum/10 group-hover:from-champagne/60 transition-colors duration-500" /><div className="text-sm text-platinum">{b.name}</div></div>
+        {status === 'ready' && builders.map((b, i) => (
+          <motion.div key={i} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05, duration: 0.7, ease: EASE }} className="glass spotlight rounded-xl p-6 cursor-default h-full">
+            <div className="flex items-center gap-3 mb-4"><div className="w-8 h-8 rounded-full bg-gradient-to-br from-champagne/40 to-platinum/10" /><div className="text-sm text-platinum">{b.name}</div></div>
             <div className="font-serif text-lg text-platinum/90 leading-tight line-clamp-3">{b.dream}</div>
             {b.values?.length > 0 && (
               <div className="mt-4 flex flex-wrap gap-1.5">
                 {b.values.slice(0, 3).map((v) => (<span key={v} className="text-[9px] tracking-[0.2em] uppercase text-champagne/70 px-2 py-0.5 rounded-full border border-champagne/15">{v}</span>))}
               </div>
             )}
-              <div className="mt-4 text-[10px] tracking-widest uppercase text-platinum/30">Walking since {new Date(b.createdAt).toLocaleDateString('en', { month: 'short', year: 'numeric' })}</div>
-            </motion.div>
-          </TiltCard>
+            <div className="mt-4 text-[10px] tracking-widest uppercase text-platinum/30">Walking since {new Date(b.createdAt).toLocaleDateString('en', { month: 'short', year: 'numeric' })}</div>
+          </motion.div>
         ))}
-        {builders.length === 0 && (
+        {status === 'ready' && builders.length === 0 && (
           <div className="col-span-full">
             <div className="glass spotlight rounded-xl p-10 md:p-16 text-center max-w-2xl mx-auto">
               {/* ghost witnesses — empty places at the fire, breathing out of phase */}
@@ -1567,6 +1570,20 @@ function Community() {
                 <LineReveal lines={['Yours will be the first Monument raised here.']} />
               </div>
               <div className="mt-4 text-platinum/50 text-sm max-w-md mx-auto">Before you have followers. Before you have witnesses. There is only your journey — and someone quietly walking beside it.</div>
+            </div>
+          </div>
+        )}
+        {status === 'error' && (
+          <div className="col-span-full">
+            <div className="glass rounded-xl p-10 md:p-16 text-center max-w-2xl mx-auto">
+              <div className="font-serif text-2xl md:text-3xl text-platinum/85 leading-tight">We couldn&apos;t reach the community right now.</div>
+              <div className="mt-4 text-platinum/50 text-sm max-w-md mx-auto">Something went wrong loading the Monuments — not that no one is here. Check your connection and try again.</div>
+              <button
+                onClick={() => setReloadKey(k => k + 1)}
+                className="mt-8 px-6 py-3 rounded-full border border-champagne/30 text-[10px] md:text-xs tracking-[0.2em] uppercase text-champagne hover:bg-champagne/10 transition-colors duration-500"
+              >
+                Try again
+              </button>
             </div>
           </div>
         )}
