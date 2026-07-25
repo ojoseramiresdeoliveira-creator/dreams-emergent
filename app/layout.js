@@ -49,7 +49,17 @@ export default function RootLayout({ children }) {
         <link rel="preload" as="image" href="/videos/act01-poster.jpg" fetchPriority="high" />
       </head>
       <body className="bg-obsidian text-platinum antialiased min-h-screen font-sans">
-        {children}
+        {/* Skip link: first focusable element, hidden until a keyboard user
+            tabs to it, then jumps focus past the fixed nav to the content. */}
+        <a
+          href="#main-content"
+          className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-[200] focus:rounded-full focus:bg-platinum focus:px-5 focus:py-3 focus:text-[11px] focus:font-medium focus:uppercase focus:tracking-[0.24em] focus:text-obsidian"
+        >
+          Skip to content
+        </a>
+        <main id="main-content" tabIndex={-1} className="outline-none">
+          {children}
+        </main>
         <Toaster
           theme="dark"
           position="bottom-center"

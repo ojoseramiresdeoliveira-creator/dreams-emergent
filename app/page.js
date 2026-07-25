@@ -360,7 +360,7 @@ function Landing({ onBegin, onExplore, onSignIn }) {
         className="fixed top-0 inset-x-0 z-[60] h-px origin-left bg-gradient-to-r from-champagne/80 via-champagne to-champagne-soft pointer-events-none"
       />
       {/* NAV */}
-      <nav className="fixed top-0 inset-x-0 z-50 backdrop-blur-md bg-black/30">
+      <nav aria-label="Primary" className="fixed top-0 inset-x-0 z-50 backdrop-blur-md bg-black/30">
         <div className="max-w-[1440px] mx-auto px-6 md:px-14 py-5 md:py-6 flex items-center justify-between">
           <div className="flex items-center gap-2.5">
             <div className="w-1.5 h-1.5 rounded-full bg-champagne" />
