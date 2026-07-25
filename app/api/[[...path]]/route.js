@@ -271,29 +271,6 @@ async function handler(request, { params }) {
       return json({ ok: true, service: 'Monument of Dreams API' });
     }
 
-    // ---------- PUBLIC: GLOBAL STATS ----------
-    if (path === 'stats' && method === 'GET') {
-      const sb = getServerClient();
-      const dayAgo = new Date(Date.now() - 24 * 3600 * 1000).toISOString();
-      const [journeys, stones, stonesToday] = await Promise.all([
-        sb.from('journeys').select('*', { count: 'exact', head: true }),
-        sb.from('stones').select('*', { count: 'exact', head: true }),
-        sb.from('stones').select('*', { count: 'exact', head: true }).gte('happened_at', dayAgo),
-      ]);
-      const totalJourneys = journeys.count ?? 0;
-      const totalStones = stones.count ?? 0;
-      // Stable presentation base (pre-existing product choice), real deltas.
-      const base = 12847;
-      const seed = totalJourneys * 137;
-      return json({
-        dreamsCreated: base + totalJourneys,
-        dreamsCompletedToday: 342 + (stonesToday.count ?? 0),
-        buildersOnline: 1247 + (seed % 250),
-        countries: 96,
-        totalEntries: totalStones,
-      });
-    }
-
     // ---------- PUBLIC: COMMUNITY FEED ----------
     // Exposes only name + dream + values — no user ids, journey ids, or dates
     // beyond month granularity needs. TODO next phase: opt-in visibility flag.

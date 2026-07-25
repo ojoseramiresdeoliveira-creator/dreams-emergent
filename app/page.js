@@ -319,7 +319,7 @@ function Starfield({ density = 0.00025, parallax = 0.35 }) {
   return <canvas ref={canvasRef} className="absolute inset-0 w-full h-full pointer-events-none" style={{ display: 'block' }} />;
 }
 
-function Landing({ onBegin, onExplore, onSignIn, stats }) {
+function Landing({ onBegin, onExplore, onSignIn }) {
   const heroRef = useRef(null);
   const heroTrackRef = useRef(null); // 200vh track the sticky hero pins inside
   const heroVideoRef = useRef(null); // Act 1 clip — decorative, hand-seeked by scroll
@@ -1880,7 +1880,6 @@ function App() {
   const [ready, setReady] = useState(false);
   const [view, setView] = useState('landing');
   const [monument, setMonument] = useState(null);
-  const [stats, setStats] = useState(null);
 
   useEffect(() => {
     const supabase = getBrowserClient();
@@ -1926,15 +1925,14 @@ function App() {
     }
     let cancelled = false;
     setReady(false);
-    Promise.all([
-      // Distinguish "no journey yet" (→ onboarding) from "request failed"
-      // (→ landing + toast). Failing into onboarding used to let a transient
-      // error create a duplicate journey for an existing user.
-      apiFetch('/api/journeys/me').then(m => ({ ok: true, m })).catch(e => ({ ok: false, e })),
-      apiFetch('/api/stats').catch(() => null),
-    ]).then(([journeyRes, s]) => {
+    // Distinguish "no journey yet" (→ onboarding) from "request failed"
+    // (→ landing + toast). Failing into onboarding used to let a transient
+    // error create a duplicate journey for an existing user.
+    apiFetch('/api/journeys/me')
+      .then(m => ({ ok: true, m }))
+      .catch(e => ({ ok: false, e }))
+      .then((journeyRes) => {
       if (cancelled) return;
-      setStats(s);
       if (!journeyRes.ok) {
         console.error('Failed to load account state:', journeyRes.e);
         toast.error('Something went wrong loading your account. Please refresh.');
@@ -1995,7 +1993,7 @@ function App() {
         {view === 'landing' && (
           <motion.div key="landing" initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -12 }} transition={{ duration: 0.9, ease: EASE }}>
             <SmoothScroll>
-              <Landing stats={stats} onBegin={handleBegin} onExplore={() => setView('community-preview')} onSignIn={() => { setAuthMode('login'); setShowAuth(true); }} />
+              <Landing onBegin={handleBegin} onExplore={() => setView('community-preview')} onSignIn={() => { setAuthMode('login'); setShowAuth(true); }} />
             </SmoothScroll>
           </motion.div>
         )}

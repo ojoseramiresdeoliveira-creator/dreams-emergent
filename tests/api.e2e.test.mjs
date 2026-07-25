@@ -60,9 +60,6 @@ async function main() {
   const health = await api('root');
   check('GET /api/root → 200 ok', health.status === 200 && health.data.ok === true);
 
-  const stats = await api('stats');
-  check('GET /api/stats → 200 with counters', stats.status === 200 && typeof stats.data.dreamsCreated === 'number');
-
   const community = await api('community');
   check('GET /api/community → 200 array', community.status === 200 && Array.isArray(community.data.builders));
   const leaks = (community.data.builders || []).some(b => 'userId' in b || 'user_id' in b || 'id' in b);
