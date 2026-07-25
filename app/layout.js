@@ -1,5 +1,28 @@
 import './globals.css';
+import { Fraunces, Inter } from 'next/font/google';
 import { Toaster } from '@/components/ui/sonner';
+
+// Self-hosted via next/font: no render-blocking Google Fonts <link>, no extra
+// preconnect round-trips, and the font files are served from our own origin
+// with the CSS injected inline. Both are variable fonts, so a single file per
+// style covers the whole weight range the design uses (Fraunces 400/600 +
+// italic, Inter 300–700). display: swap keeps text visible during load.
+const fraunces = Fraunces({
+  subsets: ['latin'],
+  style: ['normal', 'italic'],
+  // Keep the optical-size axis (paired with font-optical-sizing: auto in the
+  // CSS) so the large display titles keep their intended letterforms instead
+  // of being pinned to a single optical size.
+  axes: ['opsz'],
+  variable: '--font-fraunces',
+  display: 'swap',
+});
+
+const inter = Inter({
+  subsets: ['latin'],
+  variable: '--font-inter',
+  display: 'swap',
+});
 
 export const metadata = {
   metadataBase: new URL('https://monumentofdreams.com'),
@@ -18,11 +41,12 @@ export const metadata = {
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="en" className="dark">
+    <html lang="en" className={`dark ${fraunces.variable} ${inter.variable}`}>
       <head>
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-        <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,100..900;1,9..144,100..900&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+        {/* The hero's Act 1 poster fills the viewport and is the LCP candidate
+            on first paint (the video itself is preload="none"). Preload it at
+            high priority so it is not discovered late via the <video poster>. */}
+        <link rel="preload" as="image" href="/videos/act01-poster.jpg" fetchPriority="high" />
       </head>
       <body className="bg-obsidian text-platinum antialiased min-h-screen font-sans">
         {children}
