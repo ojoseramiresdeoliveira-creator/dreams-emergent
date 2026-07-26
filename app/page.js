@@ -370,7 +370,7 @@ function Landing({ onBegin, onExplore, onSignIn }) {
             <a href="#ethos" className="nav-link hover:text-platinum">Ethos</a>
             <a href="#how" className="nav-link hover:text-platinum">Method</a>
             <a href="#mentor" className="nav-link hover:text-platinum">Mentor</a>
-            <a href="#premium" className="nav-link hover:text-platinum">Eternal</a>
+            <a href="#forever" className="nav-link hover:text-platinum">Forever</a>
           </div>
           <div className="flex items-center gap-5">
             {onSignIn && <button onClick={onSignIn} className="inline-flex items-center py-[14px] -my-[14px] text-[10px] md:text-[11px] tracking-[0.24em] uppercase text-platinum-muted hover:text-platinum transition-colors duration-500">Sign In</button>}
@@ -619,11 +619,13 @@ function Landing({ onBegin, onExplore, onSignIn }) {
         </div>
       </section>
 
-      {/* PREMIUM */}
-      <section id="premium" className="relative bg-black">
+      {/* WHAT ENDURES — the honest close of the landing: what a Monument holds,
+          nothing sold. No price, no CTA of its own (the closing band below
+          carries the single free call to action). */}
+      <section id="forever" className="relative bg-black">
         <div className="max-w-[1200px] mx-auto px-8 md:px-14 py-32 md:py-48">
           <div className="max-w-2xl mb-28">
-            <div className="eyebrow mb-6">Monument Eternal</div>
+            <div className="eyebrow mb-6">What endures</div>
             <h2 className="font-serif font-display text-[clamp(34px,5vw,56px)] leading-[1.05] track-title text-platinum">
               <LineReveal
                 lines={[
@@ -634,7 +636,7 @@ function Landing({ onBegin, onExplore, onSignIn }) {
           </div>
           <div className="grid md:grid-cols-12 gap-16 md:gap-20 items-start">
             <div className="md:col-span-5 space-y-0">
-              {['Unlimited Monument', 'The Guardian, always with you', 'Yearly Life Book, printed', 'Timeline preserved forever', 'Life Chapters, auto-written', 'Time Capsules to your future self', 'Full journey export'].map((f) => (
+              {['Your Monument, kept forever', 'The Guardian, always with you', 'Every stone preserved', 'Your timeline, never forgotten'].map((f) => (
                 <div key={f} className="flex items-center gap-4 py-5 border-b hairline-faint">
                   <Check className="w-3 h-3 text-champagne shrink-0" strokeWidth={2.5} />
                   <span className="text-platinum/70 text-[15px] font-light">{f}</span>
@@ -643,19 +645,9 @@ function Landing({ onBegin, onExplore, onSignIn }) {
             </div>
             <div className="md:col-span-6 md:col-start-7">
               <div className="card-glow p-10 md:p-14 rounded-sm">
-                <div className="flex items-baseline justify-between mb-10">
-                  <div>
-                    <div className="text-platinum-muted text-[13px] font-light">Monthly · billed yearly</div>
-                  </div>
-                  <div className="font-serif font-display text-[72px] md:text-[88px] text-platinum leading-none track-display">$12</div>
-                </div>
-                <p className="text-platinum-muted text-base leading-[1.65] max-w-md mb-12">
-                  One quiet subscription. No tiers, no ads, no noise. Only the Monument, in the highest resolution we know how to preserve a human life.
+                <p className="text-platinum-muted text-base leading-[1.65] max-w-md">
+                  No plans, no paywalls, no noise. Only your Monument, and the Guardian who keeps it with you.
                 </p>
-                <button onClick={onBegin} className="btn-premium btn-solid sheen group w-full py-4 rounded-full text-[11px] tracking-[0.24em] uppercase font-medium flex items-center justify-center gap-3">
-                  Begin Eternal
-                  <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform duration-500" />
-                </button>
               </div>
             </div>
           </div>
