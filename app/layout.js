@@ -39,6 +39,34 @@ export const metadata = {
   },
 };
 
+// Structured data: an Organization + WebSite graph. Rendered in the server
+// component so it lands in the prerendered HTML (no JS required to be seen by
+// crawlers or AI engines). No `logo`/`image` field — the repo has no dedicated
+// logo asset yet, and pointing at a scene frame would misrepresent the mark.
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@graph': [
+    {
+      '@type': 'Organization',
+      '@id': 'https://monumentofdreams.com/#organization',
+      name: 'Monument of Dreams',
+      url: 'https://monumentofdreams.com',
+      description:
+        'Preserve your journey. Build your future. Become who you dream of becoming.',
+    },
+    {
+      '@type': 'WebSite',
+      '@id': 'https://monumentofdreams.com/#website',
+      name: 'Monument of Dreams',
+      url: 'https://monumentofdreams.com',
+      description:
+        'Preserve your journey. Build your future. Become who you dream of becoming.',
+      inLanguage: 'en',
+      publisher: { '@id': 'https://monumentofdreams.com/#organization' },
+    },
+  ],
+};
+
 export default function RootLayout({ children }) {
   return (
     <html lang="en" className={`dark ${fraunces.variable} ${inter.variable}`}>
@@ -47,6 +75,10 @@ export default function RootLayout({ children }) {
             on first paint (the video itself is preload="none"). Preload it at
             high priority so it is not discovered late via the <video poster>. */}
         <link rel="preload" as="image" href="/videos/act01-poster.jpg" fetchPriority="high" />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        />
       </head>
       <body className="bg-obsidian text-platinum antialiased min-h-screen font-sans">
         {/* Skip link: first focusable element, hidden until a keyboard user
