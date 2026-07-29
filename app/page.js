@@ -1216,7 +1216,7 @@ function Timeline({ monument, userId }) {
   useEffect(() => {
     let cancelled = false;
     apiFetch(`/api/entries?monumentId=${monument.id}`)
-      .then(d => { if (!cancelled) setEntries(d.entries || []); })
+      .then(d => { if (!cancelled) { const list = d.entries || []; setEntries(list); if (list.length === 0) setAdding(true); } })
       .catch(e => { if (!cancelled) toast.error(e.message || 'Could not load the Monument.'); });
     return () => { cancelled = true; };
   }, [monument.id]);
