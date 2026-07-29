@@ -1101,7 +1101,7 @@ function Home({ monument, setView, userId }) {
         <div className="mt-6 glass spotlight rounded-xl p-8 md:p-12">
           <div className="text-[10px] tracking-[0.3em] uppercase text-champagne/70 mb-5">Day one</div>
           <div className="font-serif text-2xl md:text-3xl text-platinum leading-tight max-w-lg">
-            <LineReveal lines={['Every monument begins', 'with a single stone.']} />
+            <LineReveal lines={['Every story begins with one stone.', 'What is yours — the thing you still carry?']} />
           </div>
           <div className="mt-4 text-platinum/50 text-sm max-w-md">Today only asks for one honest sentence. Lay it, and it becomes permanent.</div>
           <button onClick={() => setView('timeline')} className="btn-premium mt-8 px-6 py-3 rounded-full bg-champagne text-obsidian text-[10px] md:text-xs tracking-[0.2em] uppercase hover:bg-champagne-soft transition flex items-center gap-2 gold-glow">
