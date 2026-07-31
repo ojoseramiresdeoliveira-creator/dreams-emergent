@@ -1,6 +1,7 @@
 import './globals.css';
 import { Fraunces, Inter } from 'next/font/google';
 import { Toaster } from '@/components/ui/sonner';
+import GoogleAnalytics from '@/components/analytics/GoogleAnalytics';
 
 // Self-hosted via next/font: no render-blocking Google Fonts <link>, no extra
 // preconnect round-trips, and the font files are served from our own origin
@@ -79,6 +80,8 @@ export default function RootLayout({ children }) {
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
         />
+        {/* GA4 loader. Renders nothing unless NEXT_PUBLIC_GA_ID is set. */}
+        <GoogleAnalytics />
       </head>
       <body className="bg-obsidian text-platinum antialiased min-h-screen font-sans">
         {/* Skip link: first focusable element, hidden until a keyboard user
