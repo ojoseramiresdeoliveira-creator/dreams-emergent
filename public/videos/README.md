@@ -1,14 +1,15 @@
 # Trailer clips
 
-The scroll-scrub landing is a 5-act trailer. Each act is a decorative,
-hand-seeked video layer (see `lib/useVideoScrub.js` + `components/fx/ScrubScene.jsx`)
-with server-rendered copy on top. The video is never required to read the page.
+The landing is a 5-act trailer. Each act is a decorative video layer that
+autoplays a muted loop while on screen (see `lib/useAutoplayInView.js` +
+`components/fx/ScrubScene.jsx`) with server-rendered copy on top. The video is
+never required to read the page.
 
 ## Assets per act
 
 Every act uses three files:
 
-    actNN.mp4         — desktop clip (scrubbed by scroll)
+    actNN.mp4         — desktop clip (autoplayed loop)
     actNN-mobile.mp4  — mobile clip (served at max-width: 768px)
     actNN-poster.jpg  — poster / mobile / reduced-motion fallback frame
 
@@ -60,10 +61,10 @@ URL and redeploy.
 2. Drop the `.mp4` clips into this folder (from CDN or a shared drive), or
    re-encode them from the `.mov` masters (see below). Each act needs both
    `actNN.mp4` and `actNN-mobile.mp4`.
-3. `npm install` (the scrub engine needs `gsap` + `lenis`), then `npm run dev`.
+3. `npm install` (smooth-scroll needs `gsap` + `lenis`), then `npm run dev`.
 
 Without the `.mp4`s the site still runs — you just see posters instead of the
-scrubbed motion.
+looping clips.
 
 ## Encoding guidelines
 
@@ -84,7 +85,7 @@ Web-encode each `.mov` master with ffmpeg:
 
 Rules of thumb:
 - H.264 / MP4, ~6–10s, target ≤ 2 MB per desktop clip.
-- Muted, no audio track (clips are decorative and hand-seeked).
+- Muted, no audio track (clips are decorative, autoplayed loops).
 - Static assets served with `preload` gated per act — never bundled.
 
 ## Status
