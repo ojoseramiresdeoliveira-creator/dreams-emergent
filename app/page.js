@@ -19,6 +19,7 @@ import ChampagneBurst from '@/components/fx/ChampagneBurst';
 import StreamedText, { streamDuration } from '@/components/fx/StreamedText';
 import SettleDust from '@/components/fx/SettleDust';
 import GuardianPresence from '@/components/fx/GuardianPresence';
+import Typewriter from '@/components/fx/Typewriter';
 import SmoothScroll from '@/components/fx/SmoothScroll';
 import ScrubScene from '@/components/fx/ScrubScene';
 import { EASE, SPRING_SOFT, SPRING_SNAPPY, SPRING_STONE, SPRING_STONE_HEAVY } from '@/lib/motion';
@@ -588,10 +589,19 @@ function Landing({ onBegin, onExplore, onSignIn }) {
             </div>
           </div>
           <motion.div initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, margin: '-100px' }} transition={{ duration: 1.8, ease: EASE }} className="md:col-span-6">
-            <div className="card-glow relative p-10 md:p-14 rounded-sm">
+            <div className="card-glow relative overflow-hidden p-10 md:p-14 rounded-sm">
+              {/* the room breathes behind the Guardian's words — same breath
+                  GuardianPresence uses wherever the Guardian is "in the room" */}
+              <span aria-hidden className="absolute inset-0 -z-10 rounded-sm bg-champagne/[0.06] blur-2xl animate-atmosphere-breath pointer-events-none" />
               <div className="eyebrow mb-8">A Sunday, quietly</div>
               <div className="font-serif text-[clamp(22px,3vw,28px)] leading-[1.4] text-platinum">
-                &ldquo;I see three restarts this month around the same block. This is not weakness. It is a signal. The story is asking for a smaller commitment, not a bigger one. Try twelve minutes tomorrow. Only twelve. Then come and inscribe it.&rdquo;
+                &ldquo;<Typewriter
+                  text="I see three restarts this month around the same block. This is not weakness. It is a signal. The story is asking for a smaller commitment, not a bigger one. Try twelve minutes tomorrow. Only twelve. Then come and inscribe it."
+                  sessionKey="guardian-quote"
+                  // Card fade-up above runs 1.8s; +300ms so the first
+                  // character never lands while the card is still arriving.
+                  startDelay={2100}
+                />&rdquo;
               </div>
               <div className="mt-12 pt-6 flex items-center justify-between border-t hairline-faint">
                 <div className="eyebrow">Guardian</div>
