@@ -126,7 +126,7 @@ html, body { background: var(--obsidian); }
 
 @keyframes shimmer { 0% { background-position: -200% 0 } 100% { background-position: 200% 0 } }
 .shimmer-line {
-  background: linear-gradient(90deg, transparent, rgba(212,180,131,0.5), transparent);
+  background: linear-gradient(90deg, transparent, rgba(212,176,106,0.5), transparent);
   background-size: 200% 100%;
   animation: shimmer 4s linear infinite;
 }
@@ -134,9 +134,9 @@ html, body { background: var(--obsidian); }
 /* Particle dots */
 .dot-field {
   background-image:
-    radial-gradient(circle at 20% 30%, rgba(212,180,131,0.15) 0, transparent 1px),
+    radial-gradient(circle at 20% 30%, rgba(212,176,106,0.15) 0, transparent 1px),
     radial-gradient(circle at 70% 60%, rgba(238,236,229,0.1) 0, transparent 1px),
-    radial-gradient(circle at 50% 85%, rgba(212,180,131,0.08) 0, transparent 1px),
+    radial-gradient(circle at 50% 85%, rgba(212,176,106,0.08) 0, transparent 1px),
     radial-gradient(circle at 85% 15%, rgba(238,236,229,0.08) 0, transparent 1px);
   background-size: 6px 6px;
 }
@@ -147,7 +147,7 @@ html, body { background: var(--obsidian); }
 }
 
 /* Selection */
-::selection { background: rgba(212,180,131,0.3); color: #fff; }
+::selection { background: rgba(212,176,106,0.3); color: #fff; }
 
 /* Scrollbar */
 ::-webkit-scrollbar { width: 8px; height: 8px; }
@@ -165,7 +165,7 @@ html, body { background: var(--obsidian); }
   --dur-slower: 1200ms;
   --shadow-soft: 0 20px 60px -30px rgba(0,0,0,0.6), 0 8px 20px -12px rgba(0,0,0,0.5);
   --shadow-lifted: 0 30px 90px -30px rgba(0,0,0,0.7), 0 10px 30px -15px rgba(0,0,0,0.6);
-  --shadow-glow: 0 0 60px -20px rgba(212,180,131,0.25);
+  --shadow-glow: 0 0 60px -20px rgba(212,176,106,0.25);
 }
 
 /* Premium type rendering globally */
@@ -262,7 +262,7 @@ html {
 }
 .btn-premium:hover { transform: translateY(-1px); }
 .btn-premium:active { transform: translateY(0) scale(0.98); }
-.btn-premium:focus-visible { outline: 2px solid rgba(212,180,131,0.5); outline-offset: 3px; }
+.btn-premium:focus-visible { outline: 2px solid rgba(212,176,106,0.5); outline-offset: 3px; }
 
 /* Landing CTA grammar — one primitive, two surfaces. Interaction (the -1px
    lift, scoped token-driven transitions, the focus ring) is .btn-premium;
@@ -275,7 +275,7 @@ html {
 
 /* Focus visible — premium ring on any interactive el */
 :focus-visible {
-  outline: 2px solid rgba(212,180,131,0.55);
+  outline: 2px solid rgba(212,176,106,0.55);
   outline-offset: 2px;
   border-radius: 4px;
 }
@@ -289,7 +289,7 @@ html {
   content: '';
   position: absolute;
   left: 0; right: 100%; bottom: -6px;
-  height: 1px; background: rgba(212,180,131,0.6);
+  height: 1px; background: rgba(212,176,106,0.6);
   transition: right var(--dur) var(--ease-out);
 }
 .nav-link:hover::after { right: 0; }
@@ -304,7 +304,7 @@ html {
   position: absolute;
   left: 0; top: 50%;
   width: 2px; height: 0;
-  background: rgba(212,180,131,0.9);
+  background: rgba(212,176,106,0.9);
   transform: translateY(-50%);
   transition: height var(--dur) var(--ease-out), opacity var(--dur) var(--ease-out);
   opacity: 0;
@@ -340,7 +340,7 @@ html {
 
 /* Timeline pin */
 .timeline-line {
-  background: linear-gradient(180deg, transparent 0%, rgba(212,180,131,0.4) 8%, rgba(212,180,131,0.4) 92%, transparent 100%);
+  background: linear-gradient(180deg, transparent 0%, rgba(212,176,106,0.4) 8%, rgba(212,176,106,0.4) 92%, transparent 100%);
 }
 
 /* Cinematic image animations */

@@ -75,7 +75,7 @@ function Ambient() {
   return (
     <div className="fixed inset-0 -z-10 overflow-hidden pointer-events-none">
       {/* light drifts organically — the room never feels static */}
-      <div className="absolute -inset-[4%] animate-ambient-drift bg-[radial-gradient(1200px_600px_at_20%_-10%,rgba(212,180,131,0.08),transparent),radial-gradient(900px_500px_at_90%_20%,rgba(238,236,229,0.04),transparent)]" />
+      <div className="absolute -inset-[4%] animate-ambient-drift bg-[radial-gradient(1200px_600px_at_20%_-10%,rgba(212,176,106,0.08),transparent),radial-gradient(900px_500px_at_90%_20%,rgba(238,236,229,0.04),transparent)]" />
       <div className="absolute inset-0 dot-field opacity-40" />
       <div className="absolute inset-0 vignette" />
     </div>
@@ -1135,7 +1135,7 @@ function StoneEntry({ e, isCeremony, landed, onLanded }) {
     : { variants: nodeVariants };
   return (
     <motion.div {...stoneProps} whileHover={{ x: 4 }} className="relative group">
-      <motion.div {...nodeProps} className="absolute -left-10 md:-left-12 top-1 w-7 h-7 md:w-8 md:h-8 rounded-full glass flex items-center justify-center border border-champagne/20 group-hover:border-champagne/50 group-hover:shadow-[0_0_20px_-5px_rgba(212,180,131,0.35)] transition-[border-color,box-shadow] duration-500">
+      <motion.div {...nodeProps} className="absolute -left-10 md:-left-12 top-1 w-7 h-7 md:w-8 md:h-8 rounded-full glass flex items-center justify-center border border-champagne/20 group-hover:border-champagne/50 group-hover:shadow-[0_0_20px_-5px_rgba(212,176,106,0.35)] transition-[border-color,box-shadow] duration-500">
         {/* light bloom behind the icon on hover */}
         <span aria-hidden className="absolute inset-[-6px] rounded-full bg-champagne/25 blur-md opacity-0 scale-75 group-hover:opacity-100 group-hover:scale-110 transition-all duration-500 pointer-events-none" />
         {isCeremony && landed && (
@@ -1994,7 +1994,7 @@ function App() {
             <div className="min-h-screen">
               <div className="px-6 md:px-8 py-6"><button onClick={() => setView('landing')} className="text-[10px] md:text-xs tracking-[0.2em] uppercase text-platinum/50 hover:text-platinum transition">← Back</button></div>
               <Community />
-              <div className="text-center py-16 px-6"><button onClick={handleBegin} className="px-8 py-4 rounded-full bg-champagne text-obsidian text-[10px] md:text-xs tracking-[0.2em] uppercase hover:bg-champagne-soft hover:-translate-y-0.5 hover:shadow-[0_20px_50px_-15px_rgba(212,180,131,0.4)] active:translate-y-0 active:scale-[0.98] transition-all duration-500 gold-glow">Begin your own Monument</button></div>
+              <div className="text-center py-16 px-6"><button onClick={handleBegin} className="px-8 py-4 rounded-full bg-champagne text-obsidian text-[10px] md:text-xs tracking-[0.2em] uppercase hover:bg-champagne-soft hover:-translate-y-0.5 hover:shadow-[0_20px_50px_-15px_rgba(212,176,106,0.4)] active:translate-y-0 active:scale-[0.98] transition-all duration-500 gold-glow">Begin your own Monument</button></div>
             </div>
           </motion.div>
         )}
