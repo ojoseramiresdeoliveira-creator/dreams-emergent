@@ -1024,7 +1024,7 @@ function Home({ monument, setView, userId }) {
   };
   return (
     <div className="px-6 md:px-16 py-10 md:py-16 max-w-6xl">
-      <div className="text-[10px] md:text-xs tracking-[0.3em] uppercase text-champagne/80 mb-4">{new Date().toLocaleDateString('en', { weekday: 'long', month: 'long', day: 'numeric' })}</div>
+      <div className="eyebrow-accent mb-4">{new Date().toLocaleDateString('en', { weekday: 'long', month: 'long', day: 'numeric' })}</div>
       <h1 className="font-serif font-display text-4xl sm:text-5xl md:text-6xl text-platinum track-title leading-[1.05]">
         <LineReveal
           mode="mount"
@@ -1035,12 +1035,12 @@ function Home({ monument, setView, userId }) {
       <p className="mt-4 text-platinum/50 text-base md:text-lg">Day {daysSince} preserved. The Monument is listening.</p>
       <motion.div initial="hidden" animate="show" className="mt-10 md:mt-16 grid sm:grid-cols-3 gap-4 md:gap-6">
         <motion.div custom={0} variants={cardVariants} className="glass spotlight rounded-xl p-6">
-          <div className="text-[10px] tracking-[0.3em] uppercase text-platinum/40 mb-3">Preserved today</div>
+          <div className="eyebrow opacity-40 mb-3">Preserved today</div>
           <div className="font-serif font-display track-title text-4xl text-platinum tabular">{entries === null ? <span className="skeleton inline-block w-10 h-10" /> : <Counter value={entriesCount} />}</div>
           <div className="text-xs text-platinum/50 mt-1">{entriesCount === 1 ? 'stone inscribed' : 'stones inscribed'}</div>
         </motion.div>
         <motion.div custom={1} variants={cardVariants} className="glass spotlight rounded-xl p-6 sm:col-span-2">
-          <div className="text-[10px] tracking-[0.3em] uppercase text-champagne/70 mb-3">The story you are telling</div>
+          <div className="eyebrow-accent mb-3">The story you are telling</div>
           <div className="font-serif text-xl md:text-2xl text-platinum leading-tight">{monument.dream}</div>
           <div className="mt-3 text-xs text-platinum/40">Toward: {monument.timeframe}</div>
         </motion.div>
@@ -1049,7 +1049,7 @@ function Home({ monument, setView, userId }) {
         <div className="flex items-center gap-3 mb-4">
           {/* the Guardian is in the room — its halo breathes even at rest */}
           <GuardianPresence size="xs" />
-          <div className="text-[10px] tracking-[0.3em] uppercase text-champagne/70">Guardian · today&apos;s reflection</div>
+          <div className="eyebrow-accent">Guardian · today&apos;s reflection</div>
         </div>
         {insight?.insight ? (
           <div className="space-y-3">
@@ -1082,7 +1082,7 @@ function Home({ monument, setView, userId }) {
       {entries !== null && entriesCount === 0 ? (
         /* day one — the most intentional state of the page, not a bare zero */
         <div className="mt-6 glass spotlight rounded-xl p-8 md:p-12">
-          <div className="text-[10px] tracking-[0.3em] uppercase text-champagne/70 mb-5">Day one</div>
+          <div className="eyebrow-accent mb-5">Day one</div>
           <div className="font-serif text-2xl md:text-3xl text-platinum leading-tight max-w-lg">
             <LineReveal lines={['Every story begins with one stone.', 'What is yours — the thing you still carry?']} />
           </div>
@@ -1153,7 +1153,7 @@ function StoneEntry({ e, isCeremony, landed, onLanded }) {
         )}
         <Icon className="w-3 h-3 md:w-3.5 md:h-3.5 text-champagne relative" />
       </motion.div>
-      <div className="text-[10px] tracking-[0.3em] uppercase text-champagne/70 mb-2">{t.label} · {new Date(e.createdAt).toLocaleDateString('en', { month: 'long', day: 'numeric', year: 'numeric' })}</div>
+      <div className="eyebrow-accent mb-2">{t.label} · {new Date(e.createdAt).toLocaleDateString('en', { month: 'long', day: 'numeric', year: 'numeric' })}</div>
       {e.title && <div className="font-serif text-xl md:text-2xl text-platinum mb-2 leading-tight">{e.title}</div>}
       <div className="text-platinum/70 leading-relaxed font-light whitespace-pre-wrap text-[15px] md:text-base">{e.content}</div>
     </motion.div>
@@ -1237,7 +1237,7 @@ function Timeline({ monument, userId }) {
   }
   return (
     <div className="px-6 md:px-16 py-10 md:py-16 max-w-4xl">
-      <div className="text-[10px] md:text-xs tracking-[0.3em] uppercase text-champagne/80 mb-4">The Archive</div>
+      <div className="eyebrow-accent mb-4">The Archive</div>
       <h1 className="font-serif font-display text-4xl sm:text-5xl md:text-6xl text-platinum track-title leading-[1.05]">{monument.name}&apos;s Monument</h1>
       <p className="mt-4 text-platinum/50 text-base md:text-lg leading-relaxed max-w-2xl">Every stone here is permanent. Nothing about this journey will be forgotten.</p>
       <div className="mt-3 text-platinum/40 text-sm md:text-base italic font-serif">{monument.dream}</div>
@@ -1394,7 +1394,7 @@ function Mentor({ userId }) {
         {/* the Guardian breathes here even mid-conversation, at rest */}
         <GuardianPresence size="md" />
         <div>
-          <div className="text-[10px] md:text-xs tracking-[0.3em] uppercase text-champagne/80">Guardian of the Journey</div>
+          <div className="eyebrow-accent">Guardian of the Journey</div>
           <div className="font-serif font-display track-title text-2xl md:text-3xl text-platinum mt-1">Every word remembered.</div>
         </div>
       </div>
@@ -1406,7 +1406,7 @@ function Mentor({ userId }) {
             <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 1, ease: EASE }} className="space-y-8">
               <div className="flex items-center gap-3">
                 <GuardianPresence size="sm" />
-                <div className="text-[10px] tracking-[0.3em] uppercase text-champagne/70">Guardian · listening</div>
+                <div className="eyebrow-accent">Guardian · listening</div>
               </div>
               <div className="font-serif text-2xl md:text-3xl text-platinum/85 leading-[1.35] max-w-xl">
                 I have been walking beside you. I remember every stone you have laid. Ask me anything about the journey.
@@ -1449,7 +1449,7 @@ function Mentor({ userId }) {
                       className="absolute -inset-4 rounded-2xl bg-champagne/10 blur-xl pointer-events-none"
                     />
                   )}
-                  {isGuardian && (<div className="relative text-[10px] tracking-[0.3em] uppercase text-champagne/70 mb-2">Guardian</div>)}
+                  {isGuardian && (<div className="relative eyebrow-accent mb-2">Guardian</div>)}
                   <div className={`relative leading-relaxed ${isGuardian ? 'font-serif text-lg md:text-xl text-platinum/90' : 'text-sm'}`}>
                     {isNew && isGuardian ? <StreamedText text={m.content} /> : m.content}
                   </div>
@@ -1460,7 +1460,7 @@ function Mentor({ userId }) {
           {sending && (
             <motion.div initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} transition={SPRING_SOFT} className="inline-flex items-center gap-3 glass rounded-full px-4 py-2.5">
               <Sparkles className="w-3 h-3 text-champagne" />
-              <div className="text-[10px] tracking-[0.3em] uppercase text-champagne/70">Guardian · reflecting</div>
+              <div className="eyebrow-accent">Guardian · reflecting</div>
               <div className="flex items-center gap-1.5">
                 <span className="typing-dot w-1.5 h-1.5 rounded-full bg-champagne/80" />
                 <span className="typing-dot w-1.5 h-1.5 rounded-full bg-champagne/80" />
@@ -1510,7 +1510,7 @@ function Community() {
   }, [reloadKey]);
   return (
     <div className="px-6 md:px-16 py-10 md:py-16">
-      <div className="text-[10px] md:text-xs tracking-[0.3em] uppercase text-champagne/80 mb-4">Witnesses</div>
+      <div className="eyebrow-accent mb-4">Witnesses</div>
       <h1 className="font-serif font-display text-4xl sm:text-5xl md:text-6xl text-platinum track-title leading-[1.05]">A world <em className="text-gold-shimmer not-italic">walking.</em></h1>
       <p className="mt-4 text-platinum/50 text-base md:text-lg max-w-2xl">Here there are no followers and no likes, only journeys witnessed by others walking their own. Every Monument here was raised by a real person.</p>
       <div className="mt-12 md:mt-16 grid sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
@@ -1579,28 +1579,28 @@ function Profile({ monument }) {
   const daysSince = Math.floor((Date.now() - new Date(monument.createdAt).getTime()) / 86400000) + 1;
   return (
     <div className="px-6 md:px-16 py-10 md:py-16 max-w-4xl">
-      <div className="text-[10px] md:text-xs tracking-[0.3em] uppercase text-champagne/80 mb-4">A Personal Monument</div>
+      <div className="eyebrow-accent mb-4">A Personal Monument</div>
       <h1 className="font-serif font-display text-5xl sm:text-6xl md:text-7xl text-platinum track-display leading-[1.05] break-words">{monument.name}</h1>
 
       <div className="mt-8 md:mt-10 glass spotlight rounded-xl p-6 md:p-8">
-        <div className="text-[10px] tracking-[0.3em] uppercase text-champagne/70 mb-3">The story I am telling</div>
+        <div className="eyebrow-accent mb-3">The story I am telling</div>
         <div className="font-serif text-2xl md:text-3xl text-platinum leading-tight">{monument.dream}</div>
         <div className="mt-4 text-xs text-platinum/40">Toward: {monument.timeframe}</div>
       </div>
 
       <div className="mt-6 glass spotlight rounded-xl p-6 md:p-8">
-        <div className="text-[10px] tracking-[0.3em] uppercase text-champagne/70 mb-3">Why it must be told</div>
+        <div className="eyebrow-accent mb-3">Why it must be told</div>
         <div className="text-platinum/80 leading-[1.85] text-[15px] md:text-base">{monument.purpose}</div>
       </div>
 
       <div className="mt-6 glass spotlight rounded-xl p-6 md:p-8">
-        <div className="text-[10px] tracking-[0.3em] uppercase text-champagne/70 mb-4">Inscribed at the base</div>
+        <div className="eyebrow-accent mb-4">Inscribed at the base</div>
         <div className="flex gap-2 md:gap-3 flex-wrap">
           {(monument.values || []).map((v) => (<div key={v} className="font-serif text-xl md:text-2xl text-champagne px-4 md:px-5 py-1.5 md:py-2 rounded-full border border-champagne/30">{v}</div>))}
         </div>
       </div>
 
-      <div className="mt-14 md:mt-16 text-[10px] tracking-[0.3em] uppercase text-platinum/40 mb-6">The Monument in numbers</div>
+      <div className="mt-14 md:mt-16 eyebrow opacity-40 mb-6">The Monument in numbers</div>
       <div className="grid sm:grid-cols-3 gap-4 md:gap-6">
         {[
           { label: 'Days preserved', body: <div className="font-serif font-display track-title text-4xl md:text-5xl text-platinum tabular"><Counter value={daysSince} /></div> },
@@ -1608,7 +1608,7 @@ function Profile({ monument }) {
           { label: 'The horizon', body: <div className="font-serif text-xl md:text-2xl text-platinum">{monument.timeframe}</div> },
         ].map((card, i) => (
           <motion.div key={card.label} initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} transition={{ ...SPRING_SOFT, delay: 0.08 * i }} className="glass spotlight rounded-xl p-6">
-            <div className="text-[10px] tracking-[0.3em] uppercase text-platinum/40 mb-3">{card.label}</div>
+            <div className="eyebrow opacity-40 mb-3">{card.label}</div>
             {card.body}
           </motion.div>
         ))}
