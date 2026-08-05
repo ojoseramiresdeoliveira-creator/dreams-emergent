@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
-import { motion, AnimatePresence, MotionConfig, useScroll, useTransform, useReducedMotion, useSpring, useInView } from 'framer-motion';
+import { motion, AnimatePresence, MotionConfig, useScroll, useReducedMotion, useSpring, useInView } from 'framer-motion';
 import { getBrowserClient } from '@/lib/supabase';
 import {
   ArrowRight, ArrowUpRight, Sparkles, Feather, Flame, Mountain,
@@ -21,10 +21,8 @@ import SettleDust from '@/components/fx/SettleDust';
 import GuardianPresence from '@/components/fx/GuardianPresence';
 import Typewriter from '@/components/fx/Typewriter';
 import SmoothScroll from '@/components/fx/SmoothScroll';
-import ScrubScene from '@/components/fx/ScrubScene';
+import JourneyScrub from '@/components/fx/JourneyScrub';
 import { EASE, SPRING_SOFT, SPRING_SNAPPY, SPRING_STONE, SPRING_STONE_HEAVY } from '@/lib/motion';
-import { useAutoplayInView } from '@/lib/useAutoplayInView';
-import { videoSrc } from '@/lib/videoSrc';
 
 // Races a promise against a timeout so auth/network calls can never hang the UI silently.
 function withTimeout(promise, ms, message) {
@@ -318,26 +316,9 @@ function Starfield({ density = 0.00025, parallax = 0.35 }) {
 }
 
 function Landing({ onBegin, onExplore, onSignIn }) {
-  const heroRef = useRef(null);
-  const heroVideoRef = useRef(null); // Act 1 clip — decorative, autoplayed in view
   const reduce = useReducedMotion();
   // Reading progress across the whole landing — the champagne hairline up top.
   const { scrollYProgress: pageProgress } = useScroll();
-  // Act 1 plays a gentle muted loop while it's on screen (paused otherwise) —
-  // the same behaviour on desktop and mobile, no scroll scrub. Reduced motion
-  // opts out and holds the poster.
-  useAutoplayInView({ videoRef: heroVideoRef, enabled: !reduce });
-  // Pointer lean: the hero copy tilts gently toward the cursor (desktop only).
-  const pointerX = useSpring(0, { stiffness: 55, damping: 20, mass: 0.9 });
-  const pointerY = useSpring(0, { stiffness: 55, damping: 20, mass: 0.9 });
-  const textLeanX = useTransform(pointerX, (v) => v * -6);
-  function onHeroPointer(e) {
-    if (reduce || e.pointerType === 'touch' || !heroRef.current) return;
-    const r = heroRef.current.getBoundingClientRect();
-    pointerX.set(((e.clientX - r.left) / r.width - 0.5) * 2);
-    pointerY.set(((e.clientY - r.top) / r.height - 0.5) * 2);
-  }
-  function onHeroLeave() { pointerX.set(0); pointerY.set(0); }
 
   return (
     <div className="relative bg-black">
@@ -358,6 +339,7 @@ function Landing({ onBegin, onExplore, onSignIn }) {
             <a href="#how" className="nav-link hover:text-platinum">Method</a>
             <a href="#mentor" className="nav-link hover:text-platinum">Mentor</a>
             <a href="#forever" className="nav-link hover:text-platinum">Forever</a>
+            {onExplore && <button onClick={onExplore} className="nav-link hover:text-platinum">Community</button>}
           </div>
           <div className="flex items-center gap-5">
             {onSignIn && <button onClick={onSignIn} className="inline-flex items-center py-[14px] -my-[14px] text-[10px] md:text-[11px] tracking-[0.24em] uppercase text-platinum-muted hover:text-platinum transition-colors duration-500">Sign In</button>}
@@ -368,198 +350,13 @@ function Landing({ onBegin, onExplore, onSignIn }) {
         </div>
       </nav>
 
-      {/* HERO — Act 1 (anonymous life). A normal ~100svh section: Act 1's clip
-          autoplays a muted loop beneath the copy while on screen, the same on
-          desktop and mobile. Under reduced motion it holds the poster. */}
-      <div className="relative bg-black">
-      <section
-        ref={heroRef}
-        onPointerMove={onHeroPointer}
-        onPointerLeave={onHeroLeave}
-        className="overflow-hidden flex items-center justify-center bg-black relative min-h-[100svh]"
-      >
-        {/* Act 1 clip — decoration beneath the cosmos. The hero copy above is
-            untouched and server-rendered; the video never carries content. It
-            autoplays a muted loop in view, or holds its poster under reduced motion. */}
-        <video
-          ref={heroVideoRef}
-          aria-hidden
-          muted
-          playsInline
-          preload="none"
-          poster="/videos/act01-poster.jpg"
-          className="clip-melt brightness-105 absolute inset-0 w-full h-full object-cover pointer-events-none"
-        >
-          <source src={videoSrc('/videos/act01-mobile.mp4')} media="(max-width: 768px)" type="video/mp4" />
-          <source src={videoSrc('/videos/act01.mp4')} type="video/mp4" />
-        </video>
-        {/* legibility scrim over the clip — darker top and bottom so the copy
-            and the melt into the Ethos below both stay clean. Act 1's video is
-            the hero's only background now. */}
-        <div aria-hidden className="absolute inset-0 pointer-events-none bg-gradient-to-b from-black/25 via-black/8 to-black/30" />
-        {/* The clip carries a top/bottom mask (.clip-melt) that dissolves its
-            edges into the black section, so the hand-off from the nav above and
-            the melt into the Ethos below are both seamless — no hard edge line. */}
-
-        <div className="relative w-full max-w-[1100px] mx-auto px-6 md:px-14 pt-28 md:pt-24 pb-20 md:pb-0 flex justify-center">
-          {/* Text + actions — the only thing above Act 1's clip */}
-          <motion.div
-            style={reduce ? undefined : { x: textLeanX }}
-            className="relative w-full text-center"
-          >
-            <h1 className="relative font-serif font-display text-[clamp(24px,6.6vw,92px)] sm:text-[clamp(40px,8vw,92px)] leading-[0.98] track-display text-platinum">
-              <LineReveal
-                mode="mount"
-                delay={0.7}
-                lines={[
-                  'Every dream deserves',
-                  <span key="l2" className="italic text-champagne">a monument.</span>,
-                ]}
-              />
-            </h1>
-            <motion.p
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ duration: 2, delay: 1.3 }}
-              className="mt-8 text-base md:text-lg text-platinum-muted max-w-md mx-auto leading-[1.7] tracking-wide"
-            >
-              Preserve your journey. Build your future.<br className="hidden sm:block" /> Become who you dream of becoming.
-            </motion.p>
-            <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 1.6, delay: 1.8 }}
-              className="mt-12 flex flex-col lg:flex-row items-center justify-center gap-3 sm:gap-4"
-            >
-              <Magnetic className="w-full sm:w-auto">
-                <button
-                  onClick={onBegin}
-                  className="btn-premium btn-solid sheen group w-full sm:w-auto whitespace-nowrap px-12 py-5 rounded-full text-[11px] tracking-[0.24em] uppercase font-medium flex items-center justify-center gap-3"
-                >
-                  Create My Monument
-                  <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform duration-500" />
-                </button>
-              </Magnetic>
-              <button
-                onClick={onExplore}
-                className="btn-premium btn-outline w-full sm:w-auto whitespace-nowrap px-10 py-4 rounded-full text-[11px] tracking-[0.24em] uppercase"
-              >
-                Explore the Community
-              </button>
-            </motion.div>
-          </motion.div>
-        </div>
-
-        <motion.div
-          className="hidden md:flex absolute bottom-8 left-1/2 -translate-x-1/2 text-platinum/40 text-[9px] tracking-[0.4em] uppercase flex-col items-center gap-4"
-        >
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 2.8, duration: 1.5 }}
-            className="flex flex-col items-center gap-4"
-          >
-            <span>Scroll</span>
-            <div className="w-px h-14 bg-gradient-to-b from-white/40 to-transparent" />
-          </motion.div>
-        </motion.div>
-      </section>
-      </div>
-
-      {/* ETHOS — Act 2 (sacrifice). act02 (the hand writing) scrubs full-screen
-          beneath the copy; a frame of that same clip is the poster / mobile /
-          reduced-motion fallback, so desktop and mobile show the same scene. */}
-      <ScrubScene id="ethos" videoBase="act02" poster="/videos/act02-poster.jpg">
-        <div className="relative max-w-4xl mx-auto text-center px-8 py-20">
-          <h2 className="font-serif font-display text-[clamp(38px,6vw,68px)] leading-[1.0] track-title text-platinum">
-            <LineReveal
-              lines={[
-                'The world remembers',
-                <span key="l2">those who <span className="italic text-champagne">arrived.</span></span>,
-              ]}
-            />
-          </h2>
-          <motion.p initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} viewport={{ once: true, margin: '-100px' }} transition={{ duration: 2, delay: 0.5 }} className="mt-8 text-platinum-muted text-base md:text-lg leading-[1.7] max-w-xl mx-auto">
-            We remember everyone still walking.
-            <br /><br />
-            The sacrifices. The failures. The restarts. The quiet mornings no one ever saw. Nothing about your journey deserves to disappear.
-          </motion.p>
-        </div>
-      </ScrubScene>
-
-      {/* THE CLIMB — Act 3 (the ascent). act03 (the figure climbing toward the
-          light) scrubs full-screen beneath the copy; a frame of that same clip
-          is the poster / mobile / reduced-motion fallback. */}
-      <ScrubScene id="climb" videoBase="act03" poster="/videos/act03-poster.jpg">
-        <div className="relative max-w-4xl mx-auto text-center px-8 py-20">
-          <h2 className="font-serif font-display text-[clamp(38px,6vw,68px)] leading-[1.0] track-title text-platinum">
-            <LineReveal
-              lines={[
-                'The world saw the summit.',
-                <span key="l2">Every step, <span className="italic text-champagne">remembered.</span></span>,
-              ]}
-            />
-          </h2>
-          <motion.p initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} viewport={{ once: true, margin: '-100px' }} transition={{ duration: 2, delay: 0.5 }} className="mt-8 text-platinum-muted text-base md:text-lg leading-[1.7] max-w-xl mx-auto">
-            The sacrifice, the doubt, the slow mornings no one saw. Every step is kept.
-          </motion.p>
-        </div>
-      </ScrubScene>
-
-      {/* THE MONUMENT — Act 4. act04 (the monument under construction, carved
-          stones lifted into place) scrubs full-screen beneath the copy; a frame
-          of that same clip is the poster / mobile / reduced-motion fallback.
-          Same ScrubScene contract as every act (edge fades, desktop scrub,
-          mobile autoplay-in-view). Fourth of the five contiguous acts, between
-          the Climb and the Act 5 finale. */}
-      <ScrubScene id="monument" videoBase="act04" poster="/videos/act04-poster.jpg">
-        <div className="relative max-w-4xl mx-auto text-center px-8 py-20">
-          <h2 className="font-serif font-display text-[clamp(38px,6vw,68px)] leading-[1.0] track-title text-platinum">
-            <LineReveal
-              lines={[
-                'This is what a life looks like,',
-                <span key="l2">when nothing is <span className="italic text-champagne">forgotten.</span></span>,
-              ]}
-            />
-          </h2>
-        </div>
-      </ScrubScene>
-
-      {/* ACT 5 — the invitation. act05 (the lit stone niche / pedestal) scrubs
-          full-screen beneath the closing copy; the finale of the 5-act trailer
-          and home of the primary CTA. Sits right after Act 4 so all five acts
-          run contiguously; the detail sections (Method, Mentor, Premium)
-          follow below. Same ScrubScene contract every act
-          shares (edge fades, desktop scrub, mobile autoplay-in-view). The copy
-          + button live in the children layer (pointer-events auto) above the
-          pointer-events-none video, scrims and fade bands, so the CTA stays
-          clickable. */}
-      <ScrubScene id="finale" videoBase="act05" poster="/videos/act05-poster.jpg">
-        <div className="relative max-w-4xl mx-auto text-center px-8 py-20">
-          <h2 className="font-serif font-display text-[clamp(40px,8vw,92px)] leading-[0.98] track-display text-platinum">
-            <LineReveal
-              duration={1.4}
-              lines={[
-                'Every dream deserves',
-                <span key="l2" className="italic text-champagne">a monument.</span>,
-              ]}
-            />
-          </h2>
-          <Magnetic className="mt-12">
-            <motion.button
-              initial={{ opacity: 0, y: 10 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 1.6, delay: 0.7 }}
-              onClick={onBegin}
-              className="btn-premium btn-solid sheen group px-12 py-5 rounded-full text-[11px] tracking-[0.24em] uppercase font-medium inline-flex items-center gap-3"
-            >
-              Raise My Monument
-              <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform duration-500" />
-            </motion.button>
-          </Magnetic>
-        </div>
-      </ScrubScene>
+      {/* JOURNEY — the 5-act trailer, now a single scroll-scrubbed clip
+          (desktop) / autoplay-in-view loop (mobile) instead of five separate
+          act clips. See components/fx/JourneyScrub.jsx. The old per-act
+          ScrubScene machinery and act01–05 assets are kept on disk,
+          unreferenced, as a rollback path — see components/fx/ScrubScene.jsx
+          and public/videos/act01…05*. */}
+      <JourneyScrub id="ethos" onBegin={onBegin} />
 
       {/* METHOD — The First Stone */}
       <FirstStoneScene />
