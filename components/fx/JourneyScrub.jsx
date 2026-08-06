@@ -29,7 +29,6 @@ import LineReveal from './LineReveal';
 import { useScrollScrubVideo } from '@/lib/useScrollScrubVideo';
 import { useAutoplayInView } from '@/lib/useAutoplayInView';
 import { videoSrc } from '@/lib/videoSrc';
-import { EASE } from '@/lib/motion';
 
 // Trapped-scroll history on this landing: 320vh → 220vh → removed entirely.
 // 280vh sits between those two — enough scroll distance for 5 chapters to
@@ -155,7 +154,9 @@ function DesktopActBlock({ act, index, progress, onBegin }) {
 function JourneyScrubDesktop({ onBegin }) {
   const trackRef = useRef(null);
   const videoRef = useRef(null);
-  const progress = useScrollScrubVideo({ trackRef, videoRef, enabled: true });
+  // Still drives video.currentTime from scroll — only the text overlay
+  // (DesktopActBlock, below) is switched off, not the scrub itself.
+  useScrollScrubVideo({ trackRef, videoRef, enabled: true });
 
   return (
     <div ref={trackRef} className="relative" style={{ height: `${TRACK_VH}vh` }}>
@@ -171,10 +172,9 @@ function JourneyScrubDesktop({ onBegin }) {
         >
           <source src={videoSrc('/videos/journey.mp4')} type="video/mp4" />
         </video>
-        <div aria-hidden className={SCRIM_CLASS} />
-        {ACTS.map((act, i) => (
-          <DesktopActBlock key={i} act={act} index={i} progress={progress} onBegin={onBegin} />
-        ))}
+        {/* Act text/kicker/CTA overlay removed for now — the clip carries the
+            5 acts on its own. DesktopActBlock is kept defined, just unused,
+            so it's a one-line change to bring back if that changes. */}
       </div>
     </div>
   );
@@ -205,27 +205,11 @@ function JourneyScrubMobile({ onBegin }) {
         >
           <source src={videoSrc('/videos/journey-mobile.mp4')} type="video/mp4" />
         </video>
-        <div aria-hidden className={SCRIM_CLASS} />
       </div>
-      <div className="absolute inset-0">
-        {ACTS.map((act, i) => (
-          <div key={i} className="absolute inset-x-0 h-[100svh]" style={{ top: `${i * 100}svh` }}>
-            <motion.div
-              initial={i === 0 ? undefined : { opacity: 0, y: 20 }}
-              whileInView={i === 0 ? undefined : { opacity: 1, y: 0 }}
-              viewport={{ once: true, margin: '-30% 0px -30% 0px' }}
-              transition={{ duration: 1.2, ease: EASE }}
-              className="h-full flex flex-col justify-between px-6 pt-8 pb-14"
-            >
-              <ActKicker index={i} />
-              <div>
-                <ActHeadline act={act} index={i} sizeClass="text-[clamp(34px,10vw,64px)]" />
-                <ActCTA act={act} onBegin={onBegin} />
-              </div>
-            </motion.div>
-          </div>
-        ))}
-      </div>
+      {/* Act text/kicker/CTA overlay removed for now, same as desktop — the
+          5-screen-tall track height is untouched, so this currently scrolls
+          past a clean, textless loop for 5 screens. Worth revisiting if that
+          reads as dead scroll on a real phone. */}
     </div>
   );
 }

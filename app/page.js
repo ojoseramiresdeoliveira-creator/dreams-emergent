@@ -155,27 +155,31 @@ const PROMISES = [
 
 function PromisesScene() {
   return (
-    <section className="relative bg-black overflow-hidden min-h-[100svh] flex items-center">
+    <section className="relative bg-black overflow-hidden min-h-[100svh]">
       <picture>
         <source media="(max-width: 768px)" srcSet={videoSrc('/videos/promises-bg-mobile.jpg')} />
         <img src={videoSrc('/videos/promises-bg.jpg')} alt="" aria-hidden className="absolute inset-0 w-full h-full object-cover" />
       </picture>
-      <div aria-hidden className="absolute inset-0 bg-black/55" />
-      <div className="relative w-full max-w-[1200px] mx-auto px-8 md:px-16 py-32 md:py-40 grid md:grid-cols-3 gap-16 md:gap-12">
-        {PROMISES.map((p, i) => (
-          <motion.div
-            key={i}
-            initial={{ opacity: 0, y: 24 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, margin: '-100px' }}
-            transition={{ duration: 1.2, delay: i * 0.15, ease: EASE }}
-          >
-            <h3 className="font-serif font-display text-[clamp(30px,4vw,52px)] leading-[1.1] track-title text-platinum">
-              {p.title}
-            </h3>
-            <p className="mt-5 text-platinum-muted text-base leading-[1.65] max-w-sm">{p.body}</p>
-          </motion.div>
-        ))}
+      {/* Scrim kept deliberately light — the image is the point here, not a
+          backdrop to darken. Just enough to keep the text readable. */}
+      <div aria-hidden className="absolute inset-0 bg-black/20" />
+      <div className="absolute inset-0 flex items-center">
+        <div className="relative w-full max-w-[1200px] mx-auto px-8 md:px-16 grid md:grid-cols-3 gap-16 md:gap-12">
+          {PROMISES.map((p, i) => (
+            <motion.div
+              key={i}
+              initial={{ opacity: 0, y: 24 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, margin: '-100px' }}
+              transition={{ duration: 1.2, delay: i * 0.15, ease: EASE }}
+            >
+              <h3 className="font-serif font-display text-[clamp(30px,4vw,52px)] leading-[1.1] track-title text-platinum">
+                {p.title}
+              </h3>
+              <p className="mt-5 text-platinum-muted text-base leading-[1.65] max-w-sm">{p.body}</p>
+            </motion.div>
+          ))}
+        </div>
       </div>
     </section>
   );
@@ -193,7 +197,7 @@ function FinaleScene({ onBegin }) {
   useAutoplayInView({ videoRef, enabled: !reduce });
 
   return (
-    <section className="relative bg-black overflow-hidden min-h-[100svh] flex items-center justify-center">
+    <section className="relative bg-black overflow-hidden min-h-[100svh]">
       <video
         ref={videoRef}
         aria-hidden
@@ -206,24 +210,28 @@ function FinaleScene({ onBegin }) {
         <source src={videoSrc('/videos/finale-mobile.mp4')} media="(max-width: 768px)" type="video/mp4" />
         <source src={videoSrc('/videos/finale.mp4')} type="video/mp4" />
       </video>
-      <div aria-hidden className="absolute inset-0 bg-black/50" />
-      <div className="relative text-center px-6">
-        <h2 className="font-serif font-display text-[clamp(40px,8vw,92px)] leading-[0.98] track-display text-platinum">
-          <LineReveal lines={[<>What <span key="r" className="italic text-champagne">remains.</span></>]} />
-        </h2>
-        <Magnetic className="mt-12 inline-block">
-          <motion.button
-            initial={{ opacity: 0, y: 10 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 1.6, delay: 0.7 }}
-            onClick={onBegin}
-            className="btn-premium btn-solid sheen group px-12 py-5 rounded-full text-[11px] tracking-[0.24em] uppercase font-medium inline-flex items-center gap-3"
-          >
-            Raise my Monument
-            <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform duration-500" />
-          </motion.button>
-        </Magnetic>
+      {/* Same light-touch scrim as Promises — just enough for the closing
+          line to read, not a wash over the footage. */}
+      <div aria-hidden className="absolute inset-0 bg-black/20" />
+      <div className="absolute inset-0 flex items-center justify-center">
+        <div className="relative text-center px-6">
+          <h2 className="font-serif font-display text-[clamp(40px,8vw,92px)] leading-[0.98] track-display text-platinum">
+            <LineReveal lines={[<>What <span key="r" className="italic text-champagne">remains.</span></>]} />
+          </h2>
+          <Magnetic className="mt-12 inline-block">
+            <motion.button
+              initial={{ opacity: 0, y: 10 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 1.6, delay: 0.7 }}
+              onClick={onBegin}
+              className="btn-premium btn-solid sheen group px-12 py-5 rounded-full text-[11px] tracking-[0.24em] uppercase font-medium inline-flex items-center gap-3"
+            >
+              Raise my Monument
+              <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform duration-500" />
+            </motion.button>
+          </Magnetic>
+        </div>
       </div>
     </section>
   );
