@@ -22,27 +22,11 @@
 // NOTHING — it renders children untouched and lets the browser scroll natively.
 // ScrollTrigger still works on native scroll, so any scrub that depends on it
 // simply runs without the inertia. No copy is ever gated on this mounting.
-//
-// Exposes the live Lenis instance via context (useLenis()) so a descendant —
-// today, the journey scroll-lock hook — can call lenis.stop()/start() to
-// coordinate a true scroll hijack instead of fighting it. scrollTo() is a
-// documented no-op while stopped (lenis.mjs: `if ((this.isStopped ||
-// this.isLocked) && !force) return;`), so this component's own keydown→
-// scrollTo handler above harmlessly no-ops for the duration of a lock — no
-// extra coordination needed there.
 
-import { createContext, useContext, useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import Lenis from 'lenis';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
-
-const LenisContext = createContext(null);
-
-// Returns the live Lenis instance, or null before it's ready / under
-// reduced motion / outside a <SmoothScroll>. Callers must handle null.
-export function useLenis() {
-  return useContext(LenisContext);
-}
 
 // Same curve for every input method — wheel (via the Lenis constructor) and
 // keyboard (via the scrollTo() calls below) should feel identical.
@@ -64,8 +48,6 @@ function keyScrollDelta(e) {
 }
 
 export default function SmoothScroll({ children }) {
-  const [lenisInstance, setLenisInstance] = useState(null);
-
   useEffect(() => {
     const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     if (reduce) return; // native scroll — nothing to set up, nothing to tear down
@@ -104,10 +86,8 @@ export default function SmoothScroll({ children }) {
       lenis.scrollTo(lenis.targetScroll + delta, { duration: LENIS_DURATION, easing: LENIS_EASING });
     }
     window.addEventListener('keydown', onKeyDown);
-    setLenisInstance(lenis);
 
     return () => {
-      setLenisInstance(null);
       lenis.off('scroll', ScrollTrigger.update);
       gsap.ticker.remove(raf);
       window.removeEventListener('keydown', onKeyDown);
@@ -115,5 +95,5 @@ export default function SmoothScroll({ children }) {
     };
   }, []);
 
-  return <LenisContext.Provider value={lenisInstance}>{children}</LenisContext.Provider>;
+  return children;
 }
