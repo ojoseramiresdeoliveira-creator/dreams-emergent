@@ -11,11 +11,17 @@
 // top-left — same corner every act, so it reads as one continuous take with
 // changing captions, not five separate cards.
 //
-// Desktop scroll-scrub was tried once before on this exact landing and
-// removed for stuttering (see lib/useScrollScrubVideo.js's header) — mobile
-// deliberately does NOT attempt currentTime scrubbing at all (iOS Safari seek
-// is unreliable), it reuses the loop-in-view mechanism proven by every act
-// video today.
+// Desktop is a true scroll-hijack (lib/useJourneyScrollLock.js): the page
+// scroll is physically frozen (overflow: hidden + lenis.stop()) the moment
+// the zone is entered, and wheel/keydown input drives progress directly
+// until the user reaches either end — only then is native scroll handed
+// back. An earlier passive-observer version (lib/useScrollScrubVideo.js,
+// still on disk, unused) let native/Lenis-smoothed scroll drive progress
+// instead; that felt "pinned" for wheel input but never actually blocked
+// the page, so keyboard/fast input could scroll straight past the acts.
+// Mobile deliberately does NOT attempt currentTime scrubbing at all (iOS
+// Safari seek is unreliable), it reuses the loop-in-view mechanism proven
+// by every act video today.
 //
 // The old per-act ScrubScene machinery and act01–05 assets (including
 // .clip-melt) are untouched and unreferenced here — see
@@ -26,7 +32,7 @@ import { useRef } from 'react';
 import { motion, useReducedMotion, useTransform } from 'framer-motion';
 import { ArrowRight } from 'lucide-react';
 import LineReveal from './LineReveal';
-import { useScrollScrubVideo } from '@/lib/useScrollScrubVideo';
+import { useJourneyScrollLock } from '@/lib/useJourneyScrollLock';
 import { useAutoplayInView } from '@/lib/useAutoplayInView';
 import { videoSrc } from '@/lib/videoSrc';
 import { EASE } from '@/lib/motion';
@@ -155,7 +161,7 @@ function DesktopActBlock({ act, index, progress, onBegin }) {
 function JourneyScrubDesktop({ onBegin }) {
   const trackRef = useRef(null);
   const videoRef = useRef(null);
-  const progress = useScrollScrubVideo({ trackRef, videoRef, enabled: true });
+  const progress = useJourneyScrollLock({ trackRef, videoRef, enabled: true });
 
   return (
     <div ref={trackRef} className="relative" style={{ height: `${TRACK_VH}vh` }}>
