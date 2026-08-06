@@ -334,13 +334,6 @@ function Landing({ onBegin, onExplore, onSignIn }) {
             <div className="w-1.5 h-1.5 rounded-full bg-champagne" />
             <span className="text-[10px] md:text-[11px] tracking-[0.28em] md:tracking-[0.3em] uppercase text-platinum/70 font-medium">Monument of Dreams</span>
           </div>
-          <div className="hidden md:flex items-center gap-10 text-[12px] tracking-wide text-platinum-muted">
-            <a href="#ethos" className="nav-link hover:text-platinum">Ethos</a>
-            <a href="#how" className="nav-link hover:text-platinum">Method</a>
-            <a href="#mentor" className="nav-link hover:text-platinum">Mentor</a>
-            <a href="#forever" className="nav-link hover:text-platinum">Forever</a>
-            {onExplore && <button onClick={onExplore} className="nav-link hover:text-platinum">Community</button>}
-          </div>
           <div className="flex items-center gap-5">
             {onSignIn && <button onClick={onSignIn} className="inline-flex items-center py-[14px] -my-[14px] text-[10px] md:text-[11px] tracking-[0.24em] uppercase text-platinum-muted hover:text-platinum transition-colors duration-500">Sign In</button>}
             <button onClick={onBegin} className="text-[10px] md:text-[11px] tracking-[0.24em] uppercase text-platinum/70 hover:text-platinum transition-colors duration-500 flex items-center gap-2 py-[14px] -my-[14px]">
@@ -476,6 +469,11 @@ function Landing({ onBegin, onExplore, onSignIn }) {
             <div className="w-1.5 h-1.5 rounded-full bg-champagne" />
             <span className="text-[11px] tracking-[0.3em] uppercase text-platinum/70">Monument of Dreams</span>
           </div>
+          {onExplore && (
+            <button onClick={onExplore} className="text-[10px] tracking-[0.3em] uppercase text-platinum/55 hover:text-platinum transition-colors duration-500">
+              Community
+            </button>
+          )}
           <div className="text-[10px] tracking-[0.35em] uppercase text-platinum/55">MMXXV · No journey forgotten</div>
         </div>
       </footer>
