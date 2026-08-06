@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from 'react';
 import { motion, AnimatePresence, MotionConfig, useScroll, useReducedMotion, useSpring, useInView } from 'framer-motion';
 import { getBrowserClient } from '@/lib/supabase';
 import {
-  ArrowRight, ArrowUpRight, Sparkles, Feather, Flame, Mountain,
+  ArrowRight, Sparkles, Feather, Flame, Mountain,
   MessageSquare, Send, Plus, Users, Home as HomeIcon,
   History, User, ChevronRight, Check, Loader2, Star, Trophy, RotateCcw,
   Circle, Menu, X
@@ -327,22 +327,6 @@ function Landing({ onBegin, onExplore, onSignIn }) {
         style={{ scaleX: reduce ? 1 : pageProgress }}
         className="fixed top-0 inset-x-0 z-[60] h-px origin-left bg-gradient-to-r from-champagne/80 via-champagne to-champagne-soft pointer-events-none"
       />
-      {/* NAV */}
-      <nav aria-label="Primary" className="fixed top-0 inset-x-0 z-50 backdrop-blur-md bg-black/30">
-        <div className="max-w-[1440px] mx-auto px-6 md:px-14 py-5 md:py-6 flex items-center justify-between">
-          <div className="flex items-center gap-2.5">
-            <div className="w-1.5 h-1.5 rounded-full bg-champagne" />
-            <span className="text-[10px] md:text-[11px] tracking-[0.28em] md:tracking-[0.3em] uppercase text-platinum/70 font-medium">Monument of Dreams</span>
-          </div>
-          <div className="flex items-center gap-5">
-            {onSignIn && <button onClick={onSignIn} className="inline-flex items-center py-[14px] -my-[14px] text-[10px] md:text-[11px] tracking-[0.24em] uppercase text-platinum-muted hover:text-platinum transition-colors duration-500">Sign In</button>}
-            <button onClick={onBegin} className="text-[10px] md:text-[11px] tracking-[0.24em] uppercase text-platinum/70 hover:text-platinum transition-colors duration-500 flex items-center gap-2 py-[14px] -my-[14px]">
-              Enter <ArrowUpRight className="w-3 h-3" />
-            </button>
-          </div>
-        </div>
-      </nav>
-
       {/* JOURNEY — the 5-act trailer, now a single scroll-scrubbed clip
           (desktop) / autoplay-in-view loop (mobile) instead of five separate
           act clips. See components/fx/JourneyScrub.jsx. The old per-act
@@ -469,11 +453,21 @@ function Landing({ onBegin, onExplore, onSignIn }) {
             <div className="w-1.5 h-1.5 rounded-full bg-champagne" />
             <span className="text-[11px] tracking-[0.3em] uppercase text-platinum/70">Monument of Dreams</span>
           </div>
-          {onExplore && (
-            <button onClick={onExplore} className="text-[10px] tracking-[0.3em] uppercase text-platinum/55 hover:text-platinum transition-colors duration-500">
-              Community
+          <div className="flex items-center gap-6 md:gap-8">
+            {onExplore && (
+              <button onClick={onExplore} className="text-[10px] tracking-[0.3em] uppercase text-platinum/55 hover:text-platinum transition-colors duration-500">
+                Community
+              </button>
+            )}
+            {onSignIn && (
+              <button onClick={onSignIn} className="text-[10px] tracking-[0.3em] uppercase text-platinum/55 hover:text-platinum transition-colors duration-500">
+                Sign In
+              </button>
+            )}
+            <button onClick={onBegin} className="text-[10px] tracking-[0.3em] uppercase text-platinum/55 hover:text-platinum transition-colors duration-500">
+              Enter
             </button>
-          )}
+          </div>
           <div className="text-[10px] tracking-[0.35em] uppercase text-platinum/55">MMXXV · No journey forgotten</div>
         </div>
       </footer>
