@@ -75,6 +75,11 @@ agenthub/agents/youtube/db
 # Trailer clips — served as static/CDN assets, never committed (see public/videos/README.md)
 /public/videos/*.mp4
 
+# Promises section background — R2-served like the trailer clips, not a small
+# poster, so it does not get committed either.
+/public/videos/promises-bg.jpg
+/public/videos/promises-bg-mobile.jpg
+
 # Build caches
 .cache/
 

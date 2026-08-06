@@ -23,6 +23,8 @@ import Typewriter from '@/components/fx/Typewriter';
 import SmoothScroll from '@/components/fx/SmoothScroll';
 import JourneyScrub from '@/components/fx/JourneyScrub';
 import { EASE, SPRING_SOFT, SPRING_SNAPPY, SPRING_STONE, SPRING_STONE_HEAVY } from '@/lib/motion';
+import { useAutoplayInView } from '@/lib/useAutoplayInView';
+import { videoSrc } from '@/lib/videoSrc';
 
 // Races a promise against a timeout so auth/network calls can never hang the UI silently.
 function withTimeout(promise, ms, message) {
@@ -136,6 +138,93 @@ function FirstStoneScene() {
           ))}
         </div>
       </motion.div>
+    </section>
+  );
+}
+
+/* ── Promises — static full-bleed section right after the 5 acts.
+   No scroll-scrub, no video: a still image (object-cover) with a dark scrim,
+   three editorial promises laid out side by side. Desktop/mobile source
+   switching happens once, in the <picture>, so only the needed image is
+   ever fetched. */
+const PROMISES = [
+  { title: <>Nothing <span className="italic text-champagne">forgotten</span></>, body: 'Every moment you inscribe stays. Nothing fades, nothing is lost.' },
+  { title: <>Every step <span className="italic text-champagne">counts</span></>, body: 'The climb matters as much as the summit.' },
+  { title: <>Built to <span className="italic text-champagne">endure</span></>, body: 'A Monument outlasts you. What you build here, remains.' },
+];
+
+function PromisesScene() {
+  return (
+    <section className="relative bg-black overflow-hidden min-h-[100svh] flex items-center">
+      <picture>
+        <source media="(max-width: 768px)" srcSet={videoSrc('/videos/promises-bg-mobile.jpg')} />
+        <img src={videoSrc('/videos/promises-bg.jpg')} alt="" aria-hidden className="absolute inset-0 w-full h-full object-cover" />
+      </picture>
+      <div aria-hidden className="absolute inset-0 bg-black/55" />
+      <div className="relative w-full max-w-[1200px] mx-auto px-8 md:px-16 py-32 md:py-40 grid md:grid-cols-3 gap-16 md:gap-12">
+        {PROMISES.map((p, i) => (
+          <motion.div
+            key={i}
+            initial={{ opacity: 0, y: 24 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: '-100px' }}
+            transition={{ duration: 1.2, delay: i * 0.15, ease: EASE }}
+          >
+            <h3 className="font-serif font-display text-[clamp(30px,4vw,52px)] leading-[1.1] track-title text-platinum">
+              {p.title}
+            </h3>
+            <p className="mt-5 text-platinum-muted text-base leading-[1.65] max-w-sm">{p.body}</p>
+          </motion.div>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+/* ── Finale — full-bleed video close, right before the footer. Simple
+   native loop (autoplay/muted/loop/playsInline via useAutoplayInView) —
+   no scroll-scrub. If the loop seam turns out visible in testing, the
+   fallback is a short crossfade between two overlapping <video> elements
+   swapped just before the seam; not built yet since it can't be judged
+   without watching it play. */
+function FinaleScene({ onBegin }) {
+  const videoRef = useRef(null);
+  const reduce = useReducedMotion();
+  useAutoplayInView({ videoRef, enabled: !reduce });
+
+  return (
+    <section className="relative bg-black overflow-hidden min-h-[100svh] flex items-center justify-center">
+      <video
+        ref={videoRef}
+        aria-hidden
+        muted
+        playsInline
+        preload="none"
+        poster="/videos/finale-poster.jpg"
+        className="absolute inset-0 w-full h-full object-cover pointer-events-none"
+      >
+        <source src={videoSrc('/videos/finale-mobile.mp4')} media="(max-width: 768px)" type="video/mp4" />
+        <source src={videoSrc('/videos/finale.mp4')} type="video/mp4" />
+      </video>
+      <div aria-hidden className="absolute inset-0 bg-black/50" />
+      <div className="relative text-center px-6">
+        <h2 className="font-serif font-display text-[clamp(40px,8vw,92px)] leading-[0.98] track-display text-platinum">
+          <LineReveal lines={[<>What <span key="r" className="italic text-champagne">remains.</span></>]} />
+        </h2>
+        <Magnetic className="mt-12 inline-block">
+          <motion.button
+            initial={{ opacity: 0, y: 10 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 1.6, delay: 0.7 }}
+            onClick={onBegin}
+            className="btn-premium btn-solid sheen group px-12 py-5 rounded-full text-[11px] tracking-[0.24em] uppercase font-medium inline-flex items-center gap-3"
+          >
+            Raise my Monument
+            <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform duration-500" />
+          </motion.button>
+        </Magnetic>
+      </div>
     </section>
   );
 }
@@ -335,6 +424,9 @@ function Landing({ onBegin, onExplore, onSignIn }) {
           and public/videos/act01…05*. */}
       <JourneyScrub id="ethos" onBegin={onBegin} />
 
+      {/* PROMISES — static full-bleed section, right after the 5 acts */}
+      <PromisesScene />
+
       {/* METHOD — The First Stone */}
       <FirstStoneScene />
 
@@ -445,6 +537,9 @@ function Landing({ onBegin, onExplore, onSignIn }) {
           </button>
         </div>
       </section>
+
+      {/* FINALE — full-bleed video close, right before the footer */}
+      <FinaleScene onBegin={onBegin} />
 
       {/* FOOTER */}
       <footer className="bg-black">
