@@ -22,6 +22,8 @@ import GuardianPresence from '@/components/fx/GuardianPresence';
 import Typewriter from '@/components/fx/Typewriter';
 import SmoothScroll from '@/components/fx/SmoothScroll';
 import JourneyScrub from '@/components/fx/JourneyScrub';
+import SplitReveal from '@/components/fx/SplitReveal';
+import { useScrollReveal } from '@/lib/useScrollReveal';
 import { EASE, SPRING_SOFT, SPRING_SNAPPY, SPRING_STONE, SPRING_STONE_HEAVY } from '@/lib/motion';
 import { useAutoplayInView } from '@/lib/useAutoplayInView';
 import { videoSrc } from '@/lib/videoSrc';
@@ -113,22 +115,26 @@ const RITE_ACTS = [
 ];
 
 function FirstStoneScene() {
+  // Section 2 of the GSAP migration — see PromisesScene for the pattern this
+  // repeats: intro block fades+rises as a unit (title additionally splits
+  // into lines via SplitReveal), acts grid staggers in as its own group.
+  const introRef = useRef(null);
+  const gridRef = useRef(null);
+  useScrollReveal(introRef, { y: 20, duration: 1.2 });
+  useScrollReveal(gridRef, { childSelector: ':scope > div', y: 20, duration: 1, stagger: 0.12, start: 'top 85%' });
+
   return (
     <section id="how" className="relative bg-black">
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        whileInView={{ opacity: 1, y: 0 }}
-        viewport={{ once: true, margin: '-100px' }}
-        transition={{ duration: 1.2, ease: EASE }}
-        className="max-w-[1100px] mx-auto px-8 md:px-14 py-32 md:py-48"
-      >
-        <h2 className="font-serif font-display text-[clamp(34px,5vw,56px)] leading-[1.05] track-title text-platinum">
-          Three acts. <span className="italic text-champagne">One life.</span>
-        </h2>
-        <p className="mt-8 text-platinum-muted text-base leading-[1.65] max-w-xl">
-          A single, deliberate ritual, repeated across a lifetime until it becomes the thing you leave behind.
-        </p>
-        <div className="mt-20 grid md:grid-cols-3 gap-12 md:gap-10">
+      <div className="max-w-[1100px] mx-auto px-8 md:px-14 py-32 md:py-48">
+        <div ref={introRef}>
+          <SplitReveal as="h2" className="font-serif font-display text-[clamp(34px,5vw,56px)] leading-[1.05] track-title text-platinum">
+            Three acts. <span className="italic text-champagne">One life.</span>
+          </SplitReveal>
+          <p className="mt-8 text-platinum-muted text-base leading-[1.65] max-w-xl">
+            A single, deliberate ritual, repeated across a lifetime until it becomes the thing you leave behind.
+          </p>
+        </div>
+        <div ref={gridRef} className="mt-20 grid md:grid-cols-3 gap-12 md:gap-10">
           {RITE_ACTS.map((a) => (
             <div key={a.n}>
               <div className="eyebrow-accent mb-4">{a.n}</div>
@@ -137,7 +143,7 @@ function FirstStoneScene() {
             </div>
           ))}
         </div>
-      </motion.div>
+      </div>
     </section>
   );
 }
@@ -154,6 +160,12 @@ const PROMISES = [
 ];
 
 function PromisesScene() {
+  const gridRef = useRef(null);
+  // GSAP pilot section — see components/fx/SplitReveal.jsx and
+  // lib/useScrollReveal.js. Cards fade+rise together (staggered), titles
+  // additionally split into lines that rise out of their own mask.
+  useScrollReveal(gridRef, { childSelector: ':scope > div', y: 24, duration: 1.2, stagger: 0.15 });
+
   return (
     <section className="relative bg-black overflow-hidden min-h-[100svh]">
       <picture>
@@ -164,20 +176,14 @@ function PromisesScene() {
           backdrop to darken. Just enough to keep the text readable. */}
       <div aria-hidden className="absolute inset-0 bg-black/20" />
       <div className="absolute inset-0 flex items-center">
-        <div className="relative w-full max-w-[1200px] mx-auto px-8 md:px-16 grid md:grid-cols-3 gap-16 md:gap-12">
+        <div ref={gridRef} className="relative w-full max-w-[1200px] mx-auto px-8 md:px-16 grid md:grid-cols-3 gap-16 md:gap-12">
           {PROMISES.map((p, i) => (
-            <motion.div
-              key={i}
-              initial={{ opacity: 0, y: 24 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, margin: '-100px' }}
-              transition={{ duration: 1.2, delay: i * 0.15, ease: EASE }}
-            >
-              <h3 className="font-serif font-display text-[clamp(30px,4vw,52px)] leading-[1.1] track-title text-platinum">
+            <div key={i}>
+              <SplitReveal as="h3" className="font-serif font-display text-[clamp(30px,4vw,52px)] leading-[1.1] track-title text-platinum">
                 {p.title}
-              </h3>
+              </SplitReveal>
               <p className="mt-5 text-platinum-muted text-base leading-[1.65] max-w-sm">{p.body}</p>
-            </motion.div>
+            </div>
           ))}
         </div>
       </div>
@@ -193,11 +199,15 @@ function PromisesScene() {
    without watching it play. */
 function FinaleScene({ onBegin }) {
   const videoRef = useRef(null);
+  const buttonRef = useRef(null);
   const reduce = useReducedMotion();
   useAutoplayInView({ videoRef, enabled: !reduce });
+  // Section 6 (last) of the GSAP migration — title splits via SplitReveal,
+  // button fades in after (same 1.6s/0.7s delay the Framer Motion version used).
+  useScrollReveal(buttonRef, { y: 10, duration: 1.6, delay: 0.7 });
 
   return (
-    <section className="relative bg-black overflow-hidden min-h-[100svh]">
+    <section id="finale" className="relative bg-black overflow-hidden min-h-[100svh]">
       <video
         ref={videoRef}
         aria-hidden
@@ -215,21 +225,18 @@ function FinaleScene({ onBegin }) {
       <div aria-hidden className="absolute inset-0 bg-black/20" />
       <div className="absolute inset-0 flex items-center justify-center">
         <div className="relative text-center px-6">
-          <h2 className="font-serif font-display text-[clamp(40px,8vw,92px)] leading-[0.98] track-display text-platinum">
-            <LineReveal lines={[<>What <span key="r" className="italic text-champagne">remains.</span></>]} />
-          </h2>
+          <SplitReveal as="h2" className="font-serif font-display text-[clamp(40px,8vw,92px)] leading-[0.98] track-display text-platinum">
+            What <span className="italic text-champagne">remains.</span>
+          </SplitReveal>
           <Magnetic className="mt-12 inline-block">
-            <motion.button
-              initial={{ opacity: 0, y: 10 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 1.6, delay: 0.7 }}
+            <button
+              ref={buttonRef}
               onClick={onBegin}
               className="btn-premium btn-solid sheen group px-12 py-5 rounded-full text-[11px] tracking-[0.24em] uppercase font-medium inline-flex items-center gap-3"
             >
               Raise my Monument
               <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform duration-500" />
-            </motion.button>
+            </button>
           </Magnetic>
         </div>
       </div>
@@ -412,6 +419,140 @@ function Starfield({ density = 0.00025, parallax = 0.35 }) {
   return <canvas ref={canvasRef} className="absolute inset-0 w-full h-full pointer-events-none" style={{ display: 'block' }} />;
 }
 
+/* ── Mentor (Guardian, #mentor) — Section 3 of the GSAP migration: same
+   pattern as FirstStoneScene. Left column's title splits via SplitReveal,
+   its feature list staggers in as a group; right column (quote card)
+   reveals as a single block, same 1.8s duration the Framer Motion version
+   used so the Typewriter's startDelay still lands after the card settles. */
+const MENTOR_FEATURES = ['Remembers every entry of your journey', 'Connects memories you cannot see', 'Reminds you how much you have grown', 'Speaks only in the language of your story'];
+
+function MentorSection() {
+  const introRef = useRef(null);
+  const listRef = useRef(null);
+  const cardRef = useRef(null);
+  useScrollReveal(introRef, { y: 20, duration: 1.2 });
+  useScrollReveal(listRef, { childSelector: ':scope > div', y: 16, duration: 0.9, stagger: 0.1 });
+  useScrollReveal(cardRef, { y: 30, duration: 1.8 });
+
+  return (
+    <section id="mentor" className="relative bg-black">
+      <div className="max-w-[1200px] mx-auto px-8 md:px-14 py-32 md:py-48 grid md:grid-cols-12 gap-16 md:gap-20 items-center">
+        <div className="md:col-span-6">
+          <div ref={introRef}>
+            <div className="eyebrow-accent mb-6">Guardian of the Journey</div>
+            <SplitReveal as="h2" className="font-serif font-display text-[clamp(34px,5vw,56px)] leading-[1.05] track-title text-platinum">
+              An intelligence that <span className="italic text-champagne">walks with you.</span>
+            </SplitReveal>
+            <p className="mt-8 text-platinum-muted text-base leading-[1.65] max-w-lg">
+              The Guardian is not a coach or a chatbot. It remembers every stone you have laid. It never gives generic motivation. It only speaks to you using your own story. When you forget, it reminds you how far you have already come.
+            </p>
+          </div>
+          <div ref={listRef} className="mt-14 space-y-5 max-w-md">
+            {MENTOR_FEATURES.map((f) => (
+              <div key={f} className="flex items-start gap-4 text-platinum/70">
+                <div className="mt-2.5 w-1 h-1 rounded-full bg-champagne shrink-0" />
+                <span className="text-[15px] font-light leading-relaxed">{f}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+        <div ref={cardRef} className="md:col-span-6">
+          <div className="card-glow relative overflow-hidden p-10 md:p-14 rounded-sm">
+            {/* the room breathes behind the Guardian's words — same breath
+                GuardianPresence uses wherever the Guardian is "in the room" */}
+            <span aria-hidden className="absolute inset-0 -z-10 rounded-sm bg-champagne/[0.06] blur-2xl animate-atmosphere-breath pointer-events-none" />
+            <div className="eyebrow mb-8">A Sunday, quietly</div>
+            <div className="font-serif text-[clamp(22px,3vw,28px)] leading-[1.4] text-platinum">
+              &ldquo;<Typewriter
+                text="I see three restarts this month around the same block. This is not weakness. It is a signal. The story is asking for a smaller commitment, not a bigger one. Try twelve minutes tomorrow. Only twelve. Then come and inscribe it."
+                sessionKey="guardian-quote"
+                // Card fade-up above runs 1.8s; +300ms so the first
+                // character never lands while the card is still arriving.
+                startDelay={2100}
+              />&rdquo;
+            </div>
+            <div className="mt-12 pt-6 flex items-center justify-between border-t hairline-faint">
+              <div className="eyebrow">Guardian</div>
+              <div className="text-[10px] tracking-wider text-platinum/55">remembered forever</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/* ── What Endures (#forever) — Section 4 of the GSAP migration: title splits
+   via SplitReveal, checklist staggers in, card reveals as a block. These
+   three had no scroll animation before (static) — bringing them in line
+   with the sibling sections was in-scope per the migration plan. */
+const FOREVER_ITEMS = ['Your Monument, kept forever', 'The Guardian, always with you', 'Every stone preserved', 'Your timeline, never forgotten'];
+
+function ForeverSection() {
+  const titleRef = useRef(null);
+  const listRef = useRef(null);
+  const cardRef = useRef(null);
+  useScrollReveal(titleRef, { y: 20, duration: 1.2 });
+  useScrollReveal(listRef, { childSelector: ':scope > div', y: 16, duration: 0.9, stagger: 0.08 });
+  useScrollReveal(cardRef, { y: 20, duration: 1.2, start: 'top 85%' });
+
+  return (
+    <section id="forever" className="relative bg-black">
+      <div className="max-w-[1200px] mx-auto px-8 md:px-14 py-32 md:py-48">
+        <div ref={titleRef} className="max-w-2xl mb-28">
+          <div className="eyebrow mb-6">What endures</div>
+          <SplitReveal as="h2" className="font-serif font-display text-[clamp(34px,5vw,56px)] leading-[1.05] track-title text-platinum">
+            For the ones who <span className="italic text-champagne">refuse to be forgotten.</span>
+          </SplitReveal>
+        </div>
+        <div className="grid md:grid-cols-12 gap-16 md:gap-20 items-start">
+          <div ref={listRef} className="md:col-span-5 space-y-0">
+            {FOREVER_ITEMS.map((f) => (
+              <div key={f} className="flex items-center gap-4 py-5 border-b hairline-faint">
+                <Check className="w-3 h-3 text-champagne shrink-0" strokeWidth={2.5} />
+                <span className="text-platinum/70 text-[15px] font-light">{f}</span>
+              </div>
+            ))}
+          </div>
+          <div ref={cardRef} className="md:col-span-6 md:col-start-7">
+            <div className="card-glow p-10 md:p-14 rounded-sm">
+              <p className="text-platinum-muted text-base leading-[1.65] max-w-md">
+                No plans, no paywalls, no noise. Only your Monument, and the Guardian who keeps it with you.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/* ── Closing CTA — Section 5 of the GSAP migration: title splits via
+   SplitReveal, button fades in just after (small delay, same idea as the
+   staggered content in the sibling sections). */
+function ClosingCtaSection({ onBegin }) {
+  const buttonRef = useRef(null);
+  useScrollReveal(buttonRef, { y: 14, duration: 0.9, delay: 0.3, start: 'top 85%' });
+
+  return (
+    <section id="closing-cta" className="relative bg-black">
+      <div className="max-w-[900px] mx-auto px-8 md:px-14 py-32 md:py-48 text-center">
+        <SplitReveal as="h2" className="font-serif font-display text-[clamp(30px,4vw,44px)] leading-[1.08] track-title text-platinum">
+          The first stone <span className="italic text-champagne">won&rsquo;t lay itself.</span>
+        </SplitReveal>
+        <button
+          ref={buttonRef}
+          onClick={onBegin}
+          className="btn-premium btn-outline group mt-12 inline-flex items-center gap-3 px-10 py-4 rounded-full text-[11px] tracking-[0.24em] uppercase"
+        >
+          Begin your journey
+          <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform duration-500" />
+        </button>
+      </div>
+    </section>
+  );
+}
+
 function Landing({ onBegin, onExplore, onSignIn }) {
   const reduce = useReducedMotion();
   // Reading progress across the whole landing — the champagne hairline up top.
@@ -439,112 +580,18 @@ function Landing({ onBegin, onExplore, onSignIn }) {
       <FirstStoneScene />
 
       {/* MENTOR */}
-      <section id="mentor" className="relative bg-black">
-        <div className="max-w-[1200px] mx-auto px-8 md:px-14 py-32 md:py-48 grid md:grid-cols-12 gap-16 md:gap-20 items-center">
-          <div className="md:col-span-6">
-            <div className="eyebrow-accent mb-6">Guardian of the Journey</div>
-            <h2 className="font-serif font-display text-[clamp(34px,5vw,56px)] leading-[1.05] track-title text-platinum">
-              <LineReveal
-                lines={[
-                  <span key="l1">An intelligence that <span className="italic text-champagne">walks with you.</span></span>,
-                ]}
-              />
-            </h2>
-            <p className="mt-8 text-platinum-muted text-base leading-[1.65] max-w-lg">
-              The Guardian is not a coach or a chatbot. It remembers every stone you have laid. It never gives generic motivation. It only speaks to you using your own story. When you forget, it reminds you how far you have already come.
-            </p>
-            <div className="mt-14 space-y-5 max-w-md">
-              {['Remembers every entry of your journey', 'Connects memories you cannot see', 'Reminds you how much you have grown', 'Speaks only in the language of your story'].map((f) => (
-                <div key={f} className="flex items-start gap-4 text-platinum/70">
-                  <div className="mt-2.5 w-1 h-1 rounded-full bg-champagne shrink-0" />
-                  <span className="text-[15px] font-light leading-relaxed">{f}</span>
-                </div>
-              ))}
-            </div>
-          </div>
-          <motion.div initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, margin: '-100px' }} transition={{ duration: 1.8, ease: EASE }} className="md:col-span-6">
-            <div className="card-glow relative overflow-hidden p-10 md:p-14 rounded-sm">
-              {/* the room breathes behind the Guardian's words — same breath
-                  GuardianPresence uses wherever the Guardian is "in the room" */}
-              <span aria-hidden className="absolute inset-0 -z-10 rounded-sm bg-champagne/[0.06] blur-2xl animate-atmosphere-breath pointer-events-none" />
-              <div className="eyebrow mb-8">A Sunday, quietly</div>
-              <div className="font-serif text-[clamp(22px,3vw,28px)] leading-[1.4] text-platinum">
-                &ldquo;<Typewriter
-                  text="I see three restarts this month around the same block. This is not weakness. It is a signal. The story is asking for a smaller commitment, not a bigger one. Try twelve minutes tomorrow. Only twelve. Then come and inscribe it."
-                  sessionKey="guardian-quote"
-                  // Card fade-up above runs 1.8s; +300ms so the first
-                  // character never lands while the card is still arriving.
-                  startDelay={2100}
-                />&rdquo;
-              </div>
-              <div className="mt-12 pt-6 flex items-center justify-between border-t hairline-faint">
-                <div className="eyebrow">Guardian</div>
-                <div className="text-[10px] tracking-wider text-platinum/55">remembered forever</div>
-              </div>
-            </div>
-          </motion.div>
-        </div>
-      </section>
+      <MentorSection />
 
       {/* WHAT ENDURES — the honest close of the landing: what a Monument holds,
           nothing sold. No price, no CTA of its own (the closing band below
           carries the single free call to action). */}
-      <section id="forever" className="relative bg-black">
-        <div className="max-w-[1200px] mx-auto px-8 md:px-14 py-32 md:py-48">
-          <div className="max-w-2xl mb-28">
-            <div className="eyebrow mb-6">What endures</div>
-            <h2 className="font-serif font-display text-[clamp(34px,5vw,56px)] leading-[1.05] track-title text-platinum">
-              <LineReveal
-                lines={[
-                  <span key="l1">For the ones who <span className="italic text-champagne">refuse to be forgotten.</span></span>,
-                ]}
-              />
-            </h2>
-          </div>
-          <div className="grid md:grid-cols-12 gap-16 md:gap-20 items-start">
-            <div className="md:col-span-5 space-y-0">
-              {['Your Monument, kept forever', 'The Guardian, always with you', 'Every stone preserved', 'Your timeline, never forgotten'].map((f) => (
-                <div key={f} className="flex items-center gap-4 py-5 border-b hairline-faint">
-                  <Check className="w-3 h-3 text-champagne shrink-0" strokeWidth={2.5} />
-                  <span className="text-platinum/70 text-[15px] font-light">{f}</span>
-                </div>
-              ))}
-            </div>
-            <div className="md:col-span-6 md:col-start-7">
-              <div className="card-glow p-10 md:p-14 rounded-sm">
-                <p className="text-platinum-muted text-base leading-[1.65] max-w-md">
-                  No plans, no paywalls, no noise. Only your Monument, and the Guardian who keeps it with you.
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
+      <ForeverSection />
 
       {/* CLOSING CTA — the page must never end without a call to action. A quiet
           band after Premium: one serif line, one outline button. Deliberately
           light and distinct from the Act 5 finale (no video, no repeated copy,
           no solid button) so it closes the page without competing with it. */}
-      <section className="relative bg-black">
-        <div className="max-w-[900px] mx-auto px-8 md:px-14 py-32 md:py-48 text-center">
-          <motion.h2
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, margin: '-100px' }}
-            transition={{ duration: 1.4, ease: EASE }}
-            className="font-serif font-display text-[clamp(30px,4vw,44px)] leading-[1.08] track-title text-platinum"
-          >
-            The first stone <span className="italic text-champagne">won&rsquo;t lay itself.</span>
-          </motion.h2>
-          <button
-            onClick={onBegin}
-            className="btn-premium btn-outline group mt-12 inline-flex items-center gap-3 px-10 py-4 rounded-full text-[11px] tracking-[0.24em] uppercase"
-          >
-            Begin your journey
-            <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform duration-500" />
-          </button>
-        </div>
-      </section>
+      <ClosingCtaSection onBegin={onBegin} />
 
       {/* FINALE — full-bleed video close, right before the footer */}
       <FinaleScene onBegin={onBegin} />
